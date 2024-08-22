@@ -188,7 +188,7 @@ function generateText(evt) {
   if (cwplayer.Playing) cwplayer.stop();
   zoneresult.style.display = 'none';
   cwsbm.disabled = false;
-  iptfree.value = cwtext.value = '';
+  cwtext.value = '';
   cw_options.lesson = parseInt(sellesson.value, 10);
   cw_options.wpm = parseInt(selwpm.value, 10);
   cw_options.eff = parseInt(seleffwpm.value, 10);
@@ -431,7 +431,8 @@ window.onload = async () => {
   };
   chkfree.onchange = (evt) => {
     cwplayer.stop();
-    zoneresultfree.innerHTML = 'Press space to hear first char';
+    iptfree.value = cwtext.value = '';
+    zoneresultfree.innerHTML = 'Press space to hear first character';
     window.freeerr = 0;
     window.freetotal = 1;
     window.freefirsttry = true;
