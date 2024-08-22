@@ -7,8 +7,8 @@ Just copy [cw-trainer.html](cw-trainer.html) on your disk or your smartphone and
 The `CWPlayer` class (defined at the bottom of [cw-trainer.html](cw-trainer.html)) can be reused :
 
 ```HTML
-  <textarea id="cwtext" rows="4" cols="43" spellcheck="false">CQ CQ CQ DE F8XYZ F8XYZ F8XYZ AR</textarea><br>
-  <input type="button" onclick="player.play(' '+cwtext.value)" value="play">
+  <textarea id="cwtext" rows="4" cols="43" spellcheck="false">CQ CQ CQ DE F8XYZ AR</textarea><br>
+  <input type="button" onclick="player.play(cwtext.value)" value="play">
   <input type="button" onclick="player.pause()" value="pause">
   <input type="button" onclick="player.stop()" value="stop">
   <input type="button" onclick="player.WPM = 15" value="15 WPM">
@@ -19,6 +19,19 @@ The `CWPlayer` class (defined at the bottom of [cw-trainer.html](cw-trainer.html
   <input type="button" onclick="player.Tone = 1500" value="1500 Hz">
   <script>
     /* replace this comment by the CWPlayer class taken from cw-trainer.html */
+    /* or insert the script as external JS file */
     var player = new CWPlayer();
+    //  or specify options
+    //var player = new CWPlayer({'wpm': 25, 'effwpm': 12, 'tone': 1200});
+
+    // Utility function (static)
+    var translated = CWPlayer.translate("Bonjour");
+    console.log(translated);
+    // '-... --- -. .--- --- ..- .-.'
+
+    // Input text is cleaned : 
+    player.Text = "StrÀngé ïnpùt tèxt";
+    console.log(player.Text);
+    // 'STRANGE INPUT TEXT'
   </script>
 ```

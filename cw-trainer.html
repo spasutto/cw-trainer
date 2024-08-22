@@ -459,8 +459,7 @@ class CWPlayer {
     '?' : '..--..'
   };
   DEFAULT_OPTIONS = {
-    volume : 0.2,
-    elperiod : 0.06, // 1 wpm <=> 50 units/m <=> 50/60
+    elperiod : 0.06, // 20WPM.
     spperiod : 0.06,
     tone : 800,
     ews : 1
@@ -472,6 +471,12 @@ class CWPlayer {
     this.pstrttime = 0;
     this.events = {};
     this.oscplaying = false;
+    if (this.options.wpm) {
+      this.WPM = this.options.wpm;
+    }
+    if (this.options.effwpm) {
+      this.EffWPM = this.options.effwpm;
+    }
   }
 
   get WPM() {
