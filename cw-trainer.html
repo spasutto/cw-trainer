@@ -1,0 +1,703 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
+    <title>CW Trainer</title>
+
+    <style>
+      body {
+        width : 340px;
+        font-family: sans-serif;
+      }
+      h2 {
+        margin : 0;
+      }
+      span {
+        letter-spacing: 1px;
+        font-family: monospace;
+        font-size: large;
+      }
+      table {
+        width: 100%;
+        max-height: 500px;
+        display: block;
+        overflow-y: auto;
+      }
+      th {
+        position: sticky;
+        top: 0;
+        background-color: white;
+      }
+      th, td {
+        padding:2px 15px;
+        text-align : center;
+      }
+      td:not(:last-child), th:not(:last-child) {
+        border-right: solid 1px;
+      }
+      a {
+        text-decoration : none;
+      }
+      input[type="button"] {
+        display: inline-block !important;
+      }
+      #player button {
+        width: 32px;
+        height: 28px;
+        vertical-align: top;
+        margin-bottom: 5px;
+        padding: 2px 0 0 0;
+      }
+      .svg_inactif {
+        fill: grey;
+      }
+      .right {
+        color : green;
+      }
+      .wrong {
+        color: #d00;
+        text-decoration : line-through;
+        font-weight : bold;
+      }
+    </style>
+  </head>
+<body>
+  <h2>CW Trainer <a href="#" onclick="selfDownload()" title="save CW Trainer for offline use">&#x0001f4be;</a></h2>
+  <label for="sellesson">Lesson : </label>
+  <select id="sellesson">
+    <option value='1'>1 - K, M</option><option value='2'>2 - U</option><option value='3'>3 - R</option><option value='4'>4 - E</option><option value='5'>5 - S</option><option value='6'>6 - N</option><option value='7'>7 - A</option><option value='8'>8 - P</option><option value='9'>9 - T</option><option value='10'>10 - L</option><option value='11'>11 - W</option><option value='12'>12 - I</option><option value='13'>13 - .</option><option value='14'>14 - J</option><option value='15'>15 - Z</option><option value='16'>16 - =</option><option value='17'>17 - F</option><option value='18'>18 - O</option><option value='19'>19 - Y</option><option value='20'>20 - ,</option><option value='21'>21 - V</option><option value='22'>22 - G</option><option value='23'>23 - 5</option><option value='24'>24 - /</option><option value='25'>25 - Q</option><option value='26'>26 - 9</option><option value='27'>27 - 2</option><option value='28'>28 - H</option><option value='29'>29 - 3</option><option value='30'>30 - 8</option><option value='31'>31 - B</option><option value='32'>32 - ?</option><option value='33'>33 - 4</option><option value='34'>34 - 7</option><option value='35'>35 - C</option><option value='36'>36 - 1</option><option value='37'>37 - D</option><option value='38'>38 - 6</option><option value='39'>39 - 0</option><option value='40'>40 - X</option>
+    <option value='41'>QSO</option>
+  </select><BR>
+  <label for="selwpm">WPM : </label>
+  <input type="number" id="selwpm" min="1" max="60">
+  <label for="seleffwpm">Eff. WPM : </label>
+  <input type="number" id="seleffwpm" min="1" max="60"><BR>
+  <label for="selews">Extra word spacing : </label>
+  <input type="number" id="selews" min="0" max="10"><BR>
+  <label for="grplen">Words length : </label>
+  <select id="grplen">
+    <option value="-1">random</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option>
+  </select>
+  <label for="groupsnb">Groups : </label>
+  <input type="number" id="groupsnb" min="1" max="250">
+  <div id="player">
+    <button id="btnstop" onclick="cwplayer.stop()" title="stop playing" class="svg_inactif" disabled><!--x25A0-->
+      <svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="20" height="20" viewBox="0 0 20 20">
+        <rect width="16" height="16" x="2" y="2" rx="1" ry="1"/>
+      </svg>
+    </button>
+    <button id="btnplay" onclick="cwplayer.play()" title="start playing"><!--&#x25B6;-->
+      <svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="20" height="20" viewBox="0 0 20 20">
+        <polygon points="1,1 19,10 1,19" />
+      </svg>
+    </button>
+    <button id="btnpause" onclick="cwplayer.pause()" title="pause playing" class="svg_inactif" disabled><!--&#x23F8;-->
+      <svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="20" height="20" viewBox="0 0 20 20">
+        <rect width="5" height="15" x="3" y="2" rx="1" ry="1"/>
+        <rect width="5" height="15" x="12" y="2" rx="1" ry="1"/>
+      </svg>
+    </button>
+  </div>
+  <!--<span id="lamp">CW</span>-->
+  <textarea id="cwtext" rows="4" cols="43" spellcheck="false"></textarea><br>
+  <input type="button" value="submit" id="cwsbm"><br>
+  <div id="zoneresult" style="display:none;">
+    <div id="zonerestext"></div>
+    <input type="button" value="retry" id="retrybtn">
+    <input type="button" value="next lesson !" id="nxtlesson">
+  </div>
+<script>
+var cw_options = {
+  lesson : 1,
+  grouplen : 5,
+  groupsnb : 10,
+  wpm : 25,
+  eff : 17,
+  ews : 2
+};
+var cwgentext = "";
+var kochcars = ['K', 'M', 'U', 'R', 'E', 'S', 'N', 'A', 'P', 'T', 'L', 'W', 'I', '.', 'J', 'Z', '=', 'F', 'O', 'Y', ',', 'V', 'G', '5', '/', 'Q', '9', '2', 'H', '3', '8', 'B', '?', '4', '7', 'C', '1', 'D', '6', '0', 'X'];
+var QSOs = [
+  //http://lidscw.org/resources/cq-qso-template
+  'CQ CQ CQ DE %IND1% %IND1% %IND1% PSE K',
+  '%IND2%: %IND1% DE %IND2% %IND2% %IND2% KN',
+  '%IND1%: %IND2% DE %IND1% = GA ES TNX FER CALL = UR RST %RST1% %RST1% = NAME IS JANE JANE QTH NEW YORK NEW YORK = HW? AR %IND2% DE %IND1% KN',
+  '%IND2%: %IND1% DE %IND2% = GA JANE TNX FB RPT UR RST %RST2% %RST2% =  OP JOHN JOHN ES QTH YORK YORK THE OLD ONE HI = HW? AR %IND1% DE %IND2% KN',
+  '%IND1%: %IND2% DE %IND1% = R TNX RPT ES INFO JOHN = RIG IS FTDX1200 PWR 100W ANT IS YAGI = WX IS SUNNY ES WARM 100F = HW? AR %IND2% DE %IND1% KN',
+  '%IND2%: %IND1% DE %IND2% = RIG IS FT817 5W ES ANT IS DIPOLE = WX IS WET AND COLD AR %IND1% DE %IND2% KN',
+  '%IND1%: %IND2% DE %IND1% = MNI TNX INFO ES FB QSO = PSE QSL VIA BURO = 73 ES CUAGN AR %IND2% DE %IND1% SK',
+  '%IND2%: %IND1% DE %IND2% = FB JANE TNX FER NICE QSO 73 ES BCNU AR %IND1% DE %IND2% SK',
+  //https://morsecode.ninja/files/Sample-Rag-Chew-QSO-v10.pdf
+  'CQ CQ de %IND1% %IND1% K',
+  '%IND1% de %IND2% %IND2% K',
+  '%IND2% DE %IND1% = GA ES TNX FER THE CALL = UR RST IS %RST1% %RST1% = NAME HR STEVE STEVE MY QTH IS WY WY = HW CPY? %IND2% DE %IND1% KN',
+  '%IND1% DE %IND2% R GA STEVE TNX FB RPT = RST %RST2% %RST2% = OP HR ROY ROY ES QTH LAX LAX = HW? %IND1% DE %IND2% K',
+  'BK NAME? NAME? BK',
+  'BK ROY ROY HW? BK',
+  '%IND2% DE %IND1% = R R R TNX FER THE RPT ES INFO ROY = MY RIG HR IS KX3 RUNS 100W WID AMP ES ANT IS A 4 ELE YAGI UP 76 FT = WX IS WET AND CO0L 45F = HW NW? %IND2% DE %IND1% K',
+  '%IND1% DE %IND2% SOLID COPY STEVE = RIG ELECRAFT K3S RUNS KW ANT IS LOOP AT 65 FT = WX SUNNY ES WARM 88F = AGE 70 HAM FOR 40 YEARS = SO HW? %IND1% DE %IND2% KN',
+  '%IND2% DE %IND1% = FB COPY ROY WID QSB = AGE HR IS 50 ES BN A HAM FER 6 YRS = RECENTLY RETIRED BUT NW BACK TO WORK AS CERTIFIED TOWER MONKEY = %IND2% DE %IND1% K',
+  '%IND1% DE %IND2% FB STEVE = RECENTLY RETIRED NURSE ANESTHETIST = LIVING THE DREAM = HW? %IND1% DE %IND2% K',
+  '%IND2% DE %IND1% FB ROY = GUD CPY WID MORE QSB HR = TNX FER THE INFO ES QSO = PSE QSL VIA LOTW = 73 ES HPE 2 CU AGN SK %IND2% DE %IND1% K',
+  '%IND1% DE %IND2% = FB STEVE WL QSL LOTW ES TNX QSO GD 73 AR SK %IND1% DE %IND2% E E',
+  '%IND1% E E'
+  ];
+function irand(start, end) {
+  if (arguments.length < 2) {
+    end = start;
+    start = 0;
+  }
+  return Math.floor(Math.random()*(++end-start))+start;
+}
+function generateRandomCallsign() {
+  const alpha = "ABCDEFGHIJKLMNPQRSTUVWXYZ";
+  let rdnchar = () => alpha.charAt(irand(alpha.length));
+  return rdnchar()+(Math.random()>0.8 ?rdnchar():'')+irand(1, 9)+rdnchar()+rdnchar()+(Math.random()>0.2?rdnchar():'')+(Math.random()>0.8 ?'/'+(Math.random()>=0.5?'P':'M'):'');
+}
+function generateRandomString(chars, len) {
+  if (len != -1) len = Math.max(2, Math.min(8, len));
+  else len = irand(2, 8);
+  return Array.apply(null, Array(len)).map(() => {
+    return chars[irand(chars.length-1)];
+  }).join('');
+}
+function generateRandomText(chars, grouplen, groupsnb) {
+  return Array.apply(null, Array(groupsnb)).map(() => generateRandomString(chars, grouplen)).join(' ');
+}
+function generateText() {
+  if (cwplayer.Playing) cwplayer.stop();
+  zoneresult.style.display = 'none';
+  cwsbm.disabled = false;
+  cwtext.value = '';
+  cw_options.lesson = parseInt(sellesson.value, 10);
+  cw_options.wpm = parseInt(selwpm.value, 10);
+  cw_options.eff = parseInt(seleffwpm.value, 10);
+  cw_options.grouplen = parseInt(grplen.value, 10);
+  cw_options.groupsnb = parseInt(groupsnb.value, 10);
+  cw_options.ews = parseInt(selews.value, 10);
+  cwplayer.WPM = cw_options.wpm;
+  cwplayer.EffWPM = cw_options.eff;
+  cwplayer.EWS = cw_options.ews;
+  if (cw_options.lesson>40) {
+    let callsign1 = generateRandomCallsign();
+    let callsign2 = generateRandomCallsign();
+    cwgentext = QSOs[irand(QSOs.length-1)]
+        .replaceAll('%IND1%', callsign1)
+        .replaceAll('%IND2%', callsign2)
+        .replaceAll('%RST1%', ''+irand(5)+irand(9)+irand(9))
+        .replaceAll('%RST2%', ''+irand(5)+irand(9)+irand(9));
+  } else {
+    cwgentext = generateRandomText(kochcars.slice(0, cw_options.lesson+1), cw_options.grouplen, cw_options.groupsnb);
+  }
+  cwplayer.Text = ' '+cwgentext;
+  updateHash();
+  console.log('generated text : '+cwgentext);
+}
+function updateHash() {
+  window.location.hash = encodeURIComponent(sellesson.value+','+selwpm.value+','+seleffwpm.value+','+grplen.value+','+groupsnb.value+','+selews.value);
+}
+function compareStrings(str1, str2){
+/*
+ Ce qui suit est un algorithme de recherche des sous-chaines communes.
+ On filtre ensuite les résultats pour les besoins du moment
+ Source : 
+https://stackoverflow.com/questions/28321273/how-to-find-the-most-common-part-of-a-string
+https://en.wikibooks.org/wiki/Algorithm_Implementation/Strings/Longest_common_substring#JavaScript
+https://stackoverflow.com/a/34807141
+*/
+  var sequences = {};
+  if (str1 && str2) {
+    var str1Length = str1.length,
+      str2Length = str2.length,
+      num = new Array(str1Length),
+      idx = null;
+  
+    for (var i = 0; i < str1Length; i++) {
+      var subArray = new Array(str2Length);
+      for (var j = 0; j < str2Length; j++)
+        subArray[j] = 0;
+      num[i] = subArray;
+    }
+    for (var i = 0; i < str1Length; i++)
+    {
+      for (var j = 0; j < str2Length; j++)
+      {
+        if (str1[i] !== str2[j])
+          num[i][j] = 0;
+        else
+        {
+          if ((i === 0) || (j === 0))
+            num[i][j] = 1;
+          else
+            num[i][j] = 1 + num[i - 1][j - 1];
+   
+          idx = (i - num[i][j] + 1)+","+(j - num[i][j] + 1);
+          if (typeof sequences[idx] !== 'string') sequences[idx] = '';
+          sequences[idx] += str1[i];
+        }
+      }
+    }
+  }
+  sequences = Object.keys(sequences).map(k => {
+    let idxs = k.split(',');
+    return {'isrc' : parseInt(idxs[0], 10), 'idst' : parseInt(idxs[1], 10), 'text' : sequences[k]};
+  });
+
+  /******************************
+  // FILTRAGE DES RESULTATS
+   *****************************/
+  // suppression des chaines communes contenues dans des chaines plus grandes
+  sequences = sequences.filter(s =>
+    !sequences.some(s2 => s2.text.length > s.text.length && ((s2.isrc <= s.isrc && s2.isrc+s2.text.length>s.isrc) || (s2.idst <= s.idst && s2.idst+s2.text.length>s.idst)))
+  );
+  // suppression des séquences qui apparaissent dans le désordre dans la chaine test par rapport à la chaine d'entrée (ainsi que les doublons, ex 'KMKMM/NNNK')
+  sequences = sequences.filter((s, i) =>
+    !sequences.some((s2, i2) => i2 < i && s2.idst >= s.idst)
+  );
+  return {'str1':str1, 'str2':str2, 'errors':str1.length-sequences.reduce((acc, cur) => acc+=cur.text.length, 0), 'sequences': sequences};
+}
+const emptyChar = '&nbsp;';//'_';
+function formatTestString(ret) {
+  let sret = '';
+  let sequences = ret.sequences, str1=ret.str1, str2=ret.str2;
+  if (!sequences.length && str2.length) {
+    // affichage de toute la chaine de test (fausse)
+    sret += `<span class="wrong">${str2}</span>`;
+  } else if (!sequences.length && str1.length && !str2.length) {
+    // affichage du bon nombre de caractères vide
+    sret += `<span class="wrong">${emptyChar.repeat(str1.length)}</span>`;
+  } else {
+    let curl = 0;
+    sequences.forEach(s => {
+      if (s.idst > curl) {
+        // affichage de tous les caractères de la chaine de test qui ne sont pas en préambule dans la chaine d'entrée
+        sret += `<span class="wrong">${str2.substring(curl, s.idst)}</span>`;
+        curl+=(s.idst-curl);
+      }
+      if (s.isrc > curl) {
+        // affichage de tous les caractères de la chaine d'entrée qui ne sont pas en préambule dans la chaine de test
+        sret += `<span class="wrong">${emptyChar.repeat(s.isrc-curl)}</span>`;
+        curl+=(s.isrc-curl);
+      }
+      sret += `<span class="right">${s.text}</span>`;
+      curl+=s.text.length;
+    });
+    let slast = sequences[sequences.length-1];
+    let suffix = 0;
+    if (slast.idst+slast.text.length < str2.length) {
+      sret += `<span class="wrong">${str2.substring(slast.idst+slast.text.length)}</span>`;
+      suffix += str2.length-(slast.idst+slast.text.length);
+    }
+    if (slast.isrc+slast.text.length+suffix < str1.length) {
+      sret += `<span class="wrong">${emptyChar.repeat(str1.length-(slast.isrc+slast.text.length+suffix))}</span>`;
+    }
+  }
+  return sret;
+}
+function verifycw() {
+  if (cwplayer.Playing) cwplayer.stop();
+  let extractfn = (t) => t.toUpperCase().split(' ').map(e => e.trim()).filter(e => e.length > 0);
+  let inpt = extractfn(cwtext.value);
+  let verif = extractfn(cwgentext);
+  if (inpt.length < verif.length) {
+    if (confirm('Warning : it seems that you have not entered enough groups, are you sure to proceed to verification?')) {
+      inpt.push(...Array(verif.length-inpt.length).fill(''));
+    } else {
+      return;
+    }
+  }
+  cwsbm.disabled = true;
+  
+  let results = verif.map((a, i) => compareStrings(a, inpt[i]));
+  let nbchars = verif.reduce((acc, cur) => acc+cur.length, 0);
+  let nberr = results.reduce((acc, cur) => acc+cur.errors, 0);
+  let perc = (nbchars-nberr)*100/nbchars;
+  perc = Math.round(perc*10)/10;
+  zonerestext.innerHTML = `${perc}% success rate (${nbchars-nberr}/${nbchars} characters sent)<BR>`;
+  let restable = '<table><th>original</th><th>input</th><th>errors</th>'
+  results.forEach(r => {
+    restable += `<tr><td><span>${r.str1}</span></td>`;
+    restable += `<td>${formatTestString(r)}</td>`;
+    restable += `<td>${r.errors}</td></tr>`;
+  });
+  restable += '</table>';
+  zonerestext.innerHTML += restable;
+
+  nxtlesson.style.visibility = perc>=90?'visible':'hidden';
+  zoneresult.style.display = 'block';
+}
+
+let vals = decodeURIComponent(window.location.hash.substring(1)).split(',').forEach((val, i) => {
+  val = parseInt(val, 10);
+  if (isNaN(val)) return;
+  switch (i) {
+    case 0:
+      cw_options.lesson = Math.max(1, Math.min(kochcars.length-1, val));
+      break;
+    case 1:
+      cw_options.wpm = Math.max(1, Math.min(50, val));
+      break;
+    case 2:
+      cw_options.eff = Math.max(1, Math.min(50, val));
+      break;
+    case 3:
+      cw_options.grouplen = Math.max(-1, Math.min(8, val));
+      if (cw_options.grouplen == 0 || cw_options.grouplen == 1) cw_options.grouplen = 2;
+      break;
+    case 4:
+      cw_options.groupsnb = Math.max(1, Math.min(250, val));
+      break;
+    case 5:
+      cw_options.ews = Math.max(0, Math.min(10, val));
+      break;
+  }
+});
+function selfDownload() {
+  fetch(window.location.href)
+    .then( res => res.blob() )
+    .then( blob => {
+      var url = window.URL.createObjectURL(blob);
+      var a = document.createElement('a');
+      a.href = url;
+      a.download = "cw_trainer.html";
+      document.body.appendChild(a); // we need to append the element to the dom -> otherwise it will not work in firefox
+      a.click();    
+      a.remove();  //afterwards we remove the element again  
+    });  
+}
+window.onload = async () => {
+  sellesson.value = cw_options.lesson;
+  selwpm.value = cw_options.wpm;
+  seleffwpm.value = cw_options.eff;
+  grplen.value = cw_options.grouplen;
+  groupsnb.value = cw_options.groupsnb;
+  selews.value = cw_options.ews;
+  window.cwplayer = new CWPlayer();
+  cwplayer.addEventListener('play', () => {
+    btnstop.disabled = false;btnstop.classList.remove('svg_inactif');
+    btnplay.disabled = true;btnplay.classList.add('svg_inactif');
+    btnpause.disabled = false;btnpause.classList.remove('svg_inactif');
+    cwtext.focus();
+  });
+  cwplayer.addEventListener('pause', () => {
+    btnstop.disabled = false;btnstop.classList.remove('svg_inactif');
+    btnplay.disabled = false;btnplay.classList.remove('svg_inactif');
+    btnpause.disabled = true;btnpause.classList.add('svg_inactif');
+  });
+  cwplayer.addEventListener('stop', () => {
+    btnstop.disabled = true;btnstop.classList.add('svg_inactif');
+    btnplay.disabled = false;btnplay.classList.remove('svg_inactif');
+    btnpause.disabled = true;btnpause.classList.add('svg_inactif');
+  });
+  generateText();
+  sellesson.onchange = generateText;
+  selwpm.onchange = generateText;
+  seleffwpm.onchange = generateText;
+  selews.onchange = generateText;
+  grplen.onchange = generateText;
+  groupsnb.onchange = generateText;
+  cwsbm.onclick = verifycw;
+  retrybtn.onclick = generateText;
+  nxtlesson.onclick = () => {
+    sellesson.value++;
+    retrybtn.click();
+  };
+  // for testing purposes
+  //cwgentext='';cwplayer.Text=' '+cwgentext;
+};
+</script>
+
+<script>
+/*
+  https://morsecode.world/international/timing.html
+*/
+class CWPlayer {
+  static morse = {
+    ' ' : '\t',
+    'A' : '.-',
+    'B' : '-...',
+    'C' : '-.-.',
+    'D' : '-..',
+    'E' : '.',
+    'F' : '..-.',
+    'G' : '--.',
+    'H' : '....',
+    'I' : '..',
+    'J' : '.---',
+    'K' : '-.-',
+    'L' : '.-..',
+    'M' : '--',
+    'N' : '-.',
+    'O' : '---',
+    'P' : '.--.',
+    'Q' : '--.-',
+    'R' : '.-.',
+    'S' : '...',
+    'T' : '-',
+    'U' : '..-',
+    'V' : '...-',
+    'W' : '.--',
+    'X' : '-..-',
+    'Y' : '-.--',
+    'Z' : '--..',
+    '0' : '-----',
+    '1' : '.----',
+    '2' : '..---',
+    '3' : '...--',
+    '4' : '....-',
+    '5' : '.....',
+    '6' : '-....',
+    '7' : '--...',
+    '8' : '---..',
+    '9' : '----.',
+    '/' : '-..-.',
+    '+' : '.-.-.',
+    '=' : '-...-',
+    '.' : '.-.-.-',
+    ',' : '--..--',
+    '?' : '..--..'
+  };
+  DEFAULT_OPTIONS = {
+    volume : 0.2,
+    elperiod : 0.06, // 1 wpm <=> 50 units/m <=> 50/60
+    spperiod : 0.06,
+    tone : 800,
+    ews : 1
+  };
+  constructor(options) {
+    this.options = {...this.DEFAULT_OPTIONS, ...options};
+    this.text = '';
+    this.curti = -1;
+    this.pstrttime = 0;
+    this.events = {};
+    this.oscplaying = false;
+  }
+
+  get WPM() {
+    return Math.round(6 / (5 * this.options.elperiod));
+  }
+  set WPM(wpm) {
+    wpm = Math.min(60, Math.max(1, wpm));
+    // "PARIS " ==> 50 unités. à 1 WPM il faut donc 60/50 secondes pour envoyer une unité (un 'dit')
+    // Dit: 1 unit
+    // Dah: 3 units
+    // Intra-character space (the gap between dits and dahs within a character): 1 unit
+    // Inter-character space (the gap between the characters of a word): 3 units
+    // Word space (the gap between two words): 7 units
+    this.options.elperiod = 6 / (5 * wpm);
+    if (wpm<this.EffWPM) {
+      this.EffWPM = wpm;
+    }
+    console.log('WPM set to ' + this.WPM);
+  }
+  get EffWPM() {
+    return Math.round(60/(19*this.options.spperiod+31*this.options.elperiod));
+  }
+  set EffWPM(effwpm) {
+    effwpm = Math.min(60, Math.max(1, effwpm));
+    if (this.WPM<effwpm) {
+      this.WPM = effwpm;
+    }
+    this.options.spperiod = ((60/effwpm)-31*this.options.elperiod)/19;
+    console.log('Eff. WPM set to ' + this.EffWPM);
+  }
+  get EWS() { return this.options.ews; }
+  set EWS(value) {
+    value = Math.min(10, Math.max(1, value));
+    this.options.ews = value;
+  }
+  get Tone() { return this.options.tone; }
+  set Tone(value) {
+    value = Math.min(5000, Math.max(150, value));
+    this.options.tone = value;
+  }
+  
+  get Playing() { return this.playing; }
+  set Playing(value) {
+    if (this.playing) {
+      this.stop();
+    }
+  }
+  
+  get Text() {
+    return this.text;
+  }
+  set Text(value) {
+    value = CWPlayer.cleanText(value);
+    let cwtext = CWPlayer.translate(value);
+    // si on modifie le texte qui a déjà été joué on remet la lecture à 0
+    if (this.curti>=0 && (cwtext.length<=this.curti || cwtext.substring(0, this.curti) != this.cwtext.substring(0, this.curti))) {
+      this.curti = -1;
+    }
+    this.text = value;
+    this.cwtext = cwtext;
+  }
+  
+  static cleanText(text) {
+    return text.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toUpperCase().replaceAll(/[^A-Z0-9\/\+=\.,\?]/ig, ' ').replaceAll(/\s+/g, ' ');
+  }
+
+  static translate(text) {
+    let cwtext = '';
+    text = CWPlayer.cleanText(text);
+    for (let i=0; i<text.length; i++) {
+      cwtext += (CWPlayer.morse[text[i]] ?? CWPlayer.morse['?']) + (text[i]!==' '?' ':'');
+      if ((i+1) > (text.length-1) || text[i+1]==' ') cwtext = cwtext.slice(0, -1);
+    }
+    return cwtext;
+  }
+  fireEvent(evtname, args) {
+    if (!this.events[evtname]) return;
+    this.events[evtname].forEach(evt => evt(args));
+  }
+  addEventListener(evtname, cb) {
+    if (!this.events[evtname]) this.events[evtname] = [];
+    this.events[evtname].push(cb);
+  }
+  removeEventListener(evtname, cb=null) {
+    if (!this.events[evtname]) return;
+    if (!cb) {
+      delete this.events[evtname];
+    } else {
+      this.events[evtname] = this.events[evtname].filter(cb2 => cb2!==cb);
+    }
+  }
+  stop(pause=false) {
+    if (!this.playing) {
+      return;
+    }
+    // si l'oscillateur joue on attend qu'il finisse
+    if (this.oscplaying) {
+      this.stopping = true;
+    } else {
+      this.playing = false;
+    }
+    //TOFIX: the ramp in the playSound method produce a loud click
+    /*if (this.osc && this.options.elperiod>0.1) {
+      try {
+        let stopTime = this.context.currentTime + 0.02;
+        this.gain.gain.setValueAtTime(1, stopTime - 0.01);
+        this.gain.gain.linearRampToValueAtTime(0, stopTime);
+        osc.stop(stopTime);
+      } catch (e) {}
+    }*/
+    if (!pause) {
+      this.curti = -1;
+      this.pstrttime = 0;
+      this.fireEvent('stop')
+    } else {
+      this.fireEvent('pause');
+    }
+  }
+  pause() { return this.stop(true); }
+  play(text) {
+    if (text) {
+      this.Text = text;
+    }
+    if (this.playing) {
+      return;
+    }
+    this.fireEvent('play');
+    this.#playText();
+    this.pstrttime = performance.now();
+  }
+  
+  async #playText(prevtype) {
+    if (this.curti+1 >= this.cwtext.length) {
+      this.stop();
+      return;
+    }
+    let type = 0; // inter-element
+    // tous les types d'espaces ne doivent pas être suivis d'un d'un inter-element
+    if (prevtype%2 == 0 || this.curti < 0 || (this.curti+1<this.cwtext.length && (this.cwtext[this.curti+1] == ' ' || this.cwtext[this.curti+1] == '\t'))) {
+      this.curti++;
+      switch (this.cwtext[this.curti]) {
+        case '.':
+          type = 1;
+          break;
+        case '-':
+          type = 3;
+          break;
+        case ' ':
+          type = 2; // inter-char
+          break;
+        case '\t':
+          type = 4; // inter-word
+          break;
+      }
+    }
+    this.playing = true;
+    await this.#playElement(type);
+    if (!this.playing) return; // si l'utilisateur a arrêté la lecture
+    this.#playText(type);
+  }
+
+  async delay(s) {
+    return new Promise(res => setTimeout(res, s*1000))
+  }
+
+  async #playSound(duration) {
+    return new Promise(res => {
+      if (this.oscplaying) {
+        /*let stopTime = this.context.currentTime + 0.02;
+        gain.gain.setValueAtTime(1, stopTime - 0.005);
+        gain.gain.linearRampToValueAtTime(0, stopTime);
+        osc.stop(stopTime);
+        osc.onended = ()=>{this.oscplaying = false;console.log('end2');this.#playSound(duration);};
+        return;*/
+        console.log('force stop');
+        this.osc.stop();
+      }
+      this.osc = this.context.createOscillator();// new OscillatorNode(context);
+      this.gain = this.context.createGain();//new GainNode(context);
+      this.osc.connect(this.gain).connect(this.context.destination);
+      this.osc.frequency.setValueAtTime(this.options.tone, this.context.currentTime); // value in hertz
+      this.osc.onended = () => {
+        this.oscplaying = false;
+        if (this.stopping) {
+          this.stopping = false;
+          this.playing = false;
+        }
+        res();
+      };
+      this.osc.start();
+      this.oscplaying = true;
+      // Let's stop the oscillator in 5 sec.
+      let stopTime = this.context.currentTime + duration;
+      this.gain.gain.setValueAtTime(0, this.context.currentTime);
+      this.gain.gain.linearRampToValueAtTime(1, this.context.currentTime + 0.005);
+      this.osc.stop(stopTime);
+      // Fade out the signal.  Fade out starts 0.25 sec before we stop.
+      // Then we linearly ramp down to 0 at stopTime
+      this.gain.gain.setValueAtTime(1, stopTime - 0.005);
+      this.gain.gain.linearRampToValueAtTime(0, stopTime);
+    });
+  }
+  
+  // Type:
+  //  0 - inter-element - 1 unit
+  //  1 - dit           - 1 unit
+  //  2 - inter-char    - 3 units
+  //  3 - dah           - 3 units
+  //  4 - inter-word    - 7 units
+  async #playElement(type=0) {
+    // TODO déplacer ça dans un catch après avoir fait un try d'une fonction du context?
+    if (!this.context) {
+      this.context = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    let duration = (type && (type%2===0)) ? this.options.spperiod : this.options.elperiod;
+    if (type == 4) duration *= (7*this.options.ews);
+    else if (type >= 2) duration *= 3;
+    //console.log(Math.round(performance.now()-this.pstrttime), type, duration);return duration;
+    if (type%2!==0) {
+      await this.#playSound(duration);
+    } else {
+      await this.delay(duration);
+    }
+    return duration;
+  }
+}
+</script>
+</body>
+</html>
