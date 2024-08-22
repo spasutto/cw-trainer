@@ -520,8 +520,10 @@ class CWPlayer {
   
   get Playing() { return this.playing; }
   set Playing(value) {
-    if (this.playing) {
+    if (value === false && this.playing) {
       this.stop();
+    } else if (value === true && !this.playing) {
+      this.play();
     }
   }
   
@@ -574,14 +576,15 @@ class CWPlayer {
   }
   stop(pause=false) {
     if (!this.playing) {
+      // si on était en pause on arrête la lecture et on déclenche l'évenement stop
+      if (this.curti>=0) {
+        this.curti = -1;
+        this.fireEvent('stop');
+      }
       return;
     }
     // si l'oscillateur joue on attend qu'il finisse
-    if (this.oscplaying) {
-      this.stopping = true;
-    } else {
-      this.playing = false;
-    }
+    this.stopping = true;
     //TOFIX: the ramp in the playSound method produce a loud click
     /*if (this.osc && this.options.elperiod>0.1) {
       try {
@@ -591,12 +594,10 @@ class CWPlayer {
         osc.stop(stopTime);
       } catch (e) {}
     }*/
+    this.stopreason = pause ? 'pause':'stop';
     if (!pause) {
       this.curti = -1;
       this.pstrttime = 0;
-      this.fireEvent('stop')
-    } else {
-      this.fireEvent('pause');
     }
   }
   pause() { return this.stop(true); }
@@ -607,6 +608,7 @@ class CWPlayer {
     if (this.playing) {
       return;
     }
+    this.playing = true;
     this.fireEvent('play');
     this.#playText();
     this.pstrttime = performance.now();
@@ -636,9 +638,14 @@ class CWPlayer {
           break;
       }
     }
-    this.playing = true;
     await this.#playElement(type);
-    if (!this.playing) return; // si l'utilisateur a arrêté la lecture
+    // si l'utilisateur a arrêté la lecture
+    if (!this.playing || this.stopping) {
+      this.stopping = false;
+      this.playing = false;
+      this.fireEvent(this.stopreason??'stop');
+      return;
+    }
     this.#playText(type);
   }
 
