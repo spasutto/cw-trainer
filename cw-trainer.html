@@ -446,16 +446,16 @@ window.onload = async () => {
   }
   iptfree.onkeyup = (evt) => {
     //evt.keyCode
-    if (evt.key?.length > 1) return; // controls keys
-    if (evt.key==' ') {
+    if (evt.target.value?.length != 1) return; // controls keys
+    if (evt.target.value==' ') {
       cwplayer.play();
       iptfree.value = '';
       return;
     }
     let success = false;
-    if (evt.key.toUpperCase() != cwgentext[0]) {
+    if (evt.target.value.toUpperCase() != cwgentext[0]) {
       //play boop
-      cwplayer.playSound(0.2, 250);
+      cwplayer.playSound(0.15, 500).then(() => cwplayer.playSound(0.15, 250));
       success = false;
       if (window.freefirsttry) {
         window.freefirsttry = false;
@@ -687,7 +687,7 @@ class CWPlayer {
     if (text) {
       this.Text = text;
     }
-    if (this.playing) {
+    if (this.playing || this.oscplaying) {
       return;
     }
     this.playing = true;
