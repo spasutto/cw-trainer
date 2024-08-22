@@ -540,7 +540,11 @@ class CWPlayer {
   }
   
   static cleanText(text) {
-    return text.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toUpperCase().replaceAll(/[^A-Z0-9\/\+=\.,\?]/ig, ' ').replaceAll(/\s+/g, ' ');
+    return text.normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+      .toUpperCase()
+      .replaceAll(/(\r?\n)+/g, '  ') // retour à la ligne : deux espaces
+      .replaceAll(/[^A-Z0-9\/\+=\.,\? ]/ig, '?')
+      /*.replaceAll(/\s+/g, ' ')*/;
   }
 
   static translate(text) {
