@@ -7,8 +7,10 @@
 
     <style>
       body {
-        width : 340px;
+        width: 100%;
+        max-width : 380px;
         font-family: sans-serif;
+        margin: 2px 0 0 5px;
       }
       h2 {
         margin : 0;
@@ -56,6 +58,22 @@
         text-align: center;
         text-transform: uppercase;
       }
+      #keyboard {
+        margin-top : 3px;
+        padding: 0 25px;
+      }
+      #keyboard input[type='button'] {
+        height: 31px;
+        margin: 1px;
+        font-weight: bold;
+      }
+      #keyboard input[type='button']:not(#keybtype) {
+        width: 31px;
+      }
+      #keybtype {
+        float: right;
+        font-weight: normal !important;
+      }
       .zonecontrols {
         margin-bottom: 5px;
       }
@@ -73,6 +91,7 @@
     </style>
   </head>
 <body>
+<div>
   <h2>CW Trainer <a href="#" onclick="selfDownload()" title="save CW Trainer for offline use">&#x0001f4be;</a></h2>
   <div class="zonecontrols">
     <label for="sellesson">Lesson : </label>
@@ -80,7 +99,7 @@
       <option value='1'>1 - K, M</option><option value='2'>2 - U</option><option value='3'>3 - R</option><option value='4'>4 - E</option><option value='5'>5 - S</option><option value='6'>6 - N</option><option value='7'>7 - A</option><option value='8'>8 - P</option><option value='9'>9 - T</option><option value='10'>10 - L</option><option value='11'>11 - W</option><option value='12'>12 - I</option><option value='13'>13 - .</option><option value='14'>14 - J</option><option value='15'>15 - Z</option><option value='16'>16 - =</option><option value='17'>17 - F</option><option value='18'>18 - O</option><option value='19'>19 - Y</option><option value='20'>20 - ,</option><option value='21'>21 - V</option><option value='22'>22 - G</option><option value='23'>23 - 5</option><option value='24'>24 - /</option><option value='25'>25 - Q</option><option value='26'>26 - 9</option><option value='27'>27 - 2</option><option value='28'>28 - H</option><option value='29'>29 - 3</option><option value='30'>30 - 8</option><option value='31'>31 - B</option><option value='32'>32 - ?</option><option value='33'>33 - 4</option><option value='34'>34 - 7</option><option value='35'>35 - C</option><option value='36'>36 - 1</option><option value='37'>37 - D</option><option value='38'>38 - 6</option><option value='39'>39 - 0</option><option value='40'>40 - X</option>
       <option value='41'>QSO</option>
     </select>
-    <input type="checkbox" id="chkfree"><label for="chkfree">free mode</label><BR>
+    <input type="checkbox" id="chkfree"><label for="chkfree">simple mode</label><BR>
     <label for="selwpm">WPM : </label>
     <input type="number" id="selwpm" min="1" max="60">
     <label for="seleffwpm">Eff. WPM : </label>
@@ -90,6 +109,7 @@
   <div id="zonefree" style="display:none">
     <input type="text" id="iptfree" maxlength="1">
     <div id="zoneresultfree"></div>
+    <input type="checkbox" id="chkfreelisten"><label for="chkfreelisten">free mode</label>
   </div>
   <div id="zonekoch">
     <label for="selews">Extra word spacing : </label>
@@ -118,7 +138,7 @@
         </svg>
       </button>
     </div>
-    <textarea id="cwtext" rows="4" cols="43" spellcheck="false"></textarea><br>
+    <textarea id="cwtext" rows="4" cols="43" spellcheck="false" autocorrect="off"></textarea><br>
     <input type="button" value="submit" id="cwsbm"><br>
     <div id="zoneresult" style="display:none;">
       <div id="zonerestext"></div>
@@ -126,7 +146,10 @@
       <input type="button" value="next lesson !" id="nxtlesson">
     </div>
   </div>
+  <div id="keyboard"></div>
+</div>
 <script>
+var qwerty=false;
 var cw_options = {
   lesson : 1,
   grouplen : 5,
@@ -185,6 +208,7 @@ function generateRandomText(chars, grouplen, groupsnb) {
   return Array.apply(null, Array(groupsnb)).map(() => generateRandomString(chars, grouplen)).join(' ');
 }
 function generateText(evt) {
+  if (!cwplayer) return;
   if (cwplayer.Playing) cwplayer.stop();
   zoneresult.style.display = 'none';
   cwsbm.disabled = false;
@@ -221,7 +245,7 @@ function generateText(evt) {
   console.log('generated text : '+cwgentext);
 }
 function updateHash() {
-  window.location.hash = encodeURIComponent(sellesson.value+','+selwpm.value+','+seleffwpm.value+','+grplen.value+','+groupsnb.value+','+selews.value);
+  window.location.hash = encodeURIComponent(sellesson.value+','+selwpm.value+','+seleffwpm.value+','+grplen.value+','+groupsnb.value+','+selews.value+','+qwerty);
 }
 function compareStrings(str1, str2){
 /*
@@ -321,39 +345,134 @@ function formatTestString(ret) {
   }
   return sret;
 }
+function key(value) {
+  if (chkfree.checked) {
+    iptfree.value+=value;
+    iptfree.focus();
+    verifycw();
+  } else {
+    cwtext.value+=value;
+    cwtext.focus();
+  }
+}
 function verifycw() {
+  if (!cwplayer) return;
   if (cwplayer.Playing) cwplayer.stop();
-  let extractfn = (t) => t.toUpperCase().split(' ').map(e => e.trim()).filter(e => e.length > 0);
-  let inpt = extractfn(cwtext.value);
-  let verif = extractfn(cwgentext);
-  if (inpt.length < verif.length) {
-    if (confirm('Warning : it seems that you have not entered enough groups, are you sure to proceed to verification?')) {
-      inpt.push(...Array(verif.length-inpt.length).fill(''));
-    } else {
+  if (chkfree.checked) {
+    if (iptfree.value?.length != 1) return; // controls keys
+    if (chkfreelisten.checked || iptfree.value==' ') {
+      cwplayer.stop();
+      cwplayer.play(chkfreelisten.checked?iptfree.value:null);
+      iptfree.value = '';
       return;
     }
-  }
-  cwsbm.disabled = true;
+    let success = false;
+    if (iptfree.value.toUpperCase() != cwgentext[0]) {
+      cwplayer.stop();
+      //play boop
+      cwplayer.playSound(0.15, 500).then(() => cwplayer.playSound(0.15, 250));
+      success = false;
+      if (window.freefirsttry) {
+        window.freefirsttry = false;
+        window.freeerr++;
+      }
+    } else {
+      cwplayer.stop();
+      success = true;
+      generateText();
+      cwplayer.play();
+      window.freetotal++;
+      window.freefirsttry = true;
+    }
+    zoneresultfree.innerHTML = `Success rate : ${Math.round((100*(freetotal-freeerr)/freetotal)*10)/10}%`;
   
-  let results = verif.map((a, i) => compareStrings(a, inpt[i]));
-  let nbchars = verif.reduce((acc, cur) => acc+cur.length, 0);
-  let nberr = results.reduce((acc, cur) => acc+cur.errors, 0);
-  let perc = (nbchars-nberr)*100/nbchars;
-  perc = Math.round(perc*10)/10;
-  zonerestext.innerHTML = `${perc}% success rate (${nbchars-nberr}/${nbchars} characters sent)<BR>`;
-  let restable = '<table><th>original</th><th>input</th><th>errors</th>'
-  results.forEach(r => {
-    restable += `<tr><td><span>${r.str1}</span></td>`;
-    restable += `<td>${formatTestString(r)}</td>`;
-    restable += `<td>${r.errors}</td></tr>`;
-  });
-  restable += '</table>';
-  zonerestext.innerHTML += restable;
-
-  nxtlesson.style.visibility = perc>=90?'visible':'hidden';
-  zoneresult.style.display = 'block';
+    iptfree.value = '';
+  } else {
+    let extractfn = (t) => t.toUpperCase().split(' ').map(e => CWPlayer.cleanText(e.trim())).filter(e => e.length > 0);
+    let inpt = extractfn(cwtext.value);
+    let verif = extractfn(cwgentext);
+    if (inpt.length < verif.length) {
+      if (confirm('Warning : it seems that you have not entered enough groups, are you sure to proceed to verification?')) {
+        inpt.push(...Array(verif.length-inpt.length).fill(''));
+      } else {
+        return;
+      }
+    }
+    cwsbm.disabled = true;
+    
+    let results = verif.map((a, i) => compareStrings(a, inpt[i]));
+    let nbchars = verif.reduce((acc, cur) => acc+cur.length, 0);
+    let nberr = results.reduce((acc, cur) => acc+cur.errors, 0);
+    let perc = (nbchars-nberr)*100/nbchars;
+    perc = Math.round(perc*10)/10;
+    zonerestext.innerHTML = `${perc}% success rate (${nbchars-nberr}/${nbchars} characters sent)<BR>`;
+    let restable = '<table><th>original</th><th>input</th><th>errors</th>'
+    results.forEach(r => {
+      restable += `<tr><td><span>${r.str1}</span></td>`;
+      restable += `<td>${formatTestString(r)}</td>`;
+      restable += `<td>${r.errors}</td></tr>`;
+    });
+    restable += '</table>';
+    zonerestext.innerHTML += restable;
+  
+    nxtlesson.style.visibility = perc>=90?'visible':'hidden';
+    zoneresult.style.display = 'block';
+  }
 }
 
+function selfDownload() {
+  fetch(window.location.href)
+    .then( res => res.blob() )
+    .then( blob => {
+      var url = window.URL.createObjectURL(blob);
+      var a = document.createElement('a');
+      a.href = url;
+      a.download = "cw_trainer.html";
+      document.body.appendChild(a); // we need to append the element to the dom -> otherwise it will not work in firefox
+      a.click();    
+      a.remove();  //afterwards we remove the element again  
+    });  
+}
+function generateKeyboard() {
+  keyboard.innerHTML = '';
+  let keybhtml = '';
+  let KEYBORDER = 'AZERTYUIOPQSDFGHJKLMWXCVBN';
+  if (qwerty) KEYBORDER = 'QWERTYUIOPASDFGHJKLZXCVBNM';
+  Object.keys(CWPlayer.morse).sort((a,b) => {
+    return KEYBORDER.indexOf(a)-KEYBORDER.indexOf(b);
+  }).forEach(c => {
+    if ((c == 'A' && !qwerty) || (c == 'Q' && qwerty)) keybhtml += '<BR>';
+    else if (c == ' ') c = 'SP';
+    else if (c == '"') c = '\\"';
+    keybhtml += `<input type="button" value="${c}">`;
+  });
+  keybhtml += `<input type="button" id="keybtype" value="${qwerty?'AZERTY':'QWERTY'}" onclick="qwerty=!qwerty;generateKeyboard();updateHash();">`;
+  keyboard.innerHTML = keybhtml;
+  [...document.querySelectorAll('#keyboard input:not(#keybtype)')].forEach(i => i.onclick=key.bind(i, i.value == 'SP'?' ':i.value));
+}
+window.onload = async () => {
+  window.cwplayer = new CWPlayer();
+  cwplayer.addEventListener('play', () => {
+    btnstop.disabled = false;btnstop.classList.remove('svg_inactif');
+    btnplay.disabled = true;btnplay.classList.add('svg_inactif');
+    btnpause.disabled = false;btnpause.classList.remove('svg_inactif');
+    cwtext.focus();
+  });
+  cwplayer.addEventListener('pause', () => {
+    btnstop.disabled = false;btnstop.classList.remove('svg_inactif');
+    btnplay.disabled = false;btnplay.classList.remove('svg_inactif');
+    btnpause.disabled = true;btnpause.classList.add('svg_inactif');
+  });
+  cwplayer.addEventListener('stop', () => {
+    btnstop.disabled = true;btnstop.classList.add('svg_inactif');
+    btnplay.disabled = false;btnplay.classList.remove('svg_inactif');
+    btnpause.disabled = true;btnpause.classList.add('svg_inactif');
+  });
+  chkfree.onchange();//generateText();
+  generateKeyboard();
+  // for testing purposes
+  //cwgentext='';cwplayer.Text=' '+cwgentext;
+};
 let vals = decodeURIComponent(window.location.hash.substring(1)).split(',').forEach((val, i) => {
   val = parseInt(val, 10);
   if (isNaN(val)) return;
@@ -376,106 +495,55 @@ let vals = decodeURIComponent(window.location.hash.substring(1)).split(',').forE
       break;
     case 5:
       cw_options.ews = Math.max(0, Math.min(10, val));
+    case 6:
+      qwerty = val === 'true';
       break;
   }
 });
-function selfDownload() {
-  fetch(window.location.href)
-    .then( res => res.blob() )
-    .then( blob => {
-      var url = window.URL.createObjectURL(blob);
-      var a = document.createElement('a');
-      a.href = url;
-      a.download = "cw_trainer.html";
-      document.body.appendChild(a); // we need to append the element to the dom -> otherwise it will not work in firefox
-      a.click();    
-      a.remove();  //afterwards we remove the element again  
-    });  
-}
-window.onload = async () => {
-  sellesson.value = cw_options.lesson;
-  selwpm.value = cw_options.wpm;
-  seleffwpm.value = cw_options.eff;
-  grplen.value = cw_options.grouplen;
-  groupsnb.value = cw_options.groupsnb;
-  selews.value = cw_options.ews;
-  window.cwplayer = new CWPlayer();
-  cwplayer.addEventListener('play', () => {
-    btnstop.disabled = false;btnstop.classList.remove('svg_inactif');
-    btnplay.disabled = true;btnplay.classList.add('svg_inactif');
-    btnpause.disabled = false;btnpause.classList.remove('svg_inactif');
-    cwtext.focus();
-  });
-  cwplayer.addEventListener('pause', () => {
-    btnstop.disabled = false;btnstop.classList.remove('svg_inactif');
-    btnplay.disabled = false;btnplay.classList.remove('svg_inactif');
-    btnpause.disabled = true;btnpause.classList.add('svg_inactif');
-  });
-  cwplayer.addEventListener('stop', () => {
-    btnstop.disabled = true;btnstop.classList.add('svg_inactif');
-    btnplay.disabled = false;btnplay.classList.remove('svg_inactif');
-    btnpause.disabled = true;btnpause.classList.add('svg_inactif');
-  });
-  generateText();
-  sellesson.onchange = generateText;
-  selwpm.onchange = generateText;
-  seleffwpm.onchange = generateText;
-  selews.onchange = generateText;
-  grplen.onchange = generateText;
-  groupsnb.onchange = generateText;
-  cwsbm.onclick = verifycw;
-  retrybtn.onclick = generateText;
-  nxtlesson.onclick = () => {
-    sellesson.value++;
-    retrybtn.click();
-  };
-  chkfree.onchange = (evt) => {
-    cwplayer.stop();
-    iptfree.value = cwtext.value = '';
-    zoneresultfree.innerHTML = 'Press space to hear first character';
-    window.freeerr = 0;
-    window.freetotal = 1;
-    window.freefirsttry = true;
-    zonefree.style.display = event.currentTarget.checked?'block':'none';
-    zonekoch.style.display = !event.currentTarget.checked?'block':'none';
-    generateText();
-    if (event.currentTarget.checked) {
-      iptfree.focus();
-    } else {
-      cwtext.focus();
-    }
-  }
-  iptfree.onkeyup = (evt) => {
-    //evt.keyCode
-    if (evt.target.value?.length != 1) return; // controls keys
-    if (evt.target.value==' ') {
-      cwplayer.play();
-      iptfree.value = '';
+sellesson.value = cw_options.lesson;
+selwpm.value = cw_options.wpm;
+seleffwpm.value = cw_options.eff;
+grplen.value = cw_options.grouplen;
+groupsnb.value = cw_options.groupsnb;
+selews.value = cw_options.ews;
+sellesson.onchange = generateText;
+selwpm.onchange = generateText;
+seleffwpm.onchange = generateText;
+selews.onchange = generateText;
+grplen.onchange = generateText;
+groupsnb.onchange = generateText;
+cwsbm.onclick = verifycw;
+retrybtn.onclick = generateText;
+nxtlesson.onclick = () => {
+  sellesson.value++;
+  retrybtn.click();
+};
+chkfree.onchange = () => {
+  if (!cwplayer) return;
+  cwplayer.stop();
+  iptfree.value = cwtext.value = '';
+  zonefree.style.display = chkfree.checked?'block':'none';
+  zonekoch.style.display = !chkfree.checked?'block':'none';
+  if (chkfree.checked) {
+    iptfree.focus();
+    if (chkfreelisten.checked) {
+      zoneresultfree.innerHTML = '';
       return;
     }
-    let success = false;
-    if (evt.target.value.toUpperCase() != cwgentext[0]) {
-      //play boop
-      cwplayer.playSound(0.15, 500).then(() => cwplayer.playSound(0.15, 250));
-      success = false;
-      if (window.freefirsttry) {
-        window.freefirsttry = false;
-        window.freeerr++;
-      }
-    } else {
-      success = true;
-      generateText();
-      cwplayer.play();
-      window.freetotal++;
-      window.freefirsttry = true;
-    }
-    zoneresultfree.innerHTML = `Success rate : ${Math.round((100*(freetotal-freeerr)/freetotal)*10)/10}%`;
-
-    iptfree.value = '';
+  } else {
+    cwtext.focus();
   }
-  // for testing purposes
-  //cwgentext='';cwplayer.Text=' '+cwgentext;
+  zoneresultfree.innerHTML = 'Press space to hear first character';
+  generateText();
+  window.freeerr = 0;
+  window.freetotal = 1;
+  window.freefirsttry = true;
 };
+chkfreelisten.onchange = () => {
+  iptfree.focus();
+  chkfree.onchange.call(this);
+};
+iptfree.onkeyup = verifycw;
 </script>
 
 <script>
