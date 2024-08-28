@@ -305,6 +305,8 @@ https://stackoverflow.com/a/34807141
   sequences = sequences.filter(s =>
     !sequences.some(s2 => s2.text.length > s.text.length && ((s2.isrc <= s.isrc && s2.isrc+s2.text.length>s.isrc) || (s2.idst <= s.idst && s2.idst+s2.text.length>s.idst)))
   );
+  // suppression des overlaps : compareStrings("IVNVV", "IVVV")
+  sequences = sequences.filter((s,i) => !sequences.some((s2,i2) => i2>i && (s.isrc==s2.isrc || s.idst==s2.idst)));
   // suppression des séquences qui apparaissent dans le désordre dans la chaine test par rapport à la chaine d'entrée (ainsi que les doublons, ex 'KMKMM/NNNK')
   sequences = sequences.filter((s, i) =>
     !sequences.some((s2, i2) => i2 < i && s2.idst >= s.idst)
@@ -374,7 +376,7 @@ function verifycw() {
     if (iptfree.value.toUpperCase() != cwgentext[0]) {
       cwplayer.stop();
       //play boop
-      cwplayer.playSound(0.15, 500).then(() => cwplayer.playSound(0.15, 250));
+      cwplayer.playBoop();
       success = false;
       if (window.freefirsttry) {
         window.freefirsttry = false;
@@ -784,11 +786,20 @@ class CWPlayer {
       }
     }
   }
-  
-  static async delay(s) {
-    return new Promise(res => setTimeout(res, s*1000))
+
+  async playBoop() {
+    let d = 0;
+    if (this.playing) {
+      this.stop();
+      d = 0.05;
+    }
+    await CWPlayer.delay(d);
+    await this.#playElement('t', 250);
   }
-  async #playElement(c) {
+  static async delay(s) {
+    return new Promise(res => s?setTimeout(res, s*1000):res())
+  }
+  async #playElement(c, freq) {
     if (c == ' ' || c == '\t') {
       return await CWPlayer.delay(this.options.spperiod*7*this.options.ews);
     }
@@ -802,7 +813,7 @@ class CWPlayer {
       this.osc.onended = () => {this.stopping=false;this.oscplaying=false;res();};//test si le onend est appelé si on fait un stop externe
       this.gain = this.context.createGain();//new GainNode(context);
       this.osc.connect(this.gain).connect(this.context.destination);
-      this.osc.frequency.setValueAtTime(this.options.tone, this.context.currentTime);
+      this.osc.frequency.setValueAtTime(freq ?? this.options.tone, this.context.currentTime);
       let t = this.context.currentTime;
       for (let i=0; i<mc.length; i++) {
         if (i>0) {
