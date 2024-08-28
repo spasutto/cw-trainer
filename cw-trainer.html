@@ -88,6 +88,9 @@
         text-decoration : line-through;
         font-weight : bold;
       }
+      #clearzone {
+        display: none;
+      }
     </style>
   </head>
 <body>
@@ -147,6 +150,7 @@
     </div>
   </div>
   <div id="keyboard"></div>
+  <pre id="clearzone"></pre>
 </div>
 <script>
 var qwerty=false;
@@ -468,6 +472,11 @@ window.onload = async () => {
     btnplay.disabled = false;btnplay.classList.remove('svg_inactif');
     btnpause.disabled = true;btnpause.classList.add('svg_inactif');
   });
+  cwplayer.addEventListener('indexchanged', () => {
+    if (cwplayer.Index>0) {
+      clearzone.innerHTML = cwplayer.Text.substring(0, cwplayer.Index);
+    }
+  });
   chkfree.onchange();//generateText();
   generateKeyboard();
   // for testing purposes
@@ -619,9 +628,8 @@ class CWPlayer {
     this.options = {...this.DEFAULT_OPTIONS, ...options};
     this.text = '';
     this.curti = -1;
-    this.pstrttime = 0;
+    this.oscplaying = this.stopping = this.playing = false;
     this.events = {};
-    this.oscplaying = false;
     if (this.options.wpm) {
       this.WPM = this.options.wpm;
     }
@@ -668,7 +676,6 @@ class CWPlayer {
     value = Math.min(5000, Math.max(150, value));
     this.options.tone = value;
   }
-  
   get Playing() { return this.playing; }
   set Playing(value) {
     if (value === false && this.playing) {
@@ -677,21 +684,37 @@ class CWPlayer {
       this.play();
     }
   }
-  
   get Text() {
     return this.text;
   }
   set Text(value) {
     value = CWPlayer.cleanText(value);
-    let cwtext = CWPlayer.translate(value);
     // si on modifie le texte qui a déjà été joué on remet la lecture à 0
-    if (this.curti>=0 && (cwtext.length<=this.curti || cwtext.substring(0, this.curti) != this.cwtext.substring(0, this.curti))) {
+    if (this.curti>=0 && (value.length<=this.curti || value.substring(0, this.curti) != this.text.substring(0, this.curti))) {
       this.curti = -1;
+      this.fireEvent('indexchanged');
     }
     this.text = value;
-    this.cwtext = cwtext;
   }
-  
+  get Index() { return this.curti; }
+
+  fireEvent(evtname, args) {
+    if (!this.events[evtname]) return;
+    this.events[evtname].forEach(evt => evt(args));
+  }
+  addEventListener(evtname, cb) {
+    if (!this.events[evtname]) this.events[evtname] = [];
+    this.events[evtname].push(cb);
+  }
+  on(evtname, cb) { return addEventListener(evtname, cb); }
+  removeEventListener(evtname, cb=null) {
+    if (!this.events[evtname]) return;
+    if (!cb) {
+      delete this.events[evtname];
+    } else {
+      this.events[evtname] = this.events[evtname].filter(cb2 => cb2!==cb);
+    }
+  }
   static cleanText(text) {
     return text.normalize("NFD").replace(/[\u0300-\u036f]/g, "")
       .toUpperCase()
@@ -699,7 +722,6 @@ class CWPlayer {
       .replaceAll(/[^A-Z0-9\/\+=\.,\?"\$\\\(\)\[\]\-\:;@_! ]/g, '?')
       /*.replaceAll(/\s+/g, ' ')*/;
   }
-
   static translate(text) {
     let cwtext = '';
     text = CWPlayer.cleanText(text);
@@ -709,161 +731,94 @@ class CWPlayer {
     }
     return cwtext;
   }
-  fireEvent(evtname, args) {
-    if (!this.events[evtname]) return;
-    this.events[evtname].forEach(evt => evt(args));
-  }
-  addEventListener(evtname, cb) {
-    if (!this.events[evtname]) this.events[evtname] = [];
-    this.events[evtname].push(cb);
-  }
-  removeEventListener(evtname, cb=null) {
-    if (!this.events[evtname]) return;
-    if (!cb) {
-      delete this.events[evtname];
-    } else {
-      this.events[evtname] = this.events[evtname].filter(cb2 => cb2!==cb);
-    }
+  forceStop() {
+    this.gain.gain.cancelScheduledValues(this.context.currentTime);
+    this.osc.stop();
+    this.stopping = false;
+    this.playing = false;
+    this.curti = -1;
+    console.log('forced stop');
   }
   stop(pause=false) {
-    if (!this.playing) {
-      // si on était en pause on arrête la lecture et on déclenche l'évenement stop
-      if (this.curti>=0) {
-        this.curti = -1;
-        this.fireEvent('stop');
-      }
-      return;
+    if (this.stopping) {
+      return this.forceStop();
     }
-    // si l'oscillateur joue on attend qu'il finisse
-    this.stopping = true;
-    //TOFIX: the ramp in the playSound method produce a loud click
-    /*if (this.osc && this.options.elperiod>0.1) {
-      try {
-        let stopTime = this.context.currentTime + 0.02;
-        this.gain.gain.setValueAtTime(1, stopTime - 0.01);
-        this.gain.gain.linearRampToValueAtTime(0, stopTime);
-        osc.stop(stopTime);
-      } catch (e) {}
-    }*/
-    this.stopreason = pause ? 'pause':'stop';
+    if (!this.playing) return;
+    this.playing = false;
     if (!pause) {
       this.curti = -1;
-      this.pstrttime = 0;
+      this.fireEvent('indexchanged');
+    }
+    this.laststopaction=pause;
+    if (this.oscplaying) {
+      this.stopping = true;
+      this.gain.gain.cancelScheduledValues(this.context.currentTime);
+      let stopTime = this.context.currentTime + 0.005;
+      this.gain.gain.linearRampToValueAtTime(1, this.context.currentTime);
+      this.gain.gain.linearRampToValueAtTime(0, stopTime);
+      this.osc.stop(stopTime);
+      this.fireEvent(pause?'pause':'stop');
+    } else {
+      this.stopping = false;
+      this.fireEvent(pause?'pause':'stop');
     }
   }
   pause() { return this.stop(true); }
-  play(text) {
-    if (text) {
-      this.Text = text;
+  async play(text) {
+    if (this.stopping) {
+      this.forceStop();
     }
-    if (this.playing || this.oscplaying) {
-      return;
-    }
+    if (this.playing) return;
+    if (typeof text === 'string') this.Text = text;
     this.playing = true;
     this.fireEvent('play');
-    this.#playText();
-    this.pstrttime = performance.now();
+    while (this.playing) {
+      if (++this.curti >= this.text.length) {
+        return this.stop();//le lecteur arrive en bout on stop
+      }
+      this.fireEvent('indexchanged');
+      await this.#playElement(this.text[this.curti]);
+      // on ajoute l'espacement inter caractère (s'il reste des caractères à jouer)
+      if (this.playing && this.curti+1 < this.text.length) {
+        await CWPlayer.delay(this.options.spperiod*3);
+      }
+    }
   }
   
-  async #playText(prevtype) {
-    if (this.curti+1 >= this.cwtext.length) {
-      this.playing=false;
-      this.stop();
-      return;
-    }
-    let type = 0; // inter-element
-    // tous les types d'espaces ne doivent pas être suivis d'un d'un inter-element
-    if (prevtype%2 == 0 || this.curti < 0 || (this.curti+1<this.cwtext.length && (this.cwtext[this.curti+1] == ' ' || this.cwtext[this.curti+1] == '\t'))) {
-      this.curti++;
-      switch (this.cwtext[this.curti]) {
-        case '.':
-          type = 1;
-          break;
-        case '-':
-          type = 3;
-          break;
-        case ' ':
-          type = 2; // inter-char
-          break;
-        case '\t':
-          type = 4; // inter-word
-          break;
-      }
-    }
-    await this.#playElement(type);
-    // si l'utilisateur a arrêté la lecture
-    if (!this.playing || this.stopping) {
-      this.stopping = false;
-      this.playing = false;
-      this.fireEvent(this.stopreason??'stop');
-      return;
-    }
-    this.#playText(type);
-  }
-
-  async delay(s) {
+  static async delay(s) {
     return new Promise(res => setTimeout(res, s*1000))
   }
-
-  async playSound(duration, freq) {
+  async #playElement(c) {
+    if (c == ' ' || c == '\t') {
+      return await CWPlayer.delay(this.options.spperiod*7*this.options.ews);
+    }
+    let mc = CWPlayer.translate(c[0]);
     return new Promise(res => {
-      if (this.oscplaying) {
-        /*let stopTime = this.context.currentTime + 0.02;
-        gain.gain.setValueAtTime(1, stopTime - 0.005);
-        gain.gain.linearRampToValueAtTime(0, stopTime);
-        osc.stop(stopTime);
-        osc.onended = ()=>{this.oscplaying = false;console.log('end2');this.playSound(duration);};
-        return;*/
-        console.log('force stop');
-        this.osc.stop();
-      }
       // TODO déplacer ça dans un catch après avoir fait un try d'une fonction du context?
       if (!this.context) {
         this.context = new (window.AudioContext || window.webkitAudioContext)();
       }
       this.osc = this.context.createOscillator();// new OscillatorNode(context);
+      this.osc.onended = () => {this.stopping=false;this.oscplaying=false;res();};//test si le onend est appelé si on fait un stop externe
       this.gain = this.context.createGain();//new GainNode(context);
       this.osc.connect(this.gain).connect(this.context.destination);
-      this.osc.frequency.setValueAtTime(freq, this.context.currentTime); // value in hertz
-      this.osc.onended = () => {
-        this.oscplaying = false;
-        if (this.stopping) {
-          this.stopping = false;
-          this.playing = false;
+      this.osc.frequency.setValueAtTime(this.options.tone, this.context.currentTime);
+      let t = this.context.currentTime;
+      for (let i=0; i<mc.length; i++) {
+        if (i>0) {
+          // inter-element
+          t+=this.options.elperiod;
         }
-        res();
-      };
+        this.gain.gain.setValueAtTime(0, t);
+        this.gain.gain.linearRampToValueAtTime(1, t + 0.005);
+        t+=mc[i] == '.' ? this.options.elperiod : 3*this.options.elperiod; // dit or dah
+        this.gain.gain.setValueAtTime(1, t - 0.005);
+        this.gain.gain.linearRampToValueAtTime(0, t);
+      }
       this.osc.start();
-      this.oscplaying = true;
-      // Let's stop the oscillator in 5 sec.
-      let stopTime = this.context.currentTime + duration;
-      this.gain.gain.setValueAtTime(0, this.context.currentTime);
-      this.gain.gain.linearRampToValueAtTime(1, this.context.currentTime + 0.005);
-      this.osc.stop(stopTime);
-      // Fade out the signal.  Fade out starts 0.25 sec before we stop.
-      // Then we linearly ramp down to 0 at stopTime
-      this.gain.gain.setValueAtTime(1, stopTime - 0.005);
-      this.gain.gain.linearRampToValueAtTime(0, stopTime);
+      this.oscplaying=true;
+      this.osc.stop(t);
     });
-  }
-  
-  // Type:
-  //  0 - inter-element - 1 unit
-  //  1 - dit           - 1 unit
-  //  2 - inter-char    - 3 units
-  //  3 - dah           - 3 units
-  //  4 - inter-word    - 7 units
-  async #playElement(type=0) {
-    let duration = (type && (type%2===0)) ? this.options.spperiod : this.options.elperiod;
-    if (type == 4) duration *= (7*this.options.ews);
-    else if (type >= 2) duration *= 3;
-    //console.log(Math.round(performance.now()-this.pstrttime), type, duration);return duration;
-    if (type%2!==0) {
-      await this.playSound(duration, this.options.tone);
-    } else {
-      await this.delay(duration);
-    }
-    return duration;
   }
 }
 </script>
