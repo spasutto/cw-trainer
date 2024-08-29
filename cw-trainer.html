@@ -249,7 +249,7 @@ function generateText(evt) {
   console.log('generated text : '+cwgentext);
 }
 function updateHash() {
-  window.location.hash = encodeURIComponent(sellesson.value+','+selwpm.value+','+seleffwpm.value+','+grplen.value+','+groupsnb.value+','+selews.value+','+qwerty);
+  window.location.hash = encodeURIComponent(sellesson.value+','+selwpm.value+','+seleffwpm.value+','+grplen.value+','+groupsnb.value+','+selews.value+','+(qwerty?1:0)+','+(chkfree.checked?1:0));
 }
 function compareStrings(str1, str2){
 /*
@@ -363,7 +363,7 @@ function key(value) {
 }
 function verifycw() {
   if (!cwplayer) return;
-  if (cwplayer.Playing) cwplayer.stop();
+  //if (cwplayer.Playing) cwplayer.stop();
   if (chkfree.checked) {
     if (iptfree.value?.length != 1) return; // controls keys
     if (chkfreelisten.checked || iptfree.value==' ') {
@@ -372,19 +372,16 @@ function verifycw() {
       iptfree.value = '';
       return;
     }
-    let success = false;
     if (iptfree.value.toUpperCase() != cwgentext[0]) {
       cwplayer.stop();
       //play boop
       cwplayer.playBoop();
-      success = false;
       if (window.freefirsttry) {
         window.freefirsttry = false;
         window.freeerr++;
       }
     } else {
       cwplayer.stop();
-      success = true;
       generateText();
       cwplayer.play();
       window.freetotal++;
@@ -507,7 +504,10 @@ let vals = decodeURIComponent(window.location.hash.substring(1)).split(',').forE
     case 5:
       cw_options.ews = Math.max(0, Math.min(10, val));
     case 6:
-      qwerty = val === 'true';
+      qwerty = val === 1;
+      break;
+    case 7:
+      chkfree.checked = val === 1;
       break;
   }
 });
@@ -655,7 +655,6 @@ class CWPlayer {
     if (wpm<this.EffWPM) {
       this.EffWPM = wpm;
     }
-    console.log('WPM set to ' + this.WPM);
   }
   get EffWPM() {
     return Math.round(60/(19*this.options.spperiod+31*this.options.elperiod));
@@ -666,7 +665,6 @@ class CWPlayer {
       this.WPM = effwpm;
     }
     this.options.spperiod = ((60/effwpm)-31*this.options.elperiod)/19;
-    console.log('Eff. WPM set to ' + this.EffWPM);
   }
   get EWS() { return this.options.ews; }
   set EWS(value) {
@@ -793,8 +791,10 @@ class CWPlayer {
       this.stop();
       d = 0.05;
     }
+    this.playing = true;
     await CWPlayer.delay(d);
-    await this.#playElement('t', 250);
+    if (this.playing) await this.#playElement('t', 250);
+    this.playing = false;
   }
   static async delay(s) {
     return new Promise(res => s?setTimeout(res, s*1000):res())
@@ -810,7 +810,11 @@ class CWPlayer {
         this.context = new (window.AudioContext || window.webkitAudioContext)();
       }
       this.osc = this.context.createOscillator();// new OscillatorNode(context);
-      this.osc.onended = () => {this.stopping=false;this.oscplaying=false;res();};//test si le onend est appelé si on fait un stop externe
+      this.osc.onended = () => {
+        this.stopping=false;
+        this.oscplaying=false;
+        res();
+      };
       this.gain = this.context.createGain();//new GainNode(context);
       this.osc.connect(this.gain).connect(this.context.destination);
       this.osc.frequency.setValueAtTime(freq ?? this.options.tone, this.context.currentTime);
