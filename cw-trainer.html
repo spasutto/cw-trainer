@@ -60,19 +60,12 @@
       }
       #keyboard {
         margin-top : 3px;
-        padding: 0 25px;
       }
       #keyboard input[type='button'] {
-        height: 31px;
+        width: 45px;
+        height: 36px;
         margin: 1px;
         font-weight: bold;
-      }
-      #keyboard input[type='button']:not(#keybtype) {
-        width: 31px;
-      }
-      #keybtype {
-        float: right;
-        font-weight: normal !important;
       }
       .zonecontrols {
         margin-bottom: 5px;
@@ -153,7 +146,6 @@
   <pre id="clearzone"></pre>
 </div>
 <script>
-var qwerty=false;
 var cw_options = {
   lesson : 1,
   grouplen : 5,
@@ -249,7 +241,7 @@ function generateText(evt) {
   console.log('generated text : '+cwgentext);
 }
 function updateHash() {
-  window.location.hash = encodeURIComponent(sellesson.value+','+selwpm.value+','+seleffwpm.value+','+grplen.value+','+groupsnb.value+','+selews.value+','+(qwerty?1:0)+','+(chkfree.checked?1:0));
+  window.location.hash = encodeURIComponent(sellesson.value+','+selwpm.value+','+seleffwpm.value+','+grplen.value+','+groupsnb.value+','+selews.value+','+(chkfree.checked?1:0));
 }
 function compareStrings(str1, str2){
 /*
@@ -439,19 +431,14 @@ function selfDownload() {
 function generateKeyboard() {
   keyboard.innerHTML = '';
   let keybhtml = '';
-  let KEYBORDER = 'AZERTYUIOPQSDFGHJKLMWXCVBN';
-  if (qwerty) KEYBORDER = 'QWERTYUIOPASDFGHJKLZXCVBNM';
-  Object.keys(CWPlayer.morse).sort((a,b) => {
-    return KEYBORDER.indexOf(a)-KEYBORDER.indexOf(b);
-  }).forEach(c => {
-    if ((c == 'A' && !qwerty) || (c == 'Q' && qwerty)) keybhtml += '<BR>';
-    else if (c == ' ') c = 'SP';
+  Object.keys(CWPlayer.morse).forEach(c => {
+    if ((c>='A'&&c<='Z') || c==' ') return;
     else if (c == '"') c = '\\"';
     keybhtml += `<input type="button" value="${c}">`;
+    if (c == '9') keybhtml += '<BR>';
   });
-  keybhtml += `<input type="button" id="keybtype" value="${qwerty?'AZERTY':'QWERTY'}" onclick="qwerty=!qwerty;generateKeyboard();updateHash();">`;
   keyboard.innerHTML = keybhtml;
-  [...document.querySelectorAll('#keyboard input:not(#keybtype)')].forEach(i => i.onclick=key.bind(i, i.value == 'SP'?' ':i.value));
+  [...document.querySelectorAll('#keyboard input')].forEach(i => i.onclick=key.bind(i, i.value));
 }
 window.onload = async () => {
   window.cwplayer = new CWPlayer();
@@ -504,9 +491,6 @@ let vals = decodeURIComponent(window.location.hash.substring(1)).split(',').forE
     case 5:
       cw_options.ews = Math.max(0, Math.min(10, val));
     case 6:
-      qwerty = val === 1;
-      break;
-    case 7:
       chkfree.checked = val === 1;
       break;
   }
