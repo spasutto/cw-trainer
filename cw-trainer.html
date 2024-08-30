@@ -59,7 +59,6 @@
         text-transform: uppercase;
       }
       #playtime {
-        display: none;
         top: 4px;
         position: relative;
         margin-left: 25px;
@@ -253,7 +252,7 @@ async function generateText(evt) {
   }
   cwplayer.Text = cwgentext;
   updateHash();
-  console.log('generated text : '+cwgentext);
+  console.log(`generated text : "${cwgentext}"`);
 }
 function updateHash() {
   window.location.hash = encodeURIComponent(sellesson.value+','+selwpm.value+','+seleffwpm.value+','+grplen.value+','+groupsnb.value+','+selews.value+','+(chkfree.checked?1:0));
@@ -470,7 +469,7 @@ function formatTime(t) {
 function updateDisplayTime() {
   playtime.innerHTML = `${formatTime(cwplayer.CurrentTime)} / ${formatTime(cwplayer.TotalTime)}`;
 }
-function startTimeTimer() { window.timeTimer = window.setInterval(updateDisplayTime, 1000); }
+function startTimeTimer() { window.timeTimer = window.setInterval(updateDisplayTime, 500); }
 function stopTimeTimer() { window.clearInterval(window.timeTimer); }
 window.onload = async () => {
   window.cwplayer = new CWPlayer();
@@ -498,6 +497,7 @@ window.onload = async () => {
     if (cwplayer.Index>0) {
       clearzone.innerHTML = cwplayer.Text.substring(0, cwplayer.Index+1);
     }
+    updateDisplayTime();
   });
   chkfree.onchange();//generateText();
   generateKeyboard();
@@ -660,6 +660,7 @@ class CWPlayer {
     this.options = {...this.DEFAULT_OPTIONS, ...options};
     this.text = '';
     this.curti = -1;
+    this.totaltime = 0;
     this.playing = false;
     this.events = {};
     if (this.options.wpm) {
@@ -725,14 +726,17 @@ class CWPlayer {
     // si on modifie le texte qui a déjà été joué on remet la lecture à 0
     if (this.curti>=0 && (value.length<=this.curti || value.substring(0, this.curti) != this.text.substring(0, this.curti))) {
       this.curti = -1;
-      this.currenttime = this.timefromstart = 0;
+      this.timefromstart = 0;
       this.fireEvent('indexchanged');
     }
     this.text = value;
+    this.totaltime = this.getDuration();
   }
   get Index() { return this.curti; }
-  get TotalTime() { return this.getDuration();  }
-  get CurrentTime() { return (this.currenttime-this.timefromstart)/1000; }
+  get TotalTime() { return this.totaltime;  }
+  get CurrentTime() {
+    return this.playing?Math.min(this.totaltime, (performance.now()-this.timefromstart)/1000):0;
+  }
 
   fireEvent(evtname, args) {
     if (!this.events[evtname]) return;
@@ -785,7 +789,7 @@ class CWPlayer {
     this.playing = false;
     if (!pause) {
       this.curti = -1;
-      this.currenttime = this.timefromstart = 0;
+      this.timefromstart = 0;
       this.fireEvent('indexchanged');
     }
     this.gain.gain.cancelScheduledValues(this.context.currentTime);
@@ -810,22 +814,24 @@ class CWPlayer {
     }
     this.gain.connect(this.context.destination);
     this.playing = true;
-    this.timefromstart = performance.now();
+    if (this.curti<0) {
+      this.timefromstart = performance.now();
+    }
     this.fireEvent('play');
+//let erg = performance.now();
     while (this.playing) {
       if (++this.curti >= this.text.length) {
+//console.log((performance.now()-erg)/1000);
         return await this.stop();//le lecteur arrive en bout on stop
       }
-      this.currenttime = performance.now();
       this.fireEvent('indexchanged');
       await this.#playElement(this.text[this.curti]);
-      // on ajoute l'espacement inter caractère (s'il reste des caractères à jouer)
-      if (this.playing && this.curti+1 < this.text.length) {
+      // on ajoute l'espacement inter caractère (s'il reste des caractères à jouer et si le caractère courant ou suivant n'est pas un espace)
+      if (this.playing && this.text[this.curti] != ' ' && this.text[this.curti] != '\t' && this.curti+1 < this.text.length && this.text[this.curti+1] != ' ' && this.text[this.curti+1] != '\t') {
         await CWPlayer.delay(this.options.spperiod*3);
       }
     }
   }
-
   async playBoop() {
     if (this.playing) {
       await this.stop();
@@ -837,6 +843,7 @@ class CWPlayer {
     await this.#playElement('t', 250);
     this.playing = false;
   }
+
   static async delay(s) {
     return new Promise(res => s?setTimeout(res, s*1000):res())
   }
@@ -867,7 +874,11 @@ class CWPlayer {
     let cwtext = CWPlayer.translate(this.text);
     for (let i=0; i<cwtext.length; i++) {
       c = cwtext[i];
-      if (c == ' ' || c == '\t') {
+      if (c == ' ') {
+        duration += this.options.spperiod*3;
+        inchar=false;
+        continue;
+      } else if (c == '\t') {
         duration += (this.options.spperiod*7*this.options.ews);
         inchar=false;
         continue;
