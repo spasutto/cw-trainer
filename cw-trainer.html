@@ -660,7 +660,7 @@ class CWPlayer {
     this.options = {...this.DEFAULT_OPTIONS, ...options};
     this.text = '';
     this.curti = -1;
-    this.totaltime = 0;
+    this.lastpausetime = this.totalpausetime = this.totaltime = 0;
     this.playing = false;
     this.events = {};
     if (this.options.wpm) {
@@ -735,7 +735,7 @@ class CWPlayer {
   get Index() { return this.curti; }
   get TotalTime() { return this.totaltime;  }
   get CurrentTime() {
-    return this.playing?Math.min(this.totaltime, (performance.now()-this.timefromstart)/1000):0;
+    return this.playing?Math.min(this.totaltime, (performance.now()-this.timefromstart-this.totalpausetime)/1000):0;
   }
 
   fireEvent(evtname, args) {
@@ -785,28 +785,36 @@ class CWPlayer {
     this.osc.start();
   }
   async stop(pause=false) {
-    if (!this.playing) return;
     this.playing = false;
     if (!pause) {
       this.curti = -1;
-      this.timefromstart = 0;
+      this.totalpausetime = this.lastpausetime = this.timefromstart = 0;
       this.fireEvent('indexchanged');
     }
-    this.gain.gain.cancelScheduledValues(this.context.currentTime);
-    let curGain = this.gain.gain.value;
-    if (curGain > 0) {
-      let stopTime = this.context.currentTime + 0.005;
-      this.gain.gain.linearRampToValueAtTime(curGain, this.context.currentTime);
-      this.gain.gain.linearRampToValueAtTime(0, stopTime);
-      await CWPlayer.delay(0.005);
+    if (this.playing) {
+      this.gain.gain.cancelScheduledValues(this.context.currentTime);
+      let curGain = this.gain.gain.value;
+      if (curGain > 0) {
+        let stopTime = this.context.currentTime + 0.005;
+        this.gain.gain.linearRampToValueAtTime(curGain, this.context.currentTime);
+        this.gain.gain.linearRampToValueAtTime(0, stopTime);
+        await CWPlayer.delay(0.005);
+      }
+      try {
+        this.gain.disconnect(this.context.destination);
+      } catch(e) {}
     }
-    try {
-      this.gain.disconnect(this.context.destination);
-    } catch(e) {}
     this.fireEvent(pause?'pause':'stop');
   }
-  async pause() { return await this.stop(true); }
+  async pause() {
+    this.lastpausetime = performance.now();
+    return await this.stop(true);
+  }
   async play(text) {
+    if (this.lastpausetime > 0) {
+      this.totalpausetime += (performance.now()-this.lastpausetime);
+      this.lastpausetime = 0;
+    }
     if (this.playing) return;
     if (typeof text === 'string') this.Text = text;
     if (!this.context) {
