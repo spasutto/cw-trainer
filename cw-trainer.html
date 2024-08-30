@@ -58,6 +58,12 @@
         text-align: center;
         text-transform: uppercase;
       }
+      #playtime {
+        display: none;
+        top: 4px;
+        position: relative;
+        margin-left: 25px;
+      }
       #keyboard {
         margin-top : 3px;
       }
@@ -83,6 +89,14 @@
       }
       #clearzone {
         display: none;
+      }
+      .error {
+        background-color: #d00;
+        color: white;
+      }
+      .ok {
+        background-color: green;
+        color: white;
       }
     </style>
   </head>
@@ -133,6 +147,7 @@
           <rect width="5" height="15" x="12" y="2" rx="1" ry="1"/>
         </svg>
       </button>
+      <span id="playtime"></span>
     </div>
     <textarea id="cwtext" rows="4" cols="43" spellcheck="false" autocorrect="off"></textarea><br>
     <input type="button" value="submit" id="cwsbm"><br>
@@ -203,9 +218,9 @@ function generateRandomText(chars, grouplen, groupsnb) {
   else grouplen = irand(2, 8);
   return Array.apply(null, Array(groupsnb)).map(() => generateRandomString(chars, grouplen)).join(' ');
 }
-function generateText(evt) {
+async function generateText(evt) {
   if (!cwplayer) return;
-  if (cwplayer.Playing) cwplayer.stop();
+  if (cwplayer.Playing) await cwplayer.stop();
   zoneresult.style.display = 'none';
   cwsbm.disabled = false;
   cwtext.value = '';
@@ -353,36 +368,45 @@ function key(value) {
     cwtext.focus();
   }
 }
-function verifycw() {
+async function verifycw() {
   if (!cwplayer) return;
-  //if (cwplayer.Playing) cwplayer.stop();
+  //if (cwplayer.Playing) await cwplayer.stop();
   if (chkfree.checked) {
     if (iptfree.value?.length != 1) return; // controls keys
+    iptfree.disabled = true;
     if (chkfreelisten.checked || iptfree.value==' ') {
-      cwplayer.stop();
-      cwplayer.play(chkfreelisten.checked?iptfree.value:null);
+      await cwplayer.stop();
+      await cwplayer.play(chkfreelisten.checked?iptfree.value:null);
       iptfree.value = '';
+      iptfree.disabled = false;
+      iptfree.focus();
       return;
     }
     if (iptfree.value.toUpperCase() != cwgentext[0]) {
-      cwplayer.stop();
+      iptfree.classList.add('error');
+      await cwplayer.stop();
       //play boop
-      cwplayer.playBoop();
+      await cwplayer.playBoop();
+      iptfree.classList.remove('error');
       if (window.freefirsttry) {
         window.freefirsttry = false;
         window.freeerr++;
       }
     } else {
-      cwplayer.stop();
-      generateText();
-      cwplayer.play();
+      iptfree.classList.add('ok');
+      await generateText();
+      await cwplayer.play();
+      iptfree.classList.remove('ok');
       window.freetotal++;
       window.freefirsttry = true;
     }
     zoneresultfree.innerHTML = `Success rate : ${Math.round((100*(freetotal-freeerr)/freetotal)*10)/10}%`;
   
     iptfree.value = '';
+    iptfree.disabled = false;
+    iptfree.focus();
   } else {
+    cwsbm.disabled = true;
     let extractfn = (t) => t.toUpperCase().split(' ').map(e => CWPlayer.cleanText(e.trim())).filter(e => e.length > 0);
     let inpt = extractfn(cwtext.value);
     let verif = extractfn(cwgentext);
@@ -390,10 +414,10 @@ function verifycw() {
       if (confirm('Warning : it seems that you have not entered enough groups, are you sure to proceed to verification?')) {
         inpt.push(...Array(verif.length-inpt.length).fill(''));
       } else {
+        cwsbm.disabled = false;
         return;
       }
     }
-    cwsbm.disabled = true;
     
     let results = verif.map((a, i) => compareStrings(a, inpt[i]));
     let nbchars = verif.reduce((acc, cur) => acc+cur.length, 0);
@@ -440,6 +464,14 @@ function generateKeyboard() {
   keyboard.innerHTML = keybhtml;
   [...document.querySelectorAll('#keyboard input')].forEach(i => i.onclick=key.bind(i, i.value));
 }
+function formatTime(t) {
+  return new Date(Math.round(t) * 1000).toISOString().substring(14, 19);
+}
+function updateDisplayTime() {
+  playtime.innerHTML = `${formatTime(cwplayer.CurrentTime)} / ${formatTime(cwplayer.TotalTime)}`;
+}
+function startTimeTimer() { window.timeTimer = window.setInterval(updateDisplayTime, 1000); }
+function stopTimeTimer() { window.clearInterval(window.timeTimer); }
 window.onload = async () => {
   window.cwplayer = new CWPlayer();
   cwplayer.addEventListener('play', () => {
@@ -447,20 +479,24 @@ window.onload = async () => {
     btnplay.disabled = true;btnplay.classList.add('svg_inactif');
     btnpause.disabled = false;btnpause.classList.remove('svg_inactif');
     cwtext.focus();
+    startTimeTimer();
   });
   cwplayer.addEventListener('pause', () => {
     btnstop.disabled = false;btnstop.classList.remove('svg_inactif');
     btnplay.disabled = false;btnplay.classList.remove('svg_inactif');
     btnpause.disabled = true;btnpause.classList.add('svg_inactif');
+    stopTimeTimer();
   });
   cwplayer.addEventListener('stop', () => {
     btnstop.disabled = true;btnstop.classList.add('svg_inactif');
     btnplay.disabled = false;btnplay.classList.remove('svg_inactif');
     btnpause.disabled = true;btnpause.classList.add('svg_inactif');
+    stopTimeTimer();
+    //updateDisplayTime();
   });
   cwplayer.addEventListener('indexchanged', () => {
     if (cwplayer.Index>0) {
-      clearzone.innerHTML = cwplayer.Text.substring(0, cwplayer.Index);
+      clearzone.innerHTML = cwplayer.Text.substring(0, cwplayer.Index+1);
     }
   });
   chkfree.onchange();//generateText();
@@ -523,9 +559,9 @@ nxtlesson.onclick = () => {
   sellesson.value++;
   retrybtn.click();
 };
-chkfree.onchange = () => {
+chkfree.onchange = async () => {
   if (!cwplayer) return;
-  cwplayer.stop();
+  await cwplayer.stop();
   iptfree.value = cwtext.value = '';
   zonefree.style.display = chkfree.checked?'block':'none';
   zonekoch.style.display = !chkfree.checked?'block':'none';
@@ -624,7 +660,7 @@ class CWPlayer {
     this.options = {...this.DEFAULT_OPTIONS, ...options};
     this.text = '';
     this.curti = -1;
-    this.oscplaying = this.stopping = this.playing = false;
+    this.playing = false;
     this.events = {};
     if (this.options.wpm) {
       this.WPM = this.options.wpm;
@@ -731,18 +767,20 @@ class CWPlayer {
     }
     return cwtext;
   }
-  forceStop() {
-    this.gain.gain.cancelScheduledValues(this.context.currentTime);
-    this.osc.stop();
-    this.stopping = false;
-    this.playing = false;
-    this.curti = -1;
-    console.log('forced stop');
-  }
-  stop(pause=false) {
-    if (this.stopping) {
-      return this.forceStop();
+
+  #initAudio() {
+    if (this.context) {
+      return;
     }
+    this.context = new (window.AudioContext || window.webkitAudioContext)();
+    this.osc = this.context.createOscillator();
+    this.gain = this.context.createGain();
+    this.osc.connect(this.gain);//.connect(this.context.destination);
+    this.osc.frequency.setValueAtTime(this.options.tone, this.context.currentTime);
+    this.gain.gain.setValueAtTime(0, this.context.currentTime);
+    this.osc.start();
+  }
+  async stop(pause=false) {
     if (!this.playing) return;
     this.playing = false;
     if (!pause) {
@@ -750,33 +788,33 @@ class CWPlayer {
       this.currenttime = this.timefromstart = 0;
       this.fireEvent('indexchanged');
     }
-    this.laststopaction=pause;
-    if (this.oscplaying) {
-      this.stopping = true;
-      this.gain.gain.cancelScheduledValues(this.context.currentTime);
+    this.gain.gain.cancelScheduledValues(this.context.currentTime);
+    let curGain = this.gain.gain.value;
+    if (curGain > 0) {
       let stopTime = this.context.currentTime + 0.005;
-      this.gain.gain.linearRampToValueAtTime(1, this.context.currentTime);
+      this.gain.gain.linearRampToValueAtTime(curGain, this.context.currentTime);
       this.gain.gain.linearRampToValueAtTime(0, stopTime);
-      this.osc.stop(stopTime);
-      this.fireEvent(pause?'pause':'stop');
-    } else {
-      this.stopping = false;
-      this.fireEvent(pause?'pause':'stop');
+      await CWPlayer.delay(0.005);
     }
+    try {
+      this.gain.disconnect(this.context.destination);
+    } catch(e) {}
+    this.fireEvent(pause?'pause':'stop');
   }
-  pause() { return this.stop(true); }
+  async pause() { return await this.stop(true); }
   async play(text) {
-    if (this.stopping) {
-      this.forceStop();
-    }
     if (this.playing) return;
     if (typeof text === 'string') this.Text = text;
+    if (!this.context) {
+      this.#initAudio();
+    }
+    this.gain.connect(this.context.destination);
     this.playing = true;
     this.timefromstart = performance.now();
     this.fireEvent('play');
     while (this.playing) {
       if (++this.curti >= this.text.length) {
-        return this.stop();//le lecteur arrive en bout on stop
+        return await this.stop();//le lecteur arrive en bout on stop
       }
       this.currenttime = performance.now();
       this.fireEvent('indexchanged');
@@ -789,14 +827,14 @@ class CWPlayer {
   }
 
   async playBoop() {
-    let d = 0;
     if (this.playing) {
-      this.stop();
-      d = 0.05;
+      await this.stop();
+    } else if (!this.context) {
+      this.#initAudio();
     }
+    this.gain.connect(this.context.destination);
     this.playing = true;
-    await CWPlayer.delay(d);
-    if (this.playing) await this.#playElement('t', 250);
+    await this.#playElement('t', 250);
     this.playing = false;
   }
   static async delay(s) {
@@ -807,36 +845,21 @@ class CWPlayer {
       return await CWPlayer.delay(this.options.spperiod*7*this.options.ews);
     }
     let mc = CWPlayer.translate(c[0]);
-    return new Promise(res => {
-      // TODO déplacer ça dans un catch après avoir fait un try d'une fonction du context?
-      if (!this.context) {
-        this.context = new (window.AudioContext || window.webkitAudioContext)();
+    let initTime = this.context.currentTime;
+    let t = initTime;
+    this.osc.frequency.setValueAtTime(freq ?? this.options.tone, t);
+    for (let i=0; i<mc.length; i++) {
+      if (i>0) {
+        // inter-element
+        t+=this.options.elperiod;
       }
-      this.osc = this.context.createOscillator();// new OscillatorNode(context);
-      this.osc.onended = () => {
-        this.stopping=false;
-        this.oscplaying=false;
-        res();
-      };
-      this.gain = this.context.createGain();//new GainNode(context);
-      this.osc.connect(this.gain).connect(this.context.destination);
-      this.osc.frequency.setValueAtTime(freq ?? this.options.tone, this.context.currentTime);
-      let t = this.context.currentTime;
-      for (let i=0; i<mc.length; i++) {
-        if (i>0) {
-          // inter-element
-          t+=this.options.elperiod;
-        }
-        this.gain.gain.setValueAtTime(0, t);
-        this.gain.gain.linearRampToValueAtTime(1, t + 0.005);
-        t+=mc[i] == '.' ? this.options.elperiod : 3*this.options.elperiod; // dit or dah
-        this.gain.gain.setValueAtTime(1, t - 0.005);
-        this.gain.gain.linearRampToValueAtTime(0, t);
-      }
-      this.osc.start();
-      this.oscplaying=true;
-      this.osc.stop(t);
-    });
+      this.gain.gain.setValueAtTime(0, t);
+      this.gain.gain.linearRampToValueAtTime(1, t + 0.005);
+      t+=(mc[i] == '.' ? this.options.elperiod : 3*this.options.elperiod); // dit or dah
+      this.gain.gain.setValueAtTime(1, t - 0.005);
+      this.gain.gain.linearRampToValueAtTime(0, t);
+    }
+    await CWPlayer.delay(t-initTime);
   }
   getDuration() {
     let duration = 0, c = null;
@@ -853,8 +876,7 @@ class CWPlayer {
         //inter-element
         duration+=this.options.elperiod;
       }
-      //TODO traiter le caractère
-      duration+=c == '.' ? this.options.elperiod : 3*this.options.elperiod; // dit or dah
+      duration+=(c == '.' ? this.options.elperiod : 3*this.options.elperiod); // dit or dah
       inchar=true;
     }
     return duration;
