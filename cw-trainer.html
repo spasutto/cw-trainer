@@ -65,7 +65,7 @@
         width: 45px;
         height: 36px;
         margin: 1px;
-        font-weight: bold;
+        font-size: 18pt;
       }
       .zonecontrols {
         margin-bottom: 5px;
@@ -495,6 +495,16 @@ let vals = decodeURIComponent(window.location.hash.substring(1)).split(',').forE
       break;
   }
 });
+window.onerror = (a, b, c, d, e) => {
+  let err = `error : ${a}`;
+  err += ` source: ${b}`;
+  err += ` lineno: ${c}`;
+  err += ` colno: ${d}`;
+  err += ` error: ${e}`;
+  alert(err);
+
+  return false;
+};
 sellesson.value = cw_options.lesson;
 selwpm.value = cw_options.wpm;
 seleffwpm.value = cw_options.eff;
@@ -639,6 +649,7 @@ class CWPlayer {
     if (wpm<this.EffWPM) {
       this.EffWPM = wpm;
     }
+    this.fireEvent('parameterchanged');
   }
   get EffWPM() {
     return Math.round(60/(19*this.options.spperiod+31*this.options.elperiod));
@@ -649,11 +660,13 @@ class CWPlayer {
       this.WPM = effwpm;
     }
     this.options.spperiod = ((60/effwpm)-31*this.options.elperiod)/19;
+    this.fireEvent('parameterchanged');
   }
   get EWS() { return this.options.ews; }
   set EWS(value) {
     value = Math.min(10, Math.max(1, value));
     this.options.ews = value;
+    this.fireEvent('parameterchanged');
   }
   get Tone() { return this.options.tone; }
   set Tone(value) {
@@ -676,11 +689,14 @@ class CWPlayer {
     // si on modifie le texte qui a déjà été joué on remet la lecture à 0
     if (this.curti>=0 && (value.length<=this.curti || value.substring(0, this.curti) != this.text.substring(0, this.curti))) {
       this.curti = -1;
+      this.currenttime = this.timefromstart = 0;
       this.fireEvent('indexchanged');
     }
     this.text = value;
   }
   get Index() { return this.curti; }
+  get TotalTime() { return this.getDuration();  }
+  get CurrentTime() { return (this.currenttime-this.timefromstart)/1000; }
 
   fireEvent(evtname, args) {
     if (!this.events[evtname]) return;
@@ -731,6 +747,7 @@ class CWPlayer {
     this.playing = false;
     if (!pause) {
       this.curti = -1;
+      this.currenttime = this.timefromstart = 0;
       this.fireEvent('indexchanged');
     }
     this.laststopaction=pause;
@@ -755,11 +772,13 @@ class CWPlayer {
     if (this.playing) return;
     if (typeof text === 'string') this.Text = text;
     this.playing = true;
+    this.timefromstart = performance.now();
     this.fireEvent('play');
     while (this.playing) {
       if (++this.curti >= this.text.length) {
         return this.stop();//le lecteur arrive en bout on stop
       }
+      this.currenttime = performance.now();
       this.fireEvent('indexchanged');
       await this.#playElement(this.text[this.curti]);
       // on ajoute l'espacement inter caractère (s'il reste des caractères à jouer)
@@ -818,6 +837,27 @@ class CWPlayer {
       this.oscplaying=true;
       this.osc.stop(t);
     });
+  }
+  getDuration() {
+    let duration = 0, c = null;
+    let inchar=false;
+    let cwtext = CWPlayer.translate(this.text);
+    for (let i=0; i<cwtext.length; i++) {
+      c = cwtext[i];
+      if (c == ' ' || c == '\t') {
+        duration += (this.options.spperiod*7*this.options.ews);
+        inchar=false;
+        continue;
+      }
+      if (inchar) {
+        //inter-element
+        duration+=this.options.elperiod;
+      }
+      //TODO traiter le caractère
+      duration+=c == '.' ? this.options.elperiod : 3*this.options.elperiod; // dit or dah
+      inchar=true;
+    }
+    return duration;
   }
 }
 </script>
