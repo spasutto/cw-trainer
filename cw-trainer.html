@@ -160,6 +160,7 @@
   <pre id="clearzone"></pre>
 </div>
 <script>
+var cwchecking = false;
 var cw_options = {
   lesson : 1,
   grouplen : 5,
@@ -168,7 +169,6 @@ var cw_options = {
   eff : 17,
   ews : 2
 };
-var cwgentext = "";
 var kochcars = ['K', 'M', 'U', 'R', 'E', 'S', 'N', 'A', 'P', 'T', 'L', 'W', 'I', '.', 'J', 'Z', '=', 'F', 'O', 'Y', ',', 'V', 'G', '5', '/', 'Q', '9', '2', 'H', '3', '8', 'B', '?', '4', '7', 'C', '1', 'D', '6', '0', 'X'];
 var QSOs = [
   //http://lidscw.org/resources/cq-qso-template
@@ -237,6 +237,7 @@ async function generateText(evt) {
   cwplayer.WPM = cw_options.wpm;
   cwplayer.EffWPM = cw_options.eff;
   cwplayer.EWS = cw_options.ews;
+  let cwgentext = '';
   if (chkfree.checked) {
     cwgentext = generateRandomString(kochcars.slice(0, cw_options.lesson+1), 1);
   } else if (cw_options.lesson>40) {
@@ -368,20 +369,25 @@ function key(value) {
   }
 }
 async function verifycw() {
-  if (!cwplayer) return;
+  if (!cwplayer || cwchecking) return;
+  cwchecking = true;
   //if (cwplayer.Playing) await cwplayer.stop();
   if (chkfree.checked) {
-    if (iptfree.value?.length != 1) return; // controls keys
-    iptfree.disabled = true;
+    if (iptfree.value?.length != 1) {
+      cwchecking = false;
+      return; // controls keys
+    }
+    //iptfree.disabled = true;
     if (chkfreelisten.checked || iptfree.value==' ') {
       await cwplayer.stop();
       await cwplayer.play(chkfreelisten.checked?iptfree.value:null);
       iptfree.value = '';
-      iptfree.disabled = false;
+      //iptfree.disabled = false;
       iptfree.focus();
+      cwchecking = false;
       return;
     }
-    if (iptfree.value.toUpperCase() != cwgentext[0]) {
+    if (iptfree.value.toUpperCase() != cwplayer.Text[0]) {
       iptfree.classList.add('error');
       await cwplayer.stop();
       //play boop
@@ -400,20 +406,21 @@ async function verifycw() {
       window.freefirsttry = true;
     }
     zoneresultfree.innerHTML = `Success rate : ${Math.round((100*(freetotal-freeerr)/freetotal)*10)/10}%`;
-  
+
     iptfree.value = '';
-    iptfree.disabled = false;
+    //iptfree.disabled = false;
     iptfree.focus();
   } else {
     cwsbm.disabled = true;
     let extractfn = (t) => t.toUpperCase().split(' ').map(e => CWPlayer.cleanText(e.trim())).filter(e => e.length > 0);
     let inpt = extractfn(cwtext.value);
-    let verif = extractfn(cwgentext);
+    let verif = extractfn(cwplayer.Text);
     if (inpt.length < verif.length) {
       if (confirm('Warning : it seems that you have not entered enough groups, are you sure to proceed to verification?')) {
         inpt.push(...Array(verif.length-inpt.length).fill(''));
       } else {
         cwsbm.disabled = false;
+        cwchecking = false;
         return;
       }
     }
@@ -436,6 +443,7 @@ async function verifycw() {
     nxtlesson.style.visibility = perc>=90?'visible':'hidden';
     zoneresult.style.display = 'block';
   }
+  cwchecking = false;
 }
 
 function selfDownload() {
@@ -502,8 +510,6 @@ window.onload = async () => {
   cwplayer.addEventListener('parameterchanged', updateDisplayTime);
   chkfree.onchange();//generateText();
   generateKeyboard();
-  // for testing purposes
-  //cwgentext='';cwplayer.Text=' '+cwgentext;
 };
 let vals = decodeURIComponent(window.location.hash.substring(1)).split(',').forEach((val, i) => {
   val = parseInt(val, 10);
