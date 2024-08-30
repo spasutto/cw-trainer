@@ -393,9 +393,9 @@ async function verifycw() {
       }
     } else {
       iptfree.classList.add('ok');
+      CWPlayer.delay(0.15).then(() => iptfree.classList.remove('ok'));
       await generateText();
       await cwplayer.play();
-      iptfree.classList.remove('ok');
       window.freetotal++;
       window.freefirsttry = true;
     }
