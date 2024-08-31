@@ -4,6 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
     <title>CW Trainer</title>
+    <link rel="icon" type="image/x-icon" href="cwtrainer.ico">
 
     <style>
       body {
@@ -138,10 +139,10 @@
       <option value='41'>QSO</option>
     </select>
     <input type="checkbox" id="chkfree"><label for="chkfree">simple mode</label><BR>
-    <label for="selwpm">WPM : </label>
-    <input type="number" id="selwpm" min="1" max="60">
-    <label for="seleffwpm">Eff. WPM : </label>
-    <input type="number" id="seleffwpm" min="1" max="60"><BR>
+    <label for="selwpm" title="Word Per Minute">WPM : </label>
+    <input type="number" id="selwpm" min="1" max="60" title="Word Per Minute">
+    <label for="seleffwpm" title="Effective Word Per Minute (Farnsworth)">Eff. WPM : </label>
+    <input type="number" id="seleffwpm" min="1" max="60" title="Effective Word Per Minute (Farnsworth)"><BR>
   </div>
   <!--<span id="lamp">CW</span>-->
   <div id="zonefree" style="display:none">
@@ -150,8 +151,8 @@
     <input type="checkbox" id="chkfreelisten"><label for="chkfreelisten">free mode</label>
   </div>
   <div id="zonekoch">
-    <label for="selews">Extra word spacing : </label>
-    <input type="number" id="selews" min="0" max="10"><BR>
+    <label for="selews" title="Multiplier for the space between words">Extra word spacing : </label>
+    <input type="number" id="selews" min="0" max="10" title="Multiplier for the space between words"><BR>
     <label for="grplen">Words length : </label>
     <select id="grplen">
       <option value="-1">random</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option>
