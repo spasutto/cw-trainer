@@ -509,10 +509,12 @@ function generateKeyboard() {
   [...document.querySelectorAll('#keyboard input')].forEach(i => i.onclick=key.bind(i, i.value));
 }
 function formatTime(t) {
-  let cs = ((Math.round(t*10)/10)+"").split('.');
-  if (cs.length<2) cs = '.0';
-  else cs = '.'+cs[1];
-  return new Date(t * 1000).toISOString().substring(14, 19) + cs;
+  let tf = (Math.floor(t/60)+"").padStart(2, '0') + ':';
+  let s = Math.round(10*(t%60))/10;
+  if (s<10) tf += '0';
+  s = s+"";
+  if (s.indexOf('.') < 0) s+='.0';
+  return tf+s;
 }
 function updateDisplayTime() {
   playperc.style.width = (100*cwplayer.CurrentTime/cwplayer.TotalTime)+'%';
