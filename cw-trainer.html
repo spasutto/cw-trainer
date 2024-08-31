@@ -167,7 +167,8 @@ var cw_options = {
   groupsnb : 10,
   wpm : 25,
   eff : 17,
-  ews : 2
+  ews : 2,
+  predelay : 2
 };
 var kochcars = ['K', 'M', 'U', 'R', 'E', 'S', 'N', 'A', 'P', 'T', 'L', 'W', 'I', '.', 'J', 'Z', '=', 'F', 'O', 'Y', ',', 'V', 'G', '5', '/', 'Q', '9', '2', 'H', '3', '8', 'B', '?', '4', '7', 'C', '1', 'D', '6', '0', 'X'];
 var QSOs = [
@@ -237,19 +238,21 @@ async function generateText(evt) {
   cwplayer.WPM = cw_options.wpm;
   cwplayer.EffWPM = cw_options.eff;
   cwplayer.EWS = cw_options.ews;
+  cwplayer.PreDelay = cw_options.predelay;
   let cwgentext = '';
   if (chkfree.checked) {
     cwgentext = generateRandomString(kochcars.slice(0, cw_options.lesson+1), 1);
+    cwplayer.PreDelay = 0;
   } else if (cw_options.lesson>40) {
     let callsign1 = generateRandomCallsign();
     let callsign2 = generateRandomCallsign();
-    cwgentext = ' '+QSOs[irand(QSOs.length-1)]
+    cwgentext = QSOs[irand(QSOs.length-1)]
         .replaceAll('%IND1%', callsign1)
         .replaceAll('%IND2%', callsign2)
         .replaceAll('%RST1%', ''+irand(5)+irand(9)+irand(9))
         .replaceAll('%RST2%', ''+irand(5)+irand(9)+irand(9));
   } else {
-    cwgentext = ' '+generateRandomText(kochcars.slice(0, cw_options.lesson+1), cw_options.grouplen, cw_options.groupsnb);
+    cwgentext = generateRandomText(kochcars.slice(0, cw_options.lesson+1), cw_options.grouplen, cw_options.groupsnb);
   }
   cwplayer.Text = cwgentext;
   updateHash();
@@ -472,12 +475,15 @@ function generateKeyboard() {
   [...document.querySelectorAll('#keyboard input')].forEach(i => i.onclick=key.bind(i, i.value));
 }
 function formatTime(t) {
-  return new Date(Math.round(t) * 1000).toISOString().substring(14, 19);
+  let cs = ((Math.round(t*10)/10)+"").split('.');
+  if (cs.length<2) cs = '.0';
+  else cs = '.'+cs[1];
+  return new Date(t * 1000).toISOString().substring(14, 19) + cs;
 }
 function updateDisplayTime() {
   playtime.innerHTML = `${formatTime(cwplayer.CurrentTime)} / ${formatTime(cwplayer.TotalTime)}`;
 }
-function startTimeTimer() { window.timeTimer = window.setInterval(updateDisplayTime, 500); }
+function startTimeTimer() { window.timeTimer = window.setInterval(updateDisplayTime, 250); }
 function stopTimeTimer() { window.clearInterval(window.timeTimer); }
 window.onload = async () => {
   window.cwplayer = new CWPlayer();
@@ -499,13 +505,12 @@ window.onload = async () => {
     btnplay.disabled = false;btnplay.classList.remove('svg_inactif');
     btnpause.disabled = true;btnpause.classList.add('svg_inactif');
     stopTimeTimer();
-    //updateDisplayTime();
+    updateDisplayTime();
   });
   cwplayer.addEventListener('indexchanged', () => {
     if (cwplayer.Index>0) {
       clearzone.innerHTML = cwplayer.Text.substring(0, cwplayer.Index+1);
     }
-    updateDisplayTime();
   });
   cwplayer.addEventListener('parameterchanged', updateDisplayTime);
   chkfree.onchange();//generateText();
@@ -661,7 +666,8 @@ class CWPlayer {
     elperiod : 0.06, // 20WPM.
     spperiod : 0.06,
     tone : 800,
-    ews : 1
+    ews : 1,
+    predelay : 1
   };
   constructor(options) {
     this.options = {...this.DEFAULT_OPTIONS, ...options};
@@ -716,6 +722,13 @@ class CWPlayer {
   set Tone(value) {
     value = Math.min(5000, Math.max(150, value));
     this.options.tone = value;
+    this.fireEvent('parameterchanged');
+  }
+  get PreDelay() { return this.options.predelay; }
+  set PreDelay(value) {
+    value = Math.max(0, value);
+    this.options.predelay = value;
+    this.totaltime = this.getDuration();
     this.fireEvent('parameterchanged');
   }
   get Playing() { return this.playing; }
@@ -829,14 +842,15 @@ class CWPlayer {
     }
     this.gain.connect(this.context.destination);
     this.playing = true;
+    this.fireEvent('play');
     if (this.curti<0) {
       this.timefromstart = performance.now();
+      if (this.options.predelay>0) {
+        await CWPlayer.delay(this.options.predelay);
+      }
     }
-    this.fireEvent('play');
-//let erg = performance.now();
     while (this.playing) {
       if (++this.curti >= this.text.length) {
-//console.log((performance.now()-erg)/1000);
         return await this.stop();//le lecteur arrive en bout on stop
       }
       this.fireEvent('indexchanged');
@@ -884,7 +898,7 @@ class CWPlayer {
     await CWPlayer.delay(t-initTime);
   }
   getDuration() {
-    let duration = 0, c = null;
+    let duration = Math.max(0, this.options.predelay), c = null;
     let inchar=false;
     let cwtext = CWPlayer.translate(this.text);
     for (let i=0; i<cwtext.length; i++) {
