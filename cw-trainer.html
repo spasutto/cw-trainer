@@ -145,14 +145,14 @@
     <input type="number" id="seleffwpm" min="1" max="60" title="Effective Word Per Minute (Farnsworth)"><BR>
   </div>
   <!--<span id="lamp">CW</span>-->
+  <input type="checkbox" id="chkfreelisten"><label for="chkfreelisten">free listen mode</label>
   <div id="zonefree" style="display:none">
     <input type="text" id="iptfree" maxlength="1">
     <div id="zoneresultfree"></div>
-    <input type="checkbox" id="chkfreelisten"><label for="chkfreelisten">free mode</label>
   </div>
   <div id="zonekoch">
     <label for="selews" title="Multiplier for the space between words">Extra word spacing : </label>
-    <input type="number" id="selews" min="0" max="10" title="Multiplier for the space between words"><BR>
+    <input type="number" id="selews" min="1" max="10" title="Multiplier for the space between words"><BR>
     <label for="grplen">Words length : </label>
     <select id="grplen">
       <option value="-1">random</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option>
@@ -264,37 +264,42 @@ async function generateText(evt) {
   cw_options.eff = parseInt(seleffwpm.value, 10);
   cw_options.grouplen = parseInt(grplen.value, 10);
   cw_options.groupsnb = parseInt(groupsnb.value, 10);
-  cw_options.ews = parseInt(selews.value, 10);
+  cw_options.ews = parseFloat(selews.value, 10);
   if (evt?.currentTarget == selwpm && cw_options.wpm<cw_options.eff) {
     seleffwpm.value = cw_options.eff = cw_options.wpm;
   } else if (cw_options.wpm<cw_options.eff) {
     selwpm.value = cw_options.wpm = cw_options.eff;
+  }
+  if (evt?.currentTarget == selews && (cw_options.ews < 1 || cw_options.ews > 10)) {
+    cw_options.ews = selews.value = Math.max(1, Math.min(10, cw_options.ews));
   }
   cwplayer.WPM = cw_options.wpm;
   cwplayer.EffWPM = cw_options.eff;
   cwplayer.EWS = cw_options.ews;
   cwplayer.PreDelay = cw_options.predelay;
   let cwgentext = '';
-  if (chkfree.checked) {
-    cwgentext = generateRandomString(kochcars.slice(0, cw_options.lesson+1), 1);
-    cwplayer.PreDelay = 0;
-  } else if (cw_options.lesson>40) {
-    let callsign1 = generateRandomCallsign();
-    let callsign2 = generateRandomCallsign();
-    cwgentext = QSOs[irand(QSOs.length-1)]
-        .replaceAll('%IND1%', callsign1)
-        .replaceAll('%IND2%', callsign2)
-        .replaceAll('%RST1%', ''+irand(5)+irand(9)+irand(9))
-        .replaceAll('%RST2%', ''+irand(5)+irand(9)+irand(9));
-  } else {
-    cwgentext = generateRandomText(kochcars.slice(0, cw_options.lesson+1), cw_options.grouplen, cw_options.groupsnb);
+  if (!chkfreelisten.checked) {
+    if (chkfree.checked) {
+      cwgentext = generateRandomString(kochcars.slice(0, cw_options.lesson+1), 1);
+      cwplayer.PreDelay = 0;
+    } else if (cw_options.lesson>40) {
+      let callsign1 = generateRandomCallsign();
+      let callsign2 = generateRandomCallsign();
+      cwgentext = QSOs[irand(QSOs.length-1)]
+          .replaceAll('%IND1%', callsign1)
+          .replaceAll('%IND2%', callsign2)
+          .replaceAll('%RST1%', ''+irand(5)+irand(9)+irand(9))
+          .replaceAll('%RST2%', ''+irand(5)+irand(9)+irand(9));
+    } else {
+      cwgentext = generateRandomText(kochcars.slice(0, cw_options.lesson+1), cw_options.grouplen, cw_options.groupsnb);
+    }
+    cwplayer.Text = cwgentext;
+    console.log(`generated text : "${cwgentext}"`);
   }
-  cwplayer.Text = cwgentext;
   updateHash();
-  console.log(`generated text : "${cwgentext}"`);
 }
 function updateHash() {
-  window.location.hash = encodeURIComponent(sellesson.value+','+selwpm.value+','+seleffwpm.value+','+grplen.value+','+groupsnb.value+','+selews.value+','+(chkfree.checked?1:0));
+  window.location.hash = encodeURIComponent(sellesson.value+'|'+selwpm.value+'|'+seleffwpm.value+'|'+grplen.value+'|'+groupsnb.value+'|'+selews.value+'|'+(chkfree.checked?1:0));
 }
 function compareStrings(str1, str2){
 /*
@@ -449,6 +454,9 @@ async function verifycw() {
     //iptfree.disabled = false;
     iptfree.focus();
   } else {
+    if (chkfreelisten.checked) {
+      return;
+    }
     cwsbm.disabled = true;
     let extractfn = (t) => t.toUpperCase().split(' ').map(e => CWPlayer.cleanText(e.trim())).filter(e => e.length > 0);
     let inpt = extractfn(cwtext.value);
@@ -554,12 +562,13 @@ window.onload = async () => {
   chkfree.onchange();//generateText();
   generateKeyboard();
 };
-let vals = decodeURIComponent(window.location.hash.substring(1)).split(',').forEach((val, i) => {
-  val = parseInt(val, 10);
+let vals = decodeURIComponent(window.location.hash.substring(1)).split('|').forEach((val, i) => {
+  val = parseFloat(val);
   if (isNaN(val)) return;
   switch (i) {
     case 0:
-      cw_options.lesson = Math.max(1, Math.min(kochcars.length-1, val));
+      // pas length-1 car la leçon 41 existe (QSO)
+      cw_options.lesson = Math.max(1, Math.min(kochcars.length, val));
       break;
     case 1:
       cw_options.wpm = Math.max(1, Math.min(50, val));
@@ -575,7 +584,7 @@ let vals = decodeURIComponent(window.location.hash.substring(1)).split(',').forE
       cw_options.groupsnb = Math.max(1, Math.min(250, val));
       break;
     case 5:
-      cw_options.ews = Math.max(0, Math.min(10, val));
+      cw_options.ews = Math.max(1, Math.min(10, val));
     case 6:
       chkfree.checked = val === 1;
       break;
@@ -629,11 +638,20 @@ chkfree.onchange = async () => {
   window.freeerr = 0;
   window.freetotal = 1;
   window.freefirsttry = true;
+  cwsbm.disabled = chkfreelisten.checked;
 };
 chkfreelisten.onchange = () => {
-  iptfree.focus();
+  if (chkfree.checked) {
+    iptfree.focus();
+  } else {
+    cwtext.focus();
+  }
   chkfree.onchange.call(this);
 };
+cwtext.onkeyup = () => {
+  if (!chkfreelisten.checked) return;
+  cwplayer.Text = cwtext.value;
+}
 iptfree.onkeyup = verifycw;
 </script>
 
