@@ -58,11 +58,6 @@
         text-align: center;
         text-transform: uppercase;
       }
-      #playtime {
-        top: 4px;
-        position: relative;
-        margin-left: 25px;
-      }
       #keyboard {
         margin-top : 3px;
       }
@@ -96,6 +91,33 @@
       .ok {
         background-color: green;
         color: white;
+      }
+      .progress-container {
+        display: inline-block;
+      }
+      .progress-bar {
+        height: 20px;
+        background-color: #ddd;
+        border-radius: 2px;
+        position:relative;
+        width: 218px;
+        top: 4px;
+      }
+      .progress {
+        height: 100%;
+        width:0%;
+        border-radius: 2px;
+        background: #49aade/*linear-gradient(to right, #ffbf00 0%, #ff007f 100%)*/;
+        width: 0%;
+        position:relative;
+      }
+      .progress-bar center {
+        position:absolute;
+        left:0;
+        right:0;
+        top:0;
+        bottom:0;
+        margin:auto;
       }
     </style>
   </head>
@@ -146,7 +168,12 @@
           <rect width="5" height="15" x="12" y="2" rx="1" ry="1"/>
         </svg>
       </button>
-      <span id="playtime"></span>
+      <div class="progress-container">
+        <div class="progress-bar">
+          <div id="playperc" class="progress"></div>
+          <center><span id="playtime"></span></center>
+        </div>
+      </div>
     </div>
     <textarea id="cwtext" rows="4" cols="43" spellcheck="false" autocorrect="off"></textarea><br>
     <input type="button" value="submit" id="cwsbm"><br>
@@ -481,6 +508,7 @@ function formatTime(t) {
   return new Date(t * 1000).toISOString().substring(14, 19) + cs;
 }
 function updateDisplayTime() {
+  playperc.style.width = (100*cwplayer.CurrentTime/cwplayer.TotalTime)+'%';
   playtime.innerHTML = `${formatTime(cwplayer.CurrentTime)} / ${formatTime(cwplayer.TotalTime)}`;
 }
 function startTimeTimer() { window.timeTimer = window.setInterval(updateDisplayTime, 250); }
