@@ -939,8 +939,8 @@ class CWPlayer {
       this.totalpausetime += (performance.now()-this.lastpausetime);
       this.lastpausetime = 0;
     }
-    if (this.playing) return;
     if (typeof text === 'string') this.Text = text;
+    if (this.playing) return;
     if (!this.context) {
       this.#initAudio();
     }
