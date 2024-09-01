@@ -667,17 +667,17 @@ chkfree.onchange = async () => {
   zonefree.style.display = chkfree.checked?'block':'none';
   zonekoch.style.display = !chkfree.checked?'block':'none';
   cwsbm.disabled = chkfreelisten.checked;
-  generateText();
   if (chkfree.checked) {
     iptfree.focus();
   } else {
     cwtext.focus();
   }
+  iptfree.value = cwtext.value = '';
+  cwplayer.AutoPlay = chkfreelisten.checked && !chkfree.checked;
+  generateText();
   if (chkfreelisten.checked) {
     zoneresultfree.innerHTML = '';
     return;
-  } else {
-    iptfree.value = cwtext.value = '';
   }
   zoneresultfree.innerHTML = 'Press space to hear first character';
   window.freeerr = 0;
@@ -762,7 +762,8 @@ class CWPlayer {
     spperiod : 0.06,
     tone : 800,
     ews : 1,
-    predelay : 0
+    predelay : 0,
+    autoplay : false
   };
   constructor(options) {
     this.options = {...this.DEFAULT_OPTIONS, ...options};
@@ -826,6 +827,11 @@ class CWPlayer {
     this.totaltime = this.getDuration();
     this.fireEvent('parameterchanged');
   }
+  get AutoPlay() { return this.options.autoplay; }
+  set AutoPlay(value) {
+    this.options.autoplay = !!value;
+    this.fireEvent('parameterchanged');
+  }
   get Playing() { return this.playing; }
   set Playing(value) {
     if (value === false && this.playing) {
@@ -846,6 +852,9 @@ class CWPlayer {
     this.text = value;
     this.totaltime = this.getDuration();
     this.fireEvent('parameterchanged');
+    if (this.options.autoplay && !this.playing) {
+      this.play();
+    }
   }
   get Index() { return this.curti; }
   get TotalTime() { return this.totaltime;  }
