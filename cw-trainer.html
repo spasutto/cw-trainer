@@ -210,26 +210,25 @@ var QSOs = [
   //http://lidscw.org/resources/cq-qso-template
   'CQ CQ CQ DE %IND1% %IND1% %IND1% PSE K',
   '%IND2%: %IND1% DE %IND2% %IND2% %IND2% KN',
-  '%IND1%: %IND2% DE %IND1% = GA ES TNX FER CALL = UR RST %RST1% %RST1% = NAME IS JANE JANE QTH NEW YORK NEW YORK = HW? AR %IND2% DE %IND1% KN',
-  '%IND2%: %IND1% DE %IND2% = GA JANE TNX FB RPT UR RST %RST2% %RST2% =  OP JOHN JOHN ES QTH YORK YORK THE OLD ONE HI = HW? AR %IND1% DE %IND2% KN',
-  '%IND1%: %IND2% DE %IND1% = R TNX RPT ES INFO JOHN = RIG IS FTDX1200 PWR 100W ANT IS YAGI = WX IS SUNNY ES WARM 100F = HW? AR %IND2% DE %IND1% KN',
+  '%IND1%: %IND2% DE %IND1% = GA ES TNX FER CALL = UR RST %RST1% %RST1% = NAME IS %NAME1% %NAME1% QTH %QTH1% %QTH1% = HW? AR %IND2% DE %IND1% KN',
+  '%IND2%: %IND1% DE %IND2% = GA %NAME1% TNX FB RPT UR RST %RST2% %RST2% =  OP %NAME2% %NAME2% ES QTH %QTH2% %QTH2% HI = HW? AR %IND1% DE %IND2% KN',
+  '%IND1%: %IND2% DE %IND1% = R TNX RPT ES INFO %NAME2% = RIG IS FTDX1200 PWR 100W ANT IS YAGI = WX IS SUNNY ES WARM 100F = HW? AR %IND2% DE %IND1% KN',
   '%IND2%: %IND1% DE %IND2% = RIG IS FT817 5W ES ANT IS DIPOLE = WX IS WET AND COLD AR %IND1% DE %IND2% KN',
   '%IND1%: %IND2% DE %IND1% = MNI TNX INFO ES FB QSO = PSE QSL VIA BURO = 73 ES CUAGN AR %IND2% DE %IND1% SK',
-  '%IND2%: %IND1% DE %IND2% = FB JANE TNX FER NICE QSO 73 ES BCNU AR %IND1% DE %IND2% SK',
+  '%IND2%: %IND1% DE %IND2% = FB %NAME1% TNX FER NICE QSO 73 ES BCNU AR %IND1% DE %IND2% SK',
   //https://morsecode.ninja/files/Sample-Rag-Chew-QSO-v10.pdf
   'CQ CQ de %IND1% %IND1% K',
   '%IND1% de %IND2% %IND2% K',
-  '%IND2% DE %IND1% = GA ES TNX FER THE CALL = UR RST IS %RST1% %RST1% = NAME HR STEVE STEVE MY QTH IS WY WY = HW CPY? %IND2% DE %IND1% KN',
-  '%IND1% DE %IND2% R GA STEVE TNX FB RPT = RST %RST2% %RST2% = OP HR ROY ROY ES QTH LAX LAX = HW? %IND1% DE %IND2% K',
+  '%IND2% DE %IND1% = GA ES TNX FER THE CALL = UR RST IS %RST1% %RST1% = NAME HR %NAME1% %NAME1% MY QTH IS %QTH1% %QTH1% = HW CPY? %IND2% DE %IND1% KN',
+  '%IND1% DE %IND2% R GA %NAME1% TNX FB RPT = RST %RST2% %RST2% = OP HR %NAME2% %NAME2% ES QTH %QTH2% %QTH2% = HW? %IND1% DE %IND2% K',
   'BK NAME? NAME? BK',
-  'BK ROY ROY HW? BK',
-  '%IND2% DE %IND1% = R R R TNX FER THE RPT ES INFO ROY = MY RIG HR IS KX3 RUNS 100W WID AMP ES ANT IS A 4 ELE YAGI UP 76 FT = WX IS WET AND CO0L 45F = HW NW? %IND2% DE %IND1% K',
-  '%IND1% DE %IND2% SOLID COPY STEVE = RIG ELECRAFT K3S RUNS KW ANT IS LOOP AT 65 FT = WX SUNNY ES WARM 88F = AGE 70 HAM FOR 40 YEARS = SO HW? %IND1% DE %IND2% KN',
-  '%IND2% DE %IND1% = FB COPY ROY WID QSB = AGE HR IS 50 ES BN A HAM FER 6 YRS = RECENTLY RETIRED BUT NW BACK TO WORK AS CERTIFIED TOWER MONKEY = %IND2% DE %IND1% K',
-  '%IND1% DE %IND2% FB STEVE = RECENTLY RETIRED NURSE ANESTHETIST = LIVING THE DREAM = HW? %IND1% DE %IND2% K',
-  '%IND2% DE %IND1% FB ROY = GUD CPY WID MORE QSB HR = TNX FER THE INFO ES QSO = PSE QSL VIA LOTW = 73 ES HPE 2 CU AGN SK %IND2% DE %IND1% K',
-  '%IND1% DE %IND2% = FB STEVE WL QSL LOTW ES TNX QSO GD 73 AR SK %IND1% DE %IND2% E E',
-  '%IND1% E E'
+  'BK %NAME2% %NAME2% HW? BK',
+  '%IND2% DE %IND1% = R R R TNX FER THE RPT ES INFO %NAME2% = MY RIG HR IS KX3 RUNS 100W WID AMP ES ANT IS A 4 ELE YAGI UP 76 FT = WX IS WET AND CO0L 45F = HW NW? %IND2% DE %IND1% K',
+  '%IND1% DE %IND2% SOLID COPY %NAME1% = RIG ELECRAFT K3S RUNS KW ANT IS LOOP AT 65 FT = WX SUNNY ES WARM 88F = AGE 70 HAM FOR 40 YEARS = SO HW? %IND1% DE %IND2% KN',
+  '%IND2% DE %IND1% = FB COPY %NAME2% WID QSB = AGE HR IS 50 ES BN A HAM FER 6 YRS = RECENTLY RETIRED BUT NW BACK TO WORK AS CERTIFIED TOWER MONKEY = %IND2% DE %IND1% K',
+  '%IND1% DE %IND2% FB %NAME1% = RECENTLY RETIRED NURSE ANESTHETIST = LIVING THE DREAM = HW? %IND1% DE %IND2% K',
+  '%IND2% DE %IND1% FB %NAME2% = GUD CPY WID MORE QSB HR = TNX FER THE INFO ES QSO = PSE QSL VIA LOTW = 73 ES HPE 2 CU AGN SK %IND2% DE %IND1% K',
+  '%IND1% DE %IND2% = FB %NAME1% WL QSL LOTW ES TNX QSO GD 73 AR SK %IND1% DE %IND2% E E'
   ];
 function irand(start, end) {
   if (arguments.length < 2) {
@@ -238,10 +237,35 @@ function irand(start, end) {
   }
   return Math.floor(Math.random()*(++end-start))+start;
 }
-function generateRandomCallsign() {
+function generateQTH(excepted=null) {
+  const cities = ['NEW YORK', 'GRENOBLE', 'LAX', 'HAMBURG', 'BANGOR', 'ALGER', 'AMSTERDAM', 'BINGHAMTON',
+  'BOTKYRKA', 'BUCHAREST', 'PALERMO', 'DRUMMONDVILLE', 'KRAKOW', 'LIMERICK', 'MANCHESTER', 'VILA VERDE', 'MELTON',
+  'BARAKALDO', 'CARTAGENA', 'DRAMMEN', 'PARIS', 'BOMOMANI', 'MANIPAL'];
+  let qth = null;
+  do {
+    qth = cities[irand(cities.length-1)];
+  }
+  while (qth == excepted);
+  return qth;
+}
+function generateRandomFirstname(excepted=null) {
+  const fnames = ['STEVE', 'JANE', 'JOHN', 'ROY', 'MARTIN', 'SYLVAIN', 'PABLO', 'HENRY', 'FELIPE', 'LUCILLE', 'MARIA', 'JUAN', 'ROBERT', 'WILLIAM', 'CHARLEEN'];
+  let fname = null;
+  do {
+    fname = fnames[irand(fnames.length-1)];
+}
+  while (fname == excepted);
+  return fname;
+}
+function generateRandomCallsign(excepted=null) {
   const alpha = "ABCDEFGHIJKLMNPQRSTUVWXYZ";
   let rdnchar = () => alpha.charAt(irand(alpha.length));
-  return rdnchar()+(Math.random()>0.8 ?rdnchar():'')+irand(1, 9)+rdnchar()+rdnchar()+(Math.random()>0.2?rdnchar():'')+(Math.random()>0.8 ?'/'+(Math.random()>=0.5?'P':'M'):'');
+  let cs = null;
+  do {
+    cs = rdnchar()+(Math.random()>0.8 ?rdnchar():'')+irand(1, 9)+rdnchar()+rdnchar()+(Math.random()>0.2?rdnchar():'')+(Math.random()>0.8 ?'/'+(Math.random()>=0.5?'P':'M'):'');
+  }
+  while (cs == excepted);
+  return cs;
 }
 function generateRandomString(chars, len) {
   return Array.apply(null, Array(len)).map(() => {
@@ -281,10 +305,16 @@ async function generateText(evt) {
       cwplayer.PreDelay = 0;
     } else if (cw_options.lesson>40) {
       let callsign1 = generateRandomCallsign();
-      let callsign2 = generateRandomCallsign();
+      let callsign2 = generateRandomCallsign(callsign1);
+      let name1 = generateRandomFirstname();
+      let name2 = generateRandomFirstname(name1);
+      let qth1 = generateQTH();
+      let qth2 = generateQTH(qth1);
       cwgentext = QSOs[irand(QSOs.length-1)]
           .replaceAll('%IND1%', callsign1)
           .replaceAll('%IND2%', callsign2)
+          .replaceAll('%NAME1%', name1)
+          .replaceAll('%NAME2%', name2)
           .replaceAll('%RST1%', ''+irand(5)+irand(9)+irand(9))
           .replaceAll('%RST2%', ''+irand(5)+irand(9)+irand(9));
     } else {
@@ -458,7 +488,7 @@ async function verifycw() {
     }
     if (cwplayer.Playing) await cwplayer.stop();
     cwsbm.disabled = true;
-    let extractfn = (t) => t.toUpperCase().split(' ').map(e => CWPlayer.cleanText(e.trim())).filter(e => e.length > 0);
+    let extractfn = (t) => CWPlayer.cleanText(t.trim()).replaceAll('\t', ' ').split(' ').filter(e => e.length > 0);
     let inpt = extractfn(cwtext.value);
     let verif = extractfn(cwplayer.Text);
     if (inpt.length < verif.length) {
