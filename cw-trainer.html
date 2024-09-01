@@ -256,9 +256,6 @@ function generateRandomText(chars, grouplen, groupsnb) {
 async function generateText(evt) {
   if (!cwplayer) return;
   if (cwplayer.Playing) await cwplayer.stop();
-  zoneresult.style.display = 'none';
-  cwsbm.disabled = false;
-  cwtext.value = '';
   cw_options.lesson = parseInt(sellesson.value, 10);
   cw_options.wpm = parseInt(selwpm.value, 10);
   cw_options.eff = parseInt(seleffwpm.value, 10);
@@ -295,6 +292,9 @@ async function generateText(evt) {
     }
     cwplayer.Text = cwgentext;
     console.log(`generated text : "${cwgentext}"`);
+  } else {
+    cwplayer.PreDelay = 0;
+    cwplayer.Text = chkfree.checked ? iptfree.value : cwtext.value;
   }
   updateHash();
 }
@@ -414,7 +414,6 @@ function key(value) {
 async function verifycw() {
   if (!cwplayer || cwchecking) return;
   cwchecking = true;
-  //if (cwplayer.Playing) await cwplayer.stop();
   if (chkfree.checked) {
     if (iptfree.value?.length != 1) {
       cwchecking = false;
@@ -457,6 +456,7 @@ async function verifycw() {
     if (chkfreelisten.checked) {
       return;
     }
+    if (cwplayer.Playing) await cwplayer.stop();
     cwsbm.disabled = true;
     let extractfn = (t) => t.toUpperCase().split(' ').map(e => CWPlayer.cleanText(e.trim())).filter(e => e.length > 0);
     let inpt = extractfn(cwtext.value);
@@ -613,7 +613,9 @@ selews.onchange = generateText;
 grplen.onchange = generateText;
 groupsnb.onchange = generateText;
 cwsbm.onclick = verifycw;
-retrybtn.onclick = generateText;
+retrybtn.onclick = () => {
+  chkfree.onchange.call(this);
+};
 nxtlesson.onclick = () => {
   sellesson.value++;
   retrybtn.click();
@@ -621,31 +623,28 @@ nxtlesson.onclick = () => {
 chkfree.onchange = async () => {
   if (!cwplayer) return;
   await cwplayer.stop();
-  iptfree.value = cwtext.value = '';
+  zoneresult.style.display = 'none';
   zonefree.style.display = chkfree.checked?'block':'none';
   zonekoch.style.display = !chkfree.checked?'block':'none';
+  cwsbm.disabled = chkfreelisten.checked;
+  generateText();
   if (chkfree.checked) {
     iptfree.focus();
-    if (chkfreelisten.checked) {
-      zoneresultfree.innerHTML = '';
-      return;
-    }
   } else {
     cwtext.focus();
   }
+  if (chkfreelisten.checked) {
+    zoneresultfree.innerHTML = '';
+    return;
+  } else {
+    iptfree.value = cwtext.value = '';
+  }
   zoneresultfree.innerHTML = 'Press space to hear first character';
-  generateText();
   window.freeerr = 0;
   window.freetotal = 1;
   window.freefirsttry = true;
-  cwsbm.disabled = chkfreelisten.checked;
 };
 chkfreelisten.onchange = () => {
-  if (chkfree.checked) {
-    iptfree.focus();
-  } else {
-    cwtext.focus();
-  }
   chkfree.onchange.call(this);
 };
 cwtext.onkeyup = () => {
@@ -723,7 +722,7 @@ class CWPlayer {
     spperiod : 0.06,
     tone : 800,
     ews : 1,
-    predelay : 1
+    predelay : 0
   };
   constructor(options) {
     this.options = {...this.DEFAULT_OPTIONS, ...options};
