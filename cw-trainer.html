@@ -209,13 +209,13 @@ var kochcars = ['K', 'M', 'U', 'R', 'E', 'S', 'N', 'A', 'P', 'T', 'L', 'W', 'I',
 var QSOs = [
   //http://lidscw.org/resources/cq-qso-template
   'CQ CQ CQ DE %IND1% %IND1% %IND1% PSE K',
-  '%IND2%: %IND1% DE %IND2% %IND2% %IND2% KN',
-  '%IND1%: %IND2% DE %IND1% = GA ES TNX FER CALL = UR RST %RST1% %RST1% = NAME IS %NAME1% %NAME1% QTH %QTH1% %QTH1% = HW? AR %IND2% DE %IND1% KN',
-  '%IND2%: %IND1% DE %IND2% = GA %NAME1% TNX FB RPT UR RST %RST2% %RST2% =  OP %NAME2% %NAME2% ES QTH %QTH2% %QTH2% = HW? AR %IND1% DE %IND2% KN',
-  '%IND1%: %IND2% DE %IND1% = R TNX RPT ES INFO %NAME2% = RIG IS FTDX1200 PWR 100W ANT IS YAGI = WX IS SUNNY ES WARM 100F = HW? AR %IND2% DE %IND1% KN',
-  '%IND2%: %IND1% DE %IND2% = RIG IS FT817 5W ES ANT IS DIPOLE = WX IS WET AND COLD AR %IND1% DE %IND2% KN',
-  '%IND1%: %IND2% DE %IND1% = MNI TNX INFO ES FB QSO = PSE QSL VIA BURO = 73 ES CUAGN AR %IND2% DE %IND1% SK',
-  '%IND2%: %IND1% DE %IND2% = FB %NAME1% TNX FER NICE QSO 73 ES BCNU AR %IND1% DE %IND2% SK',
+  '%IND1% DE %IND2% %IND2% %IND2% KN',
+  '%IND2% DE %IND1% = GA ES TNX FER CALL = UR RST %RST1% %RST1% = NAME IS %NAME1% %NAME1% QTH %QTH1% %QTH1% = HW? AR %IND2% DE %IND1% KN',
+  '%IND1% DE %IND2% = GA %NAME1% TNX FB RPT UR RST %RST2% %RST2% =  OP %NAME2% %NAME2% ES QTH %QTH2% %QTH2% = HW? AR %IND1% DE %IND2% KN',
+  '%IND2% DE %IND1% = R TNX RPT ES INFO %NAME2% = RIG IS FTDX1200 PWR 100W ANT IS YAGI = WX IS SUNNY ES WARM 100F = HW? AR %IND2% DE %IND1% KN',
+  '%IND1% DE %IND2% = RIG IS FT817 5W ES ANT IS DIPOLE = WX IS WET AND COLD AR %IND1% DE %IND2% KN',
+  '%IND2% DE %IND1% = MNI TNX INFO ES FB QSO = PSE QSL VIA BURO = 73 ES CUAGN AR %IND2% DE %IND1% SK',
+  '%IND1% DE %IND2% = FB %NAME1% TNX FER NICE QSO 73 ES BCNU AR %IND1% DE %IND2% SK',
   //https://morsecode.ninja/files/Sample-Rag-Chew-QSO-v10.pdf
   'CQ CQ de %IND1% %IND1% K',
   '%IND1% de %IND2% %IND2% K',
@@ -642,7 +642,9 @@ seleffwpm.value = cw_options.eff;
 grplen.value = cw_options.grouplen;
 groupsnb.value = cw_options.groupsnb;
 selews.value = cw_options.ews;
-sellesson.onchange = generateText;
+sellesson.onchange = () => {
+  chkfree.onchange.call(this);
+};
 selwpm.onchange = generateText;
 seleffwpm.onchange = generateText;
 selews.onchange = generateText;
