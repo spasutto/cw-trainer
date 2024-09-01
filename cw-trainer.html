@@ -211,7 +211,7 @@ var QSOs = [
   'CQ CQ CQ DE %IND1% %IND1% %IND1% PSE K',
   '%IND2%: %IND1% DE %IND2% %IND2% %IND2% KN',
   '%IND1%: %IND2% DE %IND1% = GA ES TNX FER CALL = UR RST %RST1% %RST1% = NAME IS %NAME1% %NAME1% QTH %QTH1% %QTH1% = HW? AR %IND2% DE %IND1% KN',
-  '%IND2%: %IND1% DE %IND2% = GA %NAME1% TNX FB RPT UR RST %RST2% %RST2% =  OP %NAME2% %NAME2% ES QTH %QTH2% %QTH2% HI = HW? AR %IND1% DE %IND2% KN',
+  '%IND2%: %IND1% DE %IND2% = GA %NAME1% TNX FB RPT UR RST %RST2% %RST2% =  OP %NAME2% %NAME2% ES QTH %QTH2% %QTH2% = HW? AR %IND1% DE %IND2% KN',
   '%IND1%: %IND2% DE %IND1% = R TNX RPT ES INFO %NAME2% = RIG IS FTDX1200 PWR 100W ANT IS YAGI = WX IS SUNNY ES WARM 100F = HW? AR %IND2% DE %IND1% KN',
   '%IND2%: %IND1% DE %IND2% = RIG IS FT817 5W ES ANT IS DIPOLE = WX IS WET AND COLD AR %IND1% DE %IND2% KN',
   '%IND1%: %IND2% DE %IND1% = MNI TNX INFO ES FB QSO = PSE QSL VIA BURO = 73 ES CUAGN AR %IND2% DE %IND1% SK',
@@ -228,7 +228,13 @@ var QSOs = [
   '%IND2% DE %IND1% = FB COPY %NAME2% WID QSB = AGE HR IS 50 ES BN A HAM FER 6 YRS = RECENTLY RETIRED BUT NW BACK TO WORK AS CERTIFIED TOWER MONKEY = %IND2% DE %IND1% K',
   '%IND1% DE %IND2% FB %NAME1% = RECENTLY RETIRED NURSE ANESTHETIST = LIVING THE DREAM = HW? %IND1% DE %IND2% K',
   '%IND2% DE %IND1% FB %NAME2% = GUD CPY WID MORE QSB HR = TNX FER THE INFO ES QSO = PSE QSL VIA LOTW = 73 ES HPE 2 CU AGN SK %IND2% DE %IND1% K',
-  '%IND1% DE %IND2% = FB %NAME1% WL QSL LOTW ES TNX QSO GD 73 AR SK %IND1% DE %IND2% E E'
+  '%IND1% DE %IND2% = FB %NAME1% WL QSL LOTW ES TNX QSO GD 73 AR SK %IND1% DE %IND2% E E',
+  //http://naqcc.info/cw_qsos.html
+  '%IND1% DE %IND2% GM TNX CALL UR %RST1% %RST1% IN %QTH1% %QTH1% NAME IS %NAME1% %NAME1% HW? AR %IND1% DE %IND2% K',
+  '%IND2% DE %IND1% GM %NAME1% UR %RST2% %RST2% IN %QTH2% %QTH2% NAME IS %NAME2% %NAME2% HW? AR %IND2% DE %IND1% KN',
+  '%IND1% DE %IND2% R FB %NAME2% NICE TO MEET YOU BT THE RIG HR IS A KNWD TS-570D AT QRP 5W TO AN ATTIC RANDOM WIRE BT THE WX LITE SNOW ES 33 DEGREES HW? AR %IND1% DE %IND2% KN',
+  '%IND2% DE %IND1% R FB ON ALL %NAME1% BT THE XYL SAYS SUPPER IS READY SO I MUST GO BT TNX QSO HPE CUL 73 GE SK %IND2% DE %IND1% K',
+  '%IND1% DE %IND2% OK %NAME2% WONT HOLD YOU TNX QSO HPE CUAGN VY 73 GE SK %IND1% DE %IND2% E E'
   ];
 function irand(start, end) {
   if (arguments.length < 2) {
@@ -240,7 +246,7 @@ function irand(start, end) {
 function generateQTH(excepted=null) {
   const cities = ['NEW YORK', 'GRENOBLE', 'LAX', 'HAMBURG', 'BANGOR', 'ALGER', 'AMSTERDAM', 'BINGHAMTON',
   'BOTKYRKA', 'BUCHAREST', 'PALERMO', 'DRUMMONDVILLE', 'KRAKOW', 'LIMERICK', 'MANCHESTER', 'VILA VERDE', 'MELTON',
-  'BARAKALDO', 'CARTAGENA', 'DRAMMEN', 'PARIS', 'BOMOMANI', 'MANIPAL'];
+  'BARAKALDO', 'CARTAGENA', 'DRAMMEN', 'PARIS', 'BOMOMANI', 'MANIPAL', 'ALBANY', 'KITTANNING'];
   let qth = null;
   do {
     qth = cities[irand(cities.length-1)];
@@ -249,7 +255,7 @@ function generateQTH(excepted=null) {
   return qth;
 }
 function generateRandomFirstname(excepted=null) {
-  const fnames = ['STEVE', 'JANE', 'JOHN', 'ROY', 'MARTIN', 'SYLVAIN', 'PABLO', 'HENRY', 'FELIPE', 'LUCILLE', 'MARIA', 'JUAN', 'ROBERT', 'WILLIAM', 'CHARLEEN'];
+  const fnames = ['STEVE', 'JANE', 'JOHN', 'ROY', 'MARTIN', 'SYLVAIN', 'PABLO', 'HENRY', 'FELIPE', 'LUCILLE', 'MARIA', 'JUAN', 'ROBERT', 'WILLIAM', 'CHARLEEN', 'PETE'];
   let fname = null;
   do {
     fname = fnames[irand(fnames.length-1)];
@@ -331,6 +337,7 @@ async function generateText(evt) {
 function updateHash() {
   window.location.hash = encodeURIComponent(sellesson.value+'|'+selwpm.value+'|'+seleffwpm.value+'|'+grplen.value+'|'+groupsnb.value+'|'+selews.value+'|'+(chkfree.checked?1:0));
 }
+// bug  compareStrings('C6YO. M?9RR C6YO. M?9RR C6YO. M?9RR C6YO. M?9RR C6YO. M?9RR C6YO. M?9RR', 'C6YO. M?9RR C6YO.M?9RR C6YO. M?9RR C6YO. M?9RR C6YO. M?9RR C6YO. M?9RR')
 function compareStrings(str1, str2){
 /*
  Ce qui suit est un algorithme de recherche des sous-chaines communes.
