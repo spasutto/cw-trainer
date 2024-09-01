@@ -943,16 +943,32 @@ class CWPlayer {
     }
     if (typeof text === 'string') this.Text = text;
     if (this.playing) return;
+    this.playing = true;
+    this.fireEvent('play');
     if (!this.context) {
       this.#initAudio();
     }
     this.gain.connect(this.context.destination);
-    this.playing = true;
-    this.fireEvent('play');
-    if (this.curti<0) {
+    let ignorepppduringpredelay = false;
+    if (this.timefromstart==0) {
+      this.pppduringpredelay = false;
+      this.lastpausetime = this.totalpausetime = 0;
       this.timefromstart = performance.now();
-      if (this.options.predelay>0) {
-        await CWPlayer.delay(this.options.predelay);
+    } else if (performance.now()-this.timefromstart<this.options.predelay*1000) {
+      // si on a pausé et re play pendant le prédelai : on se retrouve avec deux play() en parallèle
+      // il faut donc dans ce cas quitter après le premier prédelai
+      this.pppduringpredelay = true; // on notifie le premier thread de quitter après le prédelai
+      ignorepppduringpredelay = true; // mais on ne doit pas tenir compte de pppduringpredelay dans notre thread
+    }
+    if (this.options.predelay>0) {
+      // si la lecture a déjà commencée on pause le prédelai moins le temps déjà écoulé
+      let now = performance.now();
+      let predelay = Math.max(0, this.options.predelay-(now-this.timefromstart-this.totalpausetime)/1000);
+      await CWPlayer.delay(predelay);
+      // on quitte si on a pausé et re play pendant le delai : sinon on se retrouve avec deux play() en parallèle
+      if (this.pppduringpredelay && !ignorepppduringpredelay) {
+        this.pppduringpredelay = false;
+        return;
       }
     }
     while (this.playing) {
