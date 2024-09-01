@@ -14,6 +14,7 @@
       }
       h2 {
         margin : 0;
+        user-select: none;
       }
       span {
         letter-spacing: 1px;
@@ -85,9 +86,6 @@
         text-decoration : line-through;
         font-weight : bold;
       }
-      #clearzone {
-        display: none;
-      }
       .error {
         background-color: #d00;
         color: white;
@@ -131,7 +129,7 @@
   </head>
 <body>
 <div>
-  <h2>CW Trainer <a href="#" onclick="selfDownload()" title="save CW Trainer for offline use">&#x0001f4be;</a></h2>
+  <h2 id="cwtitle">CW Trainer <a href="#" onclick="selfDownload()" title="save CW Trainer for offline use">&#x0001f4be;</a></h2>
   <div class="zonecontrols">
     <label for="sellesson">Lesson : </label>
     <input type="button" id="prevlesson" value="&lt;"><select id="sellesson">
@@ -192,7 +190,7 @@
     </div>
   </div>
   <div id="keyboard"></div>
-  <pre id="clearzone"></pre>
+  <pre id="clearzone" style="display: none;"></pre>
 </div>
 <script>
 var cwchecking = false;
@@ -694,6 +692,7 @@ cwtext.onkeyup = () => {
   cwplayer.Text = cwtext.value;
 }
 iptfree.onkeyup = verifycw;
+cwtitle.ondblclick = () => clearzone.style.display = clearzone.style.display == 'none' ? 'block' : 'none';
 </script>
 
 <script>
