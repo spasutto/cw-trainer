@@ -193,6 +193,7 @@
   <pre id="clearzone" style="display: none;"></pre>
 </div>
 <script>
+const svg_inactif = 'svg_inactif';
 var cwchecking = false;
 var cw_options = {
   lesson : 1,
@@ -568,22 +569,22 @@ function stopTimeTimer() { window.clearInterval(window.timeTimer); }
 window.onload = async () => {
   window.cwplayer = new CWPlayer();
   cwplayer.addEventListener('play', () => {
-    btnstop.disabled = false;btnstop.classList.remove('svg_inactif');
-    btnplay.disabled = true;btnplay.classList.add('svg_inactif');
-    btnpause.disabled = false;btnpause.classList.remove('svg_inactif');
+    btnstop.disabled = false;btnstop.classList.remove(svg_inactif);
+    btnplay.disabled = true;btnplay.classList.add(svg_inactif);
+    btnpause.disabled = false;btnpause.classList.remove(svg_inactif);
     cwtext.focus();
     startTimeTimer();
   });
   cwplayer.addEventListener('pause', () => {
-    btnstop.disabled = false;btnstop.classList.remove('svg_inactif');
-    btnplay.disabled = false;btnplay.classList.remove('svg_inactif');
-    btnpause.disabled = true;btnpause.classList.add('svg_inactif');
+    btnstop.disabled = false;btnstop.classList.remove(svg_inactif);
+    btnplay.disabled = false;btnplay.classList.remove(svg_inactif);
+    btnpause.disabled = true;btnpause.classList.add(svg_inactif);
     stopTimeTimer();
   });
   cwplayer.addEventListener('stop', () => {
-    btnstop.disabled = true;btnstop.classList.add('svg_inactif');
-    btnplay.disabled = false;btnplay.classList.remove('svg_inactif');
-    btnpause.disabled = true;btnpause.classList.add('svg_inactif');
+    btnstop.disabled = true;btnstop.classList.add(svg_inactif);
+    btnplay.disabled = false;btnplay.classList.remove(svg_inactif);
+    btnpause.disabled = true;btnpause.classList.add(svg_inactif);
     stopTimeTimer();
     updateDisplayTime();
   });
