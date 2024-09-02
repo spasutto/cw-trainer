@@ -139,14 +139,15 @@
       <option value='1'>1 - K, M</option><option value='2'>2 - U</option><option value='3'>3 - R</option><option value='4'>4 - E</option><option value='5'>5 - S</option><option value='6'>6 - N</option><option value='7'>7 - A</option><option value='8'>8 - P</option><option value='9'>9 - T</option><option value='10'>10 - L</option><option value='11'>11 - W</option><option value='12'>12 - I</option><option value='13'>13 - .</option><option value='14'>14 - J</option><option value='15'>15 - Z</option><option value='16'>16 - =</option><option value='17'>17 - F</option><option value='18'>18 - O</option><option value='19'>19 - Y</option><option value='20'>20 - ,</option><option value='21'>21 - V</option><option value='22'>22 - G</option><option value='23'>23 - 5</option><option value='24'>24 - /</option><option value='25'>25 - Q</option><option value='26'>26 - 9</option><option value='27'>27 - 2</option><option value='28'>28 - H</option><option value='29'>29 - 3</option><option value='30'>30 - 8</option><option value='31'>31 - B</option><option value='32'>32 - ?</option><option value='33'>33 - 4</option><option value='34'>34 - 7</option><option value='35'>35 - C</option><option value='36'>36 - 1</option><option value='37'>37 - D</option><option value='38'>38 - 6</option><option value='39'>39 - 0</option><option value='40'>40 - X</option>
       <option value='41'>QSO</option>
     </select><input type="button" id="nxtlesson" value="&gt;">
-    <input type="checkbox" id="chkfree"><label for="chkfree">simple mode</label><BR>
+    <label for="seltone" title="Tone">Tone : </label>
+    <input type="number" id="seltone" title="Tone"><BR>
     <label for="selwpm" title="Word Per Minute">WPM : </label>
     <input type="number" id="selwpm" title="Word Per Minute">
     <label for="seleffwpm" title="Effective Word Per Minute (Farnsworth)">Eff. WPM : </label>
     <input type="number" id="seleffwpm" title="Effective Word Per Minute (Farnsworth)"><BR>
   </div>
   <!--<span id="lamp">CW</span>-->
-  <input type="checkbox" id="chkfreelisten"><label for="chkfreelisten">free listen mode</label>
+  <input type="checkbox" id="chkfree"><label for="chkfree">simple mode</label><input type="checkbox" id="chkfreelisten"><label for="chkfreelisten">free listen mode</label>
   <div id="zonefree" style="display:none">
     <input type="text" id="iptfree" maxlength="1">
     <div id="zoneresultfree"></div>
@@ -206,7 +207,8 @@ var cw_options = {
   wpm : 25,
   eff : 17,
   ews : 2,
-  predelay : 2
+  predelay : 2,
+  tone : 800
 };
 var kochcars = ['K', 'M', 'U', 'R', 'E', 'S', 'N', 'A', 'P', 'T', 'L', 'W', 'I', '.', 'J', 'Z', '=', 'F', 'O', 'Y', ',', 'V', 'G', '5', '/', 'Q', '9', '2', 'H', '3', '8', 'B', '?', '4', '7', 'C', '1', 'D', '6', '0', 'X'];
 var QSOs = [
@@ -294,7 +296,8 @@ async function generateText(evt) {
   cw_options.eff = parseInt(seleffwpm.value, 10);
   cw_options.grouplen = parseInt(grplen.value, 10);
   cw_options.groupsnb = parseInt(groupsnb.value, 10);
-  cw_options.ews = parseFloat(selews.value, 10);
+  cw_options.ews = parseFloat(selews.value);
+  cw_options.tone = parseInt(seltone.value, 10);
   if (evt?.currentTarget == selwpm && cw_options.wpm<cw_options.eff) {
     seleffwpm.value = cw_options.eff = cw_options.wpm;
   } else if (cw_options.wpm<cw_options.eff) {
@@ -307,10 +310,12 @@ async function generateText(evt) {
   cwplayer.EffWPM = cw_options.eff;
   cwplayer.EWS = cw_options.ews;
   cwplayer.PreDelay = cw_options.predelay;
+  cwplayer.Tone = cw_options.tone;
   // on remet à jour les contrôles si'il y'a eu des bornages
   selwpm.value = cw_options.wpm = cwplayer.WPM;
   seleffwpm.value = cw_options.eff = cwplayer.EffWPM;
   selews.value = cw_options.ews = cwplayer.EWS;
+  seltone.value = cw_options.tone = cwplayer.Tone;
   let cwgentext = '';
   if (!chkfreelisten.checked) {
     if (chkfree.checked) {
@@ -341,7 +346,7 @@ async function generateText(evt) {
   updateHash();
 }
 function updateHash() {
-  window.location.hash = encodeURIComponent(sellesson.value+HASHSEP+selwpm.value+HASHSEP+seleffwpm.value+HASHSEP+grplen.value+HASHSEP+groupsnb.value+HASHSEP+selews.value+HASHSEP+(chkfree.checked?1:0));
+  window.location.hash = encodeURIComponent(sellesson.value+HASHSEP+selwpm.value+HASHSEP+seleffwpm.value+HASHSEP+grplen.value+HASHSEP+groupsnb.value+HASHSEP+seltone.value+HASHSEP+selews.value+HASHSEP+(chkfree.checked?1:0));
 }
 // bug  compareStrings('C6YO. M?9RR C6YO. M?9RR C6YO. M?9RR C6YO. M?9RR C6YO. M?9RR C6YO. M?9RR', 'C6YO. M?9RR C6YO.M?9RR C6YO. M?9RR C6YO. M?9RR C6YO. M?9RR C6YO. M?9RR')
 function compareStrings(str1, str2){
@@ -567,6 +572,8 @@ function setMinMax() {
   seleffwpm.max = CWPlayer.MAX_WPM;
   selews.min = CWPlayer.MIN_EWS;
   selews.max = CWPlayer.MAX_EWS;
+  seltone.min = CWPlayer.MIN_TONE;
+  seltone.max = CWPlayer.MAX_TONE;
 }
 function formatTime(t) {
   let tf = (Math.floor(t/60)+"").padStart(2, '0') + ':';
@@ -591,6 +598,7 @@ window.onload = async () => {
   seleffwpm.value = cw_options.eff;
   grplen.value = cw_options.grouplen;
   groupsnb.value = cw_options.groupsnb;
+  seltone.value = cw_options.tone;
   selews.value = cw_options.ews;
   cwplayer.addEventListener('play', () => {
     btnstop.disabled = false;btnstop.classList.remove(SVG_INACTIF);
@@ -667,6 +675,11 @@ sellesson.onchange = () => {
 selwpm.onchange = generateText;
 seleffwpm.onchange = generateText;
 selews.onchange = generateText;
+seltone.onchange = () => {
+  if (!cwplayer) return;
+  cwplayer.Tone = seltone.value;
+  seltone.value = cwplayer.Tone;
+}
 grplen.onchange = generateText;
 groupsnb.onchange = generateText;
 cwsbm.onclick = verifycw;
@@ -816,6 +829,7 @@ class CWPlayer {
     return Math.round(6 / (5 * this.options.elperiod));
   }
   set WPM(wpm) {
+    wpm = isNaN(wpm) ? 0 : wpm;
     wpm = Math.min(60, Math.max(1, wpm));
     // "PARIS " ==> 50 unités. à 1 WPM il faut donc 60/50 secondes pour envoyer une unité (un 'dit')
     // Dit: 1 unit
@@ -833,6 +847,7 @@ class CWPlayer {
     return Math.round(60/(19*this.options.spperiod+31*this.options.elperiod));
   }
   set EffWPM(effwpm) {
+    effwpm = isNaN(effwpm) ? 0 : effwpm;
     effwpm = Math.min(60, Math.max(1, effwpm));
     if (this.WPM<effwpm) {
       this.WPM = effwpm;
@@ -842,12 +857,14 @@ class CWPlayer {
   }
   get EWS() { return this.options.ews; }
   set EWS(value) {
+    value = isNaN(value) ? 0 : value;
     value = Math.min(10, Math.max(1, value));
     this.options.ews = value;
     this.fireEvent('parameterchanged');
   }
   get Tone() { return this.options.tone; }
   set Tone(value) {
+    value = isNaN(value) ? 0 : value;
     value = Math.min(5000, Math.max(150, value));
     this.options.tone = value;
     if (this.context) {
@@ -857,6 +874,7 @@ class CWPlayer {
   }
   get PreDelay() { return this.options.predelay; }
   set PreDelay(value) {
+    value = isNaN(value) ? 0 : value;
     value = Math.max(0, value);
     this.options.predelay = value;
     this.totaltime = this.getDuration();
