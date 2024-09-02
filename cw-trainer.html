@@ -141,9 +141,9 @@
     </select><input type="button" id="nxtlesson" value="&gt;">
     <input type="checkbox" id="chkfree"><label for="chkfree">simple mode</label><BR>
     <label for="selwpm" title="Word Per Minute">WPM : </label>
-    <input type="number" id="selwpm" min="1" max="60" title="Word Per Minute">
+    <input type="number" id="selwpm" title="Word Per Minute">
     <label for="seleffwpm" title="Effective Word Per Minute (Farnsworth)">Eff. WPM : </label>
-    <input type="number" id="seleffwpm" min="1" max="60" title="Effective Word Per Minute (Farnsworth)"><BR>
+    <input type="number" id="seleffwpm" title="Effective Word Per Minute (Farnsworth)"><BR>
   </div>
   <!--<span id="lamp">CW</span>-->
   <input type="checkbox" id="chkfreelisten"><label for="chkfreelisten">free listen mode</label>
@@ -153,7 +153,7 @@
   </div>
   <div id="zonekoch">
     <label for="selews" title="Multiplier for the space between words">Extra word spacing : </label>
-    <input type="number" id="selews" min="1" max="10" title="Multiplier for the space between words"><BR>
+    <input type="number" id="selews" title="Multiplier for the space between words"><BR>
     <label for="grplen">Words length : </label>
     <select id="grplen">
       <option value="-1">random</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option>
@@ -306,6 +306,10 @@ async function generateText(evt) {
   cwplayer.EffWPM = cw_options.eff;
   cwplayer.EWS = cw_options.ews;
   cwplayer.PreDelay = cw_options.predelay;
+  // on remet à jour les contrôles si'il y'a eu des bornages
+  selwpm.value = cw_options.wpm = cwplayer.WPM;
+  seleffwpm.value = cw_options.eff = cwplayer.EffWPM;
+  selews.value = cw_options.ews = cwplayer.EWS;
   let cwgentext = '';
   if (!chkfreelisten.checked) {
     if (chkfree.checked) {
@@ -555,6 +559,14 @@ function generateKeyboard() {
   keyboard.innerHTML = keybhtml;
   [...document.querySelectorAll('#keyboard input')].forEach(i => i.onclick=key.bind(i, i.value));
 }
+function setMinMax() {
+  selwpm.min = CWPlayer.MIN_WPM;
+  selwpm.max = CWPlayer.MAX_WPM;
+  seleffwpm.min = CWPlayer.MIN_WPM;
+  seleffwpm.max = CWPlayer.MAX_WPM;
+  selews.min = CWPlayer.MIN_EWS;
+  selews.max = CWPlayer.MAX_EWS;
+}
 function formatTime(t) {
   let tf = (Math.floor(t/60)+"").padStart(2, '0') + ':';
   let s = Math.round(10*(t%60))/10;
@@ -571,6 +583,14 @@ function startTimeTimer() { window.timeTimer = window.setInterval(updateDisplayT
 function stopTimeTimer() { window.clearInterval(window.timeTimer); }
 window.onload = async () => {
   window.cwplayer = new CWPlayer();
+  setMinMax();
+  loadParams();
+  sellesson.value = cw_options.lesson;
+  selwpm.value = cw_options.wpm;
+  seleffwpm.value = cw_options.eff;
+  grplen.value = cw_options.grouplen;
+  groupsnb.value = cw_options.groupsnb;
+  selews.value = cw_options.ews;
   cwplayer.addEventListener('play', () => {
     btnstop.disabled = false;btnstop.classList.remove(svg_inactif);
     btnplay.disabled = true;btnplay.classList.add(svg_inactif);
@@ -600,34 +620,36 @@ window.onload = async () => {
   chkfree.onchange();//generateText();
   generateKeyboard();
 };
-let vals = decodeURIComponent(window.location.hash.substring(1)).split('|').forEach((val, i) => {
-  val = parseFloat(val);
-  if (isNaN(val)) return;
-  switch (i) {
-    case 0:
-      // pas length-1 car la leçon 41 existe (QSO)
-      cw_options.lesson = Math.max(1, Math.min(kochcars.length, val));
-      break;
-    case 1:
-      cw_options.wpm = Math.max(1, Math.min(50, val));
-      break;
-    case 2:
-      cw_options.eff = Math.max(1, Math.min(50, val));
-      break;
-    case 3:
-      cw_options.grouplen = Math.max(-1, Math.min(8, val));
-      if (cw_options.grouplen == 0 || cw_options.grouplen == 1) cw_options.grouplen = 2;
-      break;
-    case 4:
-      cw_options.groupsnb = Math.max(1, Math.min(250, val));
-      break;
-    case 5:
-      cw_options.ews = Math.max(1, Math.min(10, val));
-    case 6:
-      chkfree.checked = val === 1;
-      break;
-  }
-});
+function loadParams() {
+  decodeURIComponent(window.location.hash.substring(1)).split('|').forEach((val, i) => {
+    val = parseFloat(val);
+    if (isNaN(val)) return;
+    switch (i) {
+      case 0:
+        // pas length-1 car la leçon 41 existe (QSO)
+        cw_options.lesson = Math.max(1, Math.min(kochcars.length, val));
+        break;
+      case 1:
+        cw_options.wpm = Math.max(CWPlayer.MIN_WPM, Math.min(CWPlayer.MAX_WPM, val));
+        break;
+      case 2:
+        cw_options.eff = Math.max(CWPlayer.MIN_WPM, Math.min(CWPlayer.MAX_WPM, val));
+        break;
+      case 3:
+        cw_options.grouplen = Math.max(-1, Math.min(8, val));
+        if (cw_options.grouplen == 0 || cw_options.grouplen == 1) cw_options.grouplen = 2;
+        break;
+      case 4:
+        cw_options.groupsnb = Math.max(1, Math.min(250, val));
+        break;
+      case 5:
+        cw_options.ews = Math.max(CWPlayer.MIN_EWS, Math.min(CWPlayer.MAX_EWS, val));
+      case 6:
+        chkfree.checked = val === 1;
+        break;
+    }
+  });
+}
 window.onerror = (a, b, c, d, e) => {
   let err = `error : ${a}`;
   err += ` source: ${b}`;
@@ -638,12 +660,6 @@ window.onerror = (a, b, c, d, e) => {
 
   return false;
 };
-sellesson.value = cw_options.lesson;
-selwpm.value = cw_options.wpm;
-seleffwpm.value = cw_options.eff;
-grplen.value = cw_options.grouplen;
-groupsnb.value = cw_options.groupsnb;
-selews.value = cw_options.ews;
 sellesson.onchange = () => {
   chkfree.onchange.call(this);
 };
@@ -775,7 +791,7 @@ class CWPlayer {
     this.text = '';
     this.curti = -1;
     this.lastpausetime = this.totalpausetime = this.totaltime = 0;
-    this.playing = false;
+    this.booping = this.playing = false;
     this.events = {};
     if (this.options.wpm) {
       this.WPM = this.options.wpm;
@@ -784,6 +800,16 @@ class CWPlayer {
       this.EffWPM = this.options.effwpm;
     }
   }
+
+  /*CONSTANTES*/
+  static get MIN_WPM() { return 1; };
+  static get MAX_WPM() { return 60; };
+  static get MIN_EWS() { return 1; };
+  static get MAX_EWS() { return 10; };
+  static get MIN_TONE() { return 150; };
+  static get MAX_TONE() { return 5000; };
+  /*FIN CONSTANTES*/
+  
 
   get WPM() {
     return Math.round(6 / (5 * this.options.elperiod));
@@ -914,6 +940,7 @@ class CWPlayer {
     this.osc.start();
   }
   async stop(pause=false) {
+    if (this.booping) return;
     if (!pause) {
       this.curti = -1;
       this.totalpausetime = this.lastpausetime = this.timefromstart = 0;
@@ -936,11 +963,12 @@ class CWPlayer {
     this.fireEvent(pause?'pause':'stop');
   }
   async pause() {
+    if (!this.playing || this.booping) return;
     this.lastpausetime = performance.now();
     return await this.stop(true);
   }
   async play(text) {
-    if (this.playing) return;
+    if (this.playing || this.booping) return;
     if (this.lastpausetime > 0) {
       this.totalpausetime += (performance.now()-this.lastpausetime);
       this.lastpausetime = 0;
@@ -952,36 +980,30 @@ class CWPlayer {
       this.#initAudio();
     }
     this.gain.connect(this.context.destination);
-    let ignorepppduringpredelay = false;
+    let localTime = performance.now();
+    // on annule tous les autres threads de lecture
+    this.currentPlay = localTime;
     if (this.timefromstart==0) {
-      this.pppduringpredelay = false;
       this.lastpausetime = this.totalpausetime = 0;
-      this.timefromstart = performance.now();
-    } else if (performance.now()-this.timefromstart<this.options.predelay*1000) {
-      // si on a pausé et re play pendant le prédelai : on se retrouve avec deux play() en parallèle
-      // il faut donc dans ce cas quitter après le premier prédelai
-      this.pppduringpredelay = true; // on notifie le premier thread de quitter après le prédelai
-      ignorepppduringpredelay = true; // mais on ne doit pas tenir compte de pppduringpredelay dans notre thread
+      this.timefromstart = localTime;
     }
     if (this.options.predelay>0) {
       // si la lecture a déjà commencée on pause le prédelai moins le temps déjà écoulé
-      let now = performance.now();
-      let predelay = Math.max(0, this.options.predelay-(now-this.timefromstart-this.totalpausetime)/1000);
+      let predelay = Math.max(0, this.options.predelay-(performance.now()-this.timefromstart-this.totalpausetime)/1000);
       await CWPlayer.delay(predelay);
-      // on quitte si on a pausé et re play pendant le delai : sinon on se retrouve avec deux play() en parallèle
-      if (this.pppduringpredelay && !ignorepppduringpredelay) {
-        this.pppduringpredelay = false;
+      // quit si pas le thread courant
+      if (this.currentPlay != localTime) {
         return;
       }
     }
-    while (this.playing) {
+    while (this.playing && this.currentPlay == localTime) {
       if (++this.curti >= this.text.length) {
         return await this.stop();//le lecteur arrive en bout on stop
       }
       this.fireEvent('indexchanged');
       await this.#playElement(this.text[this.curti]);
-      // on ajoute l'espacement inter caractère (s'il reste des caractères à jouer et si le caractère courant ou suivant n'est pas un espace)
-      if (this.playing && this.text[this.curti] != ' ' && this.text[this.curti] != '\t' && this.curti+1 < this.text.length && this.text[this.curti+1] != ' ' && this.text[this.curti+1] != '\t') {
+      // on ajoute l'espacement inter caractère (si on est dans le thread courant, s'il reste des caractères à jouer et si le caractère courant ou suivant n'est pas un espace)
+      if (this.playing && this.currentPlay == localTime && this.text[this.curti] != ' ' && this.text[this.curti] != '\t' && this.curti+1 < this.text.length && this.text[this.curti+1] != ' ' && this.text[this.curti+1] != '\t') {
         await CWPlayer.delay(this.options.spperiod*3);
       }
     }
@@ -993,9 +1015,9 @@ class CWPlayer {
       this.#initAudio();
     }
     this.gain.connect(this.context.destination);
-    this.playing = true;
+    this.booping = true;
     await this.#playElement('t', 250);
-    this.playing = false;
+    this.booping = false;
   }
 
   static async delay(s) {
