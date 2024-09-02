@@ -196,7 +196,8 @@
   <pre id="clearzone" style="display: none;"></pre>
 </div>
 <script>
-const svg_inactif = 'svg_inactif';
+const SVG_INACTIF = 'svg_inactif';
+const HASHSEP = '_';
 var cwchecking = false;
 var cw_options = {
   lesson : 1,
@@ -340,7 +341,7 @@ async function generateText(evt) {
   updateHash();
 }
 function updateHash() {
-  window.location.hash = encodeURIComponent(sellesson.value+'|'+selwpm.value+'|'+seleffwpm.value+'|'+grplen.value+'|'+groupsnb.value+'|'+selews.value+'|'+(chkfree.checked?1:0));
+  window.location.hash = encodeURIComponent(sellesson.value+HASHSEP+selwpm.value+HASHSEP+seleffwpm.value+HASHSEP+grplen.value+HASHSEP+groupsnb.value+HASHSEP+selews.value+HASHSEP+(chkfree.checked?1:0));
 }
 // bug  compareStrings('C6YO. M?9RR C6YO. M?9RR C6YO. M?9RR C6YO. M?9RR C6YO. M?9RR C6YO. M?9RR', 'C6YO. M?9RR C6YO.M?9RR C6YO. M?9RR C6YO. M?9RR C6YO. M?9RR C6YO. M?9RR')
 function compareStrings(str1, str2){
@@ -592,22 +593,22 @@ window.onload = async () => {
   groupsnb.value = cw_options.groupsnb;
   selews.value = cw_options.ews;
   cwplayer.addEventListener('play', () => {
-    btnstop.disabled = false;btnstop.classList.remove(svg_inactif);
-    btnplay.disabled = true;btnplay.classList.add(svg_inactif);
-    btnpause.disabled = false;btnpause.classList.remove(svg_inactif);
+    btnstop.disabled = false;btnstop.classList.remove(SVG_INACTIF);
+    btnplay.disabled = true;btnplay.classList.add(SVG_INACTIF);
+    btnpause.disabled = false;btnpause.classList.remove(SVG_INACTIF);
     cwtext.focus();
     startTimeTimer();
   });
   cwplayer.addEventListener('pause', () => {
-    btnstop.disabled = false;btnstop.classList.remove(svg_inactif);
-    btnplay.disabled = false;btnplay.classList.remove(svg_inactif);
-    btnpause.disabled = true;btnpause.classList.add(svg_inactif);
+    btnstop.disabled = false;btnstop.classList.remove(SVG_INACTIF);
+    btnplay.disabled = false;btnplay.classList.remove(SVG_INACTIF);
+    btnpause.disabled = true;btnpause.classList.add(SVG_INACTIF);
     stopTimeTimer();
   });
   cwplayer.addEventListener('stop', () => {
-    btnstop.disabled = true;btnstop.classList.add(svg_inactif);
-    btnplay.disabled = false;btnplay.classList.remove(svg_inactif);
-    btnpause.disabled = true;btnpause.classList.add(svg_inactif);
+    btnstop.disabled = true;btnstop.classList.add(SVG_INACTIF);
+    btnplay.disabled = false;btnplay.classList.remove(SVG_INACTIF);
+    btnpause.disabled = true;btnpause.classList.add(SVG_INACTIF);
     stopTimeTimer();
     updateDisplayTime();
   });
@@ -621,7 +622,7 @@ window.onload = async () => {
   generateKeyboard();
 };
 function loadParams() {
-  decodeURIComponent(window.location.hash.substring(1)).split('|').forEach((val, i) => {
+  decodeURIComponent(window.location.hash.substring(1)).split(HASHSEP).forEach((val, i) => {
     val = parseFloat(val);
     if (isNaN(val)) return;
     switch (i) {
