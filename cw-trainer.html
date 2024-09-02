@@ -72,6 +72,9 @@
         margin: 1px;
         font-size: 18pt;
       }
+      #clearzone {
+        background-color: #ddd;
+      }
       .zonecontrols {
         margin-bottom: 5px;
       }
@@ -937,12 +940,12 @@ class CWPlayer {
     return await this.stop(true);
   }
   async play(text) {
+    if (this.playing) return;
     if (this.lastpausetime > 0) {
       this.totalpausetime += (performance.now()-this.lastpausetime);
       this.lastpausetime = 0;
     }
     if (typeof text === 'string') this.Text = text;
-    if (this.playing) return;
     this.playing = true;
     this.fireEvent('play');
     if (!this.context) {
