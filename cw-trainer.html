@@ -850,6 +850,9 @@ class CWPlayer {
   set Tone(value) {
     value = Math.min(5000, Math.max(150, value));
     this.options.tone = value;
+    if (this.context) {
+      this.osc.frequency.setValueAtTime(this.options.tone, this.context.currentTime);
+    }
     this.fireEvent('parameterchanged');
   }
   get PreDelay() { return this.options.predelay; }
