@@ -345,9 +345,6 @@ async function generateText(evt) {
   }
   updateHash();
 }
-function updateHash() {
-  window.location.hash = encodeURIComponent(sellesson.value+HASHSEP+selwpm.value+HASHSEP+seleffwpm.value+HASHSEP+grplen.value+HASHSEP+groupsnb.value+HASHSEP+seltone.value+HASHSEP+selews.value+HASHSEP+(chkfree.checked?1:0));
-}
 // bug  compareStrings('C6YO. M?9RR C6YO. M?9RR C6YO. M?9RR C6YO. M?9RR C6YO. M?9RR C6YO. M?9RR', 'C6YO. M?9RR C6YO.M?9RR C6YO. M?9RR C6YO. M?9RR C6YO. M?9RR C6YO. M?9RR')
 function compareStrings(str1, str2){
 /*
@@ -589,6 +586,43 @@ function updateDisplayTime() {
 }
 function startTimeTimer() { window.timeTimer = window.setInterval(updateDisplayTime, 250); }
 function stopTimeTimer() { window.clearInterval(window.timeTimer); }
+function updateHash() {
+  window.location.hash = encodeURIComponent(sellesson.value+HASHSEP+selwpm.value+HASHSEP+seleffwpm.value+HASHSEP+grplen.value+HASHSEP+groupsnb.value+HASHSEP+seltone.value+HASHSEP+selews.value+HASHSEP+(chkfree.checked?1:0));
+}
+function loadParams() {
+  decodeURIComponent(window.location.hash.substring(1)).split(HASHSEP).forEach((val, i) => {
+    val = parseFloat(val);
+    if (isNaN(val)) return;
+    switch (i) {
+      case 0:
+        // pas length-1 car la leçon 41 existe (QSO)
+        cw_options.lesson = Math.max(1, Math.min(kochcars.length, Math.trunc(val)));
+        break;
+      case 1:
+        cw_options.wpm = Math.max(CWPlayer.MIN_WPM, Math.min(CWPlayer.MAX_WPM, Math.trunc(val)));
+        break;
+      case 2:
+        cw_options.eff = Math.max(CWPlayer.MIN_WPM, Math.min(CWPlayer.MAX_WPM, Math.trunc(val)));
+        break;
+      case 3:
+        cw_options.grouplen = Math.max(-1, Math.min(8, Math.trunc(val)));
+        if (cw_options.grouplen == 0 || cw_options.grouplen == 1) cw_options.grouplen = 2;
+        break;
+      case 4:
+        cw_options.groupsnb = Math.max(1, Math.min(250, Math.trunc(val)));
+        break;
+      case 5:
+        cw_options.tone = Math.max(CWPlayer.MIN_TONE, Math.min(CWPlayer.MAX_TONE, Math.trunc(val)));
+        break;
+      case 6:
+        cw_options.ews = Math.max(CWPlayer.MIN_EWS, Math.min(CWPlayer.MAX_EWS, val));
+        break;
+      case 7:
+        chkfree.checked = val === 1;
+        break;
+    }
+  });
+}
 window.onload = async () => {
   window.cwplayer = new CWPlayer();
   setMinMax();
@@ -629,36 +663,6 @@ window.onload = async () => {
   chkfree.onchange();//generateText();
   generateKeyboard();
 };
-function loadParams() {
-  decodeURIComponent(window.location.hash.substring(1)).split(HASHSEP).forEach((val, i) => {
-    val = parseFloat(val);
-    if (isNaN(val)) return;
-    switch (i) {
-      case 0:
-        // pas length-1 car la leçon 41 existe (QSO)
-        cw_options.lesson = Math.max(1, Math.min(kochcars.length, val));
-        break;
-      case 1:
-        cw_options.wpm = Math.max(CWPlayer.MIN_WPM, Math.min(CWPlayer.MAX_WPM, val));
-        break;
-      case 2:
-        cw_options.eff = Math.max(CWPlayer.MIN_WPM, Math.min(CWPlayer.MAX_WPM, val));
-        break;
-      case 3:
-        cw_options.grouplen = Math.max(-1, Math.min(8, val));
-        if (cw_options.grouplen == 0 || cw_options.grouplen == 1) cw_options.grouplen = 2;
-        break;
-      case 4:
-        cw_options.groupsnb = Math.max(1, Math.min(250, val));
-        break;
-      case 5:
-        cw_options.ews = Math.max(CWPlayer.MIN_EWS, Math.min(CWPlayer.MAX_EWS, val));
-      case 6:
-        chkfree.checked = val === 1;
-        break;
-    }
-  });
-}
 window.onerror = (a, b, c, d, e) => {
   let err = `error : ${a}`;
   err += ` source: ${b}`;
@@ -679,6 +683,7 @@ seltone.onchange = () => {
   if (!cwplayer) return;
   cwplayer.Tone = seltone.value;
   seltone.value = cwplayer.Tone;
+  updateHash();
 }
 grplen.onchange = generateText;
 groupsnb.onchange = generateText;
