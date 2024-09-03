@@ -153,8 +153,8 @@
     <div id="zoneresultfree"></div>
   </div>
   <div id="zonekoch">
-    <label for="selews" title="Multiplier for the space between words">Extra word spacing : </label>
-    <input type="number" id="selews" title="Multiplier for the space between words"><BR>
+    <label for="selews" title="Extra space between words (seconds)">Extra word spacing : </label>
+    <input type="number" id="selews" title="Extra space between words (seconds)"><BR>
     <label for="grplen">Words length : </label>
     <select id="grplen">
       <option value="-1">random</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option>
@@ -206,7 +206,7 @@ var cw_options = {
   groupsnb : 10,
   wpm : 25,
   eff : 17,
-  ews : 2,
+  ews : 0.5,
   predelay : 2,
   tone : 800
 };
@@ -303,8 +303,8 @@ async function generateText(evt) {
   } else if (cw_options.wpm<cw_options.eff) {
     selwpm.value = cw_options.wpm = cw_options.eff;
   }
-  if (evt?.currentTarget == selews && (cw_options.ews < 1 || cw_options.ews > 10)) {
-    cw_options.ews = selews.value = Math.max(1, Math.min(10, cw_options.ews));
+  if (evt?.currentTarget == selews && (cw_options.ews < CWPlayer.MIN_EWS || cw_options.ews > CWPlayer.MAX_EWS)) {
+    cw_options.ews = selews.value = Math.max(CWPlayer.MIN_EWS, Math.min(CWPlayer.MAX_EWS, cw_options.ews));
   }
   cwplayer.WPM = cw_options.wpm;
   cwplayer.EffWPM = cw_options.eff;
@@ -801,7 +801,7 @@ class CWPlayer {
     elperiod : 0.06, // 20WPM.
     spperiod : 0.06,
     tone : 800,
-    ews : 1,
+    ews : 0,
     predelay : 0,
     autoplay : false
   };
@@ -823,7 +823,7 @@ class CWPlayer {
   /*CONSTANTES*/
   static get MIN_WPM() { return 1; };
   static get MAX_WPM() { return 60; };
-  static get MIN_EWS() { return 1; };
+  static get MIN_EWS() { return 0; };
   static get MAX_EWS() { return 10; };
   static get MIN_TONE() { return 150; };
   static get MAX_TONE() { return 5000; };
@@ -835,7 +835,7 @@ class CWPlayer {
   }
   set WPM(wpm) {
     wpm = isNaN(wpm) ? 0 : wpm;
-    wpm = Math.min(60, Math.max(1, wpm));
+    wpm = Math.min(CWPlayer.MAX_WPM, Math.max(CWPlayer.MIN_WPM, wpm));
     // "PARIS " ==> 50 unités. à 1 WPM il faut donc 60/50 secondes pour envoyer une unité (un 'dit')
     // Dit: 1 unit
     // Dah: 3 units
@@ -853,7 +853,7 @@ class CWPlayer {
   }
   set EffWPM(effwpm) {
     effwpm = isNaN(effwpm) ? 0 : effwpm;
-    effwpm = Math.min(60, Math.max(1, effwpm));
+    effwpm = Math.min(CWPlayer.MAX_WPM, Math.max(CWPlayer.MIN_WPM, effwpm));
     if (this.WPM<effwpm) {
       this.WPM = effwpm;
     }
@@ -863,14 +863,14 @@ class CWPlayer {
   get EWS() { return this.options.ews; }
   set EWS(value) {
     value = isNaN(value) ? 0 : value;
-    value = Math.min(10, Math.max(1, value));
+    value = Math.min(CWPlayer.MAX_EWS, Math.max(CWPlayer.MIN_EWS, value));
     this.options.ews = value;
     this.fireEvent('parameterchanged');
   }
   get Tone() { return this.options.tone; }
   set Tone(value) {
     value = isNaN(value) ? 0 : value;
-    value = Math.min(5000, Math.max(150, value));
+    value = Math.min(CWPlayer.MAX_TONE, Math.max(CWPlayer.MIN_TONE, value));
     this.options.tone = value;
     if (this.context) {
       this.osc.frequency.setValueAtTime(this.options.tone, this.context.currentTime);
@@ -1052,7 +1052,7 @@ class CWPlayer {
   }
   async #playElement(c, freq) {
     if (c == ' ' || c == '\t') {
-      return await CWPlayer.delay(this.options.spperiod*7*this.options.ews);
+      return await CWPlayer.delay(this.options.spperiod*7+this.options.ews);
     }
     let mc = CWPlayer.translate(c[0]);
     let initTime = this.context.currentTime;
@@ -1082,7 +1082,7 @@ class CWPlayer {
         inchar=false;
         continue;
       } else if (c == '\t') {
-        duration += (this.options.spperiod*7*this.options.ews);
+        duration += (this.options.spperiod*7+this.options.ews);
         inchar=false;
         continue;
       }
