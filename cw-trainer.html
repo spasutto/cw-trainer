@@ -76,6 +76,9 @@
         margin: 1px;
         font-size: 18pt;
       }
+      #zonedkb {
+        display: none;
+      }
       #clearzone {
         background-color: #ddd;
       }
@@ -190,7 +193,8 @@
       </div>
     </div>
     <textarea id="cwtext" rows="4" cols="43" spellcheck="false" autocorrect="off"></textarea><br>
-    <input type="button" value="submit" id="cwsbm"><br>
+    <input type="button" value="submit" id="cwsbm">
+    <span id="zonedkb"><input type="checkbox" id="disablekb"><label for="disablekb">disable keyboard</label></span><br>
     <div id="zoneresult" style="display:none;">
       <div id="zonerestext"></div>
       <input type="button" value="retry" id="retrybtn">
@@ -633,17 +637,12 @@ function isTouchDevice() {
      (navigator.msMaxTouchPoints > 0));
 }
 function showKeyboard(evt) {
-  // on n'ouvre pas le clavier dans ce cas
-  if (keyboard.contains(evt.relatedTarget)) return;
-  if (window.innerHeight>470) {
-    keyboard.style.display = 'block';
-  } else {
-    keyboard.style.display = 'none';
-  }
+  if (disablekb.checked) return;
+  keyboard.style.display = 'block';
 }
 function hideKeyboard(evt) {
   // on ne ferme pas le clavier dans ce cas
-  if (keyboard.contains(evt.relatedTarget)) return;
+  if (evt && keyboard.contains(evt.relatedTarget)) return;
   keyboard.style.display = 'none';
 }
 window.onload = async () => {
@@ -688,6 +687,7 @@ window.onload = async () => {
   // difficilement accessibles sur les claviers virtuels (soft keyboards)
   if (isTouchDevice()) {
     generateKeyboard();
+    zonedkb.style.display = 'initial';
     if (document.activeElement === cwtext || document.activeElement === iptfree) {
       showKeyboard();
     }
@@ -766,6 +766,11 @@ cwtext.onkeyup = () => {
 }
 iptfree.onkeyup = verifycw;
 cwtitle.ondblclick = () => clearzone.style.display = clearzone.style.display == 'none' ? 'block' : 'none';
+disablekb.onchange = () => {
+  if (disablekb.checked) {
+    hideKeyboard();
+  }
+}
 </script>
 
 <script>
