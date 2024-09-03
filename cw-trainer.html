@@ -685,7 +685,7 @@ window.onload = async () => {
   chkfree.onchange();//generateText();
   // sur les périphériques à clavier virtuel on rajoute un autre clavier pour les touches spéciales
   // difficilement accessibles sur les claviers virtuels (soft keyboards)
-  if (isTouchDevice()) {
+  if (isTouchDevice() && window.innerHeight > 470) {
     generateKeyboard();
     zonedkb.style.display = 'initial';
     if (document.activeElement === cwtext || document.activeElement === iptfree) {
