@@ -1001,8 +1001,8 @@ class CWPlayer {
     this.osc = this.context.createOscillator();
     this.gain = this.context.createGain();
     this.osc.connect(this.gain);//.connect(this.context.destination);
-    this.osc.frequency.setValueAtTime(this.options.tone, this.context.currentTime);
-    this.gain.gain.setValueAtTime(0, this.context.currentTime);
+    this.osc.frequency.value = this.options.tone;
+    this.gain.gain.value = 0;
     this.osc.start();
   }
   async stop(pause=false) {
