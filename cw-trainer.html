@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1, interactive-widget=resizes-content"/>
     <title>CW Trainer</title>
     <link rel="icon" type="image/x-icon" href="cw-trainer.ico">
 
@@ -64,7 +64,11 @@
         text-transform: uppercase;
       }
       #keyboard {
+        display: none;
         margin-top : 3px;
+        width : 380px;
+        position: absolute;
+        bottom: 0;
       }
       #keyboard input[type='button'] {
         width: 45px;
@@ -623,6 +627,25 @@ function loadParams() {
     }
   });
 }
+function isTouchDevice() {
+  return (('ontouchstart' in window) ||
+     (navigator.maxTouchPoints > 0) ||
+     (navigator.msMaxTouchPoints > 0));
+}
+function showKeyboard(evt) {
+  // on n'ouvre pas le clavier dans ce cas
+  if (keyboard.contains(evt.relatedTarget)) return;
+  if (window.innerHeight>470) {
+    keyboard.style.display = 'block';
+  } else {
+    keyboard.style.display = 'none';
+  }
+}
+function hideKeyboard(evt) {
+  // on ne ferme pas le clavier dans ce cas
+  if (keyboard.contains(evt.relatedTarget)) return;
+  keyboard.style.display = 'none';
+}
 window.onload = async () => {
   window.cwplayer = new CWPlayer();
   setMinMax();
@@ -661,7 +684,18 @@ window.onload = async () => {
   });
   cwplayer.addEventListener('parameterchanged', updateDisplayTime);
   chkfree.onchange();//generateText();
-  generateKeyboard();
+  // sur les périphériques à clavier virtuel on rajoute un autre clavier pour les touches spéciales
+  // difficilement accessibles sur les claviers virtuels (soft keyboards)
+  if (isTouchDevice()) {
+    generateKeyboard();
+    if (document.activeElement === cwtext || document.activeElement === iptfree) {
+      showKeyboard();
+    }
+    cwtext.addEventListener("focus", showKeyboard);
+    iptfree.addEventListener("focus", showKeyboard);
+    cwtext.addEventListener("blur", hideKeyboard);
+    iptfree.addEventListener("blur", hideKeyboard);
+  }
 };
 window.onerror = (a, b, c, d, e) => {
   let err = `error : ${a}`;
