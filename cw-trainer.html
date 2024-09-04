@@ -351,7 +351,7 @@ async function generateText(evt) {
     cwplayer.PreDelay = 0;
     cwplayer.Text = chkfree.checked ? iptfree.value : cwtext.value;
   }
-  updateHash();
+  saveParams();
 }
 // bug  compareStrings('C6YO. M?9RR C6YO. M?9RR C6YO. M?9RR C6YO. M?9RR C6YO. M?9RR C6YO. M?9RR', 'C6YO. M?9RR C6YO.M?9RR C6YO. M?9RR C6YO. M?9RR C6YO. M?9RR C6YO. M?9RR')
 function compareStrings(str1, str2){
@@ -594,11 +594,21 @@ function updateDisplayTime() {
 }
 function startTimeTimer() { window.timeTimer = window.setInterval(updateDisplayTime, 250); }
 function stopTimeTimer() { window.clearInterval(window.timeTimer); }
-function updateHash() {
-  window.location.hash = encodeURIComponent(sellesson.value+HASHSEP+selwpm.value+HASHSEP+seleffwpm.value+HASHSEP+grplen.value+HASHSEP+groupsnb.value+HASHSEP+seltone.value+HASHSEP+selews.value+HASHSEP+(chkfree.checked?1:0));
+function saveParams() {
+  let params = encodeURIComponent(sellesson.value+HASHSEP+selwpm.value+HASHSEP+seleffwpm.value+HASHSEP+grplen.value+HASHSEP+groupsnb.value+HASHSEP+seltone.value+HASHSEP+selews.value+HASHSEP+(chkfree.checked?1:0));
+  try {
+    localStorage.setItem("params", params);
+  } catch(e) {}
+  window.location.hash = params;
 }
 function loadParams() {
-  decodeURIComponent(window.location.hash.substring(1)).split(HASHSEP).forEach((val, i) => {
+  let params = window.location.hash.substring(1);
+  if (params.trim().length <=0) {
+    try {
+      params = localStorage.getItem("params");
+    } catch(e) {}
+  }
+  decodeURIComponent(params).split(HASHSEP).forEach((val, i) => {
     val = parseFloat(val);
     if (isNaN(val)) return;
     switch (i) {
@@ -717,7 +727,7 @@ seltone.onchange = () => {
   if (!cwplayer) return;
   cwplayer.Tone = seltone.value;
   seltone.value = cwplayer.Tone;
-  updateHash();
+  saveParams();
 }
 grplen.onchange = generateText;
 groupsnb.onchange = generateText;
