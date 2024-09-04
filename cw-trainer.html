@@ -656,8 +656,18 @@ function hideKeyboard(evt) {
   if (evt && keyboard.contains(evt.relatedTarget)) return;
   keyboard.style.display = 'none';
 }
-function updatePlayButtonState() {
-  if (!cwplayer.Playing && cwplayer.TotalTime > 0) {
+function updateButtonsState() {
+  let playing = cwplayer.Playing;
+  btnpause.disabled = !playing;
+  if (playing) {
+    btnstop.classList.remove(SVG_INACTIF);
+    btnpause.classList.remove(SVG_INACTIF);
+    btnstop.disabled = false;
+  } else {
+    if (cwplayer.CurrentTime <= 0) btnstop.classList.add(SVG_INACTIF);
+    btnpause.classList.add(SVG_INACTIF);
+  }
+  if (!playing && cwplayer.TotalTime > 0) {
     btnplay.disabled = false;
     btnplay.classList.remove(SVG_INACTIF);
   } else {
@@ -677,22 +687,16 @@ window.onload = async () => {
   seltone.value = cw_options.tone;
   selews.value = cw_options.ews;
   cwplayer.addEventListener('play', () => {
-    btnstop.disabled = false;btnstop.classList.remove(SVG_INACTIF);
-    updatePlayButtonState();
-    btnpause.disabled = false;btnpause.classList.remove(SVG_INACTIF);
+    updateButtonsState();
     cwtext.focus();
     startTimeTimer();
   });
   cwplayer.addEventListener('pause', () => {
-    btnstop.disabled = false;btnstop.classList.remove(SVG_INACTIF);
-    updatePlayButtonState();
-    btnpause.disabled = true;btnpause.classList.add(SVG_INACTIF);
+    updateButtonsState();
     stopTimeTimer();
   });
   cwplayer.addEventListener('stop', () => {
-    btnstop.disabled = true;btnstop.classList.add(SVG_INACTIF);
-    updatePlayButtonState();
-    btnpause.disabled = true;btnpause.classList.add(SVG_INACTIF);
+    updateButtonsState();
     stopTimeTimer();
     updateDisplayTime();
   });
@@ -703,7 +707,7 @@ window.onload = async () => {
   });
   cwplayer.addEventListener('parameterchanged', () => {
     updateDisplayTime();
-    updatePlayButtonState();
+    updateButtonsState();
   });
   chkfree.onchange();//generateText();
   // sur les périphériques à clavier virtuel on rajoute un autre clavier pour les touches spéciales
@@ -872,7 +876,7 @@ class CWPlayer {
     this.text = '';
     this.curti = -1;
     this.lastpausetime = this.totalpausetime = this.totaltime = 0;
-    this.booping = this.playing = false;
+    this.booping = this.playing = this.paused = false;
     this.events = {};
     if (this.options.wpm) {
       this.WPM = this.options.wpm;
@@ -979,7 +983,13 @@ class CWPlayer {
   get Index() { return this.curti; }
   get TotalTime() { return this.totaltime;  }
   get CurrentTime() {
-    return this.playing?Math.min(this.totaltime, (performance.now()-this.timefromstart-this.totalpausetime)/1000):0;
+    if (this.paused) {
+      return (this.lastpausetime-this.totalpausetime-this.starttime)/1000;
+    } else if (this.playing) {
+      return (performance.now()-this.starttime-this.totalpausetime)/1000;
+    } else {
+      return 0;
+    }
   }
 
   fireEvent(evtname, args) {
@@ -1031,9 +1041,10 @@ class CWPlayer {
   }
   async stop(pause=false) {
     if (this.booping) return;
+    this.paused = pause;
     if (!pause) {
       this.curti = -1;
-      this.totalpausetime = this.lastpausetime = this.timefromstart = 0;
+      this.totalpausetime = this.lastpausetime = this.starttime = 0;
       this.fireEvent('indexchanged');
     }
     if (this.playing) {
@@ -1065,6 +1076,7 @@ class CWPlayer {
     }
     if (typeof text === 'string') this.Text = text;
     this.playing = true;
+    this.paused = false;
     this.fireEvent('play');
     if (!this.context) {
       this.#initAudio();
@@ -1073,13 +1085,13 @@ class CWPlayer {
     let localTime = performance.now();
     // on annule tous les autres threads de lecture
     this.currentPlay = localTime;
-    if (this.timefromstart==0) {
+    if (this.starttime==0) {
       this.lastpausetime = this.totalpausetime = 0;
-      this.timefromstart = localTime;
+      this.starttime = localTime;
     }
     if (this.options.predelay>0) {
       // si la lecture a déjà commencée on pause le prédelai moins le temps déjà écoulé
-      let predelay = Math.max(0, this.options.predelay-(performance.now()-this.timefromstart-this.totalpausetime)/1000);
+      let predelay = Math.max(0, this.options.predelay-(performance.now()-this.starttime-this.totalpausetime)/1000);
       await CWPlayer.delay(predelay);
       // quit si pas le thread courant
       if (this.currentPlay != localTime) {
