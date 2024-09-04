@@ -300,25 +300,13 @@ async function generateText(evt) {
   if (!cwplayer) return;
   if (cwplayer.Playing) await cwplayer.stop();
   cw_options.lesson = parseInt(sellesson.value, 10);
-  cw_options.wpm = parseInt(selwpm.value, 10);
-  cw_options.eff = parseInt(seleffwpm.value, 10);
+  cwplayer.WPM = cw_options.wpm = parseInt(selwpm.value, 10);
+  cwplayer.EffWPM = cw_options.eff = parseInt(seleffwpm.value, 10);
   cw_options.grouplen = parseInt(grplen.value, 10);
   cw_options.groupsnb = parseInt(groupsnb.value, 10);
-  cw_options.ews = parseFloat(selews.value);
-  cw_options.tone = parseInt(seltone.value, 10);
-  if (evt?.currentTarget == selwpm && cw_options.wpm<cw_options.eff) {
-    seleffwpm.value = cw_options.eff = cw_options.wpm;
-  } else if (cw_options.wpm<cw_options.eff) {
-    selwpm.value = cw_options.wpm = cw_options.eff;
-  }
-  if (evt?.currentTarget == selews && (cw_options.ews < CWPlayer.MIN_EWS || cw_options.ews > CWPlayer.MAX_EWS)) {
-    cw_options.ews = selews.value = Math.max(CWPlayer.MIN_EWS, Math.min(CWPlayer.MAX_EWS, cw_options.ews));
-  }
-  cwplayer.WPM = cw_options.wpm;
-  cwplayer.EffWPM = cw_options.eff;
-  cwplayer.EWS = cw_options.ews;
+  cwplayer.EWS = cw_options.ews = parseFloat(selews.value);
+  cwplayer.Tone = cw_options.tone = parseInt(seltone.value, 10);
   cwplayer.PreDelay = cw_options.predelay;
-  cwplayer.Tone = cw_options.tone;
   // on remet à jour les contrôles si'il y'a eu des bornages
   selwpm.value = cw_options.wpm = cwplayer.WPM;
   seleffwpm.value = cw_options.eff = cwplayer.EffWPM;
@@ -736,9 +724,26 @@ window.onerror = (a, b, c, d, e) => {
 sellesson.onchange = () => {
   chkfree.onchange.call(this);
 };
-selwpm.onchange = generateText;
-seleffwpm.onchange = generateText;
-selews.onchange = generateText;
+selwpm.onchange = () => {
+  if (!cwplayer) return;
+  cwplayer.WPM = selwpm.value;
+  selwpm.value = cwplayer.WPM;
+  seleffwpm.value = cwplayer.EffWPM;
+  saveParams();
+};
+seleffwpm.onchange = () => {
+  if (!cwplayer) return;
+  cwplayer.EffWPM = seleffwpm.value;
+  seleffwpm.value = cwplayer.EffWPM;
+  selwpm.value = cwplayer.WPM;
+  saveParams();
+};
+selews.onchange = () => {
+  if (!cwplayer) return;
+  cwplayer.EWS = selews.value;
+  selews.value = cwplayer.EWS;
+  saveParams();
+};
 seltone.onchange = () => {
   if (!cwplayer) return;
   cwplayer.Tone = seltone.value;
@@ -910,6 +915,8 @@ class CWPlayer {
     this.options.elperiod = 6 / (5 * wpm);
     if (wpm<this.EffWPM) {
       this.EffWPM = wpm;
+    } else {
+      this.totaltime = this.getDuration();
     }
     this.fireEvent('parameterchanged');
   }
@@ -923,6 +930,7 @@ class CWPlayer {
       this.WPM = effwpm;
     }
     this.options.spperiod = ((60/effwpm)-31*this.options.elperiod)/19;
+    this.totaltime = this.getDuration();
     this.fireEvent('parameterchanged');
   }
   get EWS() { return this.options.ews; }
@@ -930,6 +938,7 @@ class CWPlayer {
     value = isNaN(value) ? 0 : value;
     value = Math.min(CWPlayer.MAX_EWS, Math.max(CWPlayer.MIN_EWS, value));
     this.options.ews = value;
+    this.totaltime = this.getDuration();
     this.fireEvent('parameterchanged');
   }
   get Tone() { return this.options.tone; }
