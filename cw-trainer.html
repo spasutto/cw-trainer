@@ -396,12 +396,12 @@ https://stackoverflow.com/a/34807141
   sequences = sequences.filter(s =>
     !sequences.some(s2 => s2.text.length > s.text.length && ((s2.isrc <= s.isrc && s2.isrc+s2.text.length>s.isrc) || (s2.idst <= s.idst && s2.idst+s2.text.length>s.idst)))
   );
-  // suppression des overlaps : compareStrings("IVNVV", "IVVV")
-  sequences = sequences.filter((s,i) => !sequences.some((s2,i2) => i2>i && (s.isrc==s2.isrc || s.idst==s2.idst)));
   // suppression des séquences qui apparaissent dans le désordre dans la chaine test par rapport à la chaine d'entrée (ainsi que les doublons, ex 'KMKMM/NNNK')
   sequences = sequences.filter((s, i) =>
     !sequences.some((s2, i2) => i2 < i && s2.idst >= s.idst)
   );
+  // suppression des overlaps : compareStrings("IVNVV", "IVVV") todo bug '/UQ/T','/QT'
+  sequences = sequences.filter((s,i) => !sequences.some((s2,i2) => i2>i && (s.isrc==s2.isrc || s.idst==s2.idst)));
   return {'str1':str1, 'str2':str2, 'errors':str1.length-sequences.reduce((acc, cur) => acc+=cur.text.length, 0), 'sequences': sequences};
 }
 const emptyChar = '&nbsp;';//'_';
