@@ -523,6 +523,7 @@ async function verifycw() {
         return;
       }
     }
+    cwplayer.Text = '';
     
     let results = verif.map((a, i) => compareStrings(a, inpt[i]));
     let nbchars = verif.reduce((acc, cur) => acc+cur.length, 0);
@@ -655,6 +656,15 @@ function hideKeyboard(evt) {
   if (evt && keyboard.contains(evt.relatedTarget)) return;
   keyboard.style.display = 'none';
 }
+function updatePlayButtonState() {
+  if (!cwplayer.Playing && cwplayer.TotalTime > 0) {
+    btnplay.disabled = false;
+    btnplay.classList.remove(SVG_INACTIF);
+  } else {
+    btnplay.disabled = true;
+    btnplay.classList.add(SVG_INACTIF);
+  }
+}
 window.onload = async () => {
   window.cwplayer = new CWPlayer();
   setMinMax();
@@ -668,20 +678,20 @@ window.onload = async () => {
   selews.value = cw_options.ews;
   cwplayer.addEventListener('play', () => {
     btnstop.disabled = false;btnstop.classList.remove(SVG_INACTIF);
-    btnplay.disabled = true;btnplay.classList.add(SVG_INACTIF);
+    updatePlayButtonState();
     btnpause.disabled = false;btnpause.classList.remove(SVG_INACTIF);
     cwtext.focus();
     startTimeTimer();
   });
   cwplayer.addEventListener('pause', () => {
     btnstop.disabled = false;btnstop.classList.remove(SVG_INACTIF);
-    btnplay.disabled = false;btnplay.classList.remove(SVG_INACTIF);
+    updatePlayButtonState();
     btnpause.disabled = true;btnpause.classList.add(SVG_INACTIF);
     stopTimeTimer();
   });
   cwplayer.addEventListener('stop', () => {
     btnstop.disabled = true;btnstop.classList.add(SVG_INACTIF);
-    btnplay.disabled = false;btnplay.classList.remove(SVG_INACTIF);
+    updatePlayButtonState();
     btnpause.disabled = true;btnpause.classList.add(SVG_INACTIF);
     stopTimeTimer();
     updateDisplayTime();
@@ -691,7 +701,10 @@ window.onload = async () => {
       clearzone.innerHTML = cwplayer.Text.substring(0, cwplayer.Index+1);
     }
   });
-  cwplayer.addEventListener('parameterchanged', updateDisplayTime);
+  cwplayer.addEventListener('parameterchanged', () => {
+    updateDisplayTime();
+    updatePlayButtonState();
+  });
   chkfree.onchange();//generateText();
   // sur les périphériques à clavier virtuel on rajoute un autre clavier pour les touches spéciales
   // difficilement accessibles sur les claviers virtuels (soft keyboards)
@@ -996,9 +1009,10 @@ class CWPlayer {
   static translate(text) {
     let cwtext = '';
     text = CWPlayer.cleanText(text);
+    let isSpace = (c) => c == ' ' || c == '\t';
     for (let i=0; i<text.length; i++) {
-      cwtext += (CWPlayer.morse[text[i]] ?? CWPlayer.morse['?']) + (text[i]!==' '?' ':'');
-      if ((i+1) > (text.length-1) || text[i+1]==' ') cwtext = cwtext.slice(0, -1);
+      if (i>0 && !isSpace(text[i-1]) && !isSpace(text[i])) cwtext += ' '; // on rajoute un espace après tout caractère (sauf si le celui-ci ou le courant est un espace)
+      cwtext += CWPlayer.morse[text[i]] ?? CWPlayer.morse['?'];
     }
     return cwtext;
   }
@@ -1121,6 +1135,7 @@ class CWPlayer {
     await CWPlayer.delay(t-this.context.currentTime);
   }
   getDuration() {
+    if (this.text.length <= 0) return 0;
     let duration = Math.max(0, this.options.predelay), c = null;
     let inchar=false;
     let cwtext = CWPlayer.translate(this.text);
