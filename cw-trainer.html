@@ -646,6 +646,7 @@ function isTouchDevice() {
 }
 function showKeyboard(evt) {
   if (disablekb.checked) return;
+  placeKeyboard();
   keyboard.style.display = 'block';
 }
 function hideKeyboard(evt) {
@@ -720,6 +721,9 @@ window.onload = async () => {
     cwtext.addEventListener("blur", hideKeyboard);
     iptfree.addEventListener("blur", hideKeyboard);
     window.addEventListener('resize', placeKeyboard);
+    try {
+      screen.orientation.addEventListener("change", placeKeyboard);
+    } catch(e) {}
   }
 };
 window.onerror = (a, b, c, d, e) => {
