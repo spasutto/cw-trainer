@@ -566,7 +566,7 @@ function generateKeyboard() {
   placeKeyboard();
 }
 function placeKeyboard() {
-  keyboard.style.bottom = Math.min(0, window.innerHeight-462)+"px";
+  keyboard.style.bottom = Math.min(0, window.innerHeight-(document.documentElement.offsetHeight+keyboard.offsetHeight))+"px";
 }
 function setMinMax() {
   selwpm.min = CWPlayer.MIN_WPM;
@@ -707,10 +707,9 @@ window.onload = async () => {
     updateDisplayTime();
     updateButtonsState();
   });
-  chkfree.onchange();//generateText();
   // sur les périphériques à clavier virtuel on rajoute un autre clavier pour les touches spéciales
   // difficilement accessibles sur les claviers virtuels (soft keyboards)
-  if (isTouchDevice() && window.innerHeight > 470) {
+  if (isTouchDevice() && window.innerHeight > document.documentElement.offsetHeight+200/*keyboard.offsetHeight*/) {
     generateKeyboard();
     zonedkb.style.display = 'initial';
     if (document.activeElement === cwtext || document.activeElement === iptfree) {
@@ -725,6 +724,7 @@ window.onload = async () => {
       screen.orientation.addEventListener("change", placeKeyboard);
     } catch(e) {}
   }
+  chkfree.onchange();//generateText();
 };
 window.onerror = (a, b, c, d, e) => {
   let err = `error : ${a}`;
