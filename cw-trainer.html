@@ -956,7 +956,7 @@ class CWPlayer {
     value = Math.min(CWPlayer.MAX_TONE, Math.max(CWPlayer.MIN_TONE, value));
     this.options.tone = value;
     if (this.context) {
-      this.osc.frequency.setValueAtTime(this.options.tone, this.context.currentTime);
+      this.osc.frequency.value = this.options.tone;
     }
     this.fireEvent('parameterchanged');
   }
@@ -1135,23 +1135,32 @@ class CWPlayer {
     }
     this.gain.connect(this.context.destination);
     this.booping = true;
-    await this.#playElement('e', 500);
-    await CWPlayer.delay(this.options.spperiod);
-    await this.#playElement('e', 250);
+
+    let initTime = this.context.currentTime;
+    let t = initTime;
+    this.osc.frequency.setValueAtTime(500, t);
+    this.gain.gain.setValueAtTime(0, t);
+    this.gain.gain.linearRampToValueAtTime(1, t + 0.005);
+    t += 0.1;
+    this.osc.frequency.setValueAtTime(250, t);
+    t += 0.1;
+    this.gain.gain.setValueAtTime(1, t - 0.005);
+    this.gain.gain.linearRampToValueAtTime(0, t);
+    await CWPlayer.delay(t-initTime);
     this.booping = false;
   }
 
   static async delay(s) {
     return new Promise(res => s?setTimeout(res, s*1000):res())
   }
-  async #playElement(c, freq) {
+  async #playElement(c) {
     if (c == ' ' || c == '\t') {
       return await CWPlayer.delay(this.options.spperiod*7+this.options.ews);
     }
     let mc = CWPlayer.translate(c[0]);
     let initTime = this.context.currentTime;
     let t = initTime;
-    this.osc.frequency.setValueAtTime(freq ?? this.options.tone, t);
+    this.osc.frequency.value = this.options.tone;
     for (let i=0; i<mc.length; i++) {
       if (i>0) {
         // inter-element
@@ -1163,7 +1172,7 @@ class CWPlayer {
       this.gain.gain.setValueAtTime(1, t - 0.005);
       this.gain.gain.linearRampToValueAtTime(0, t);
     }
-    await CWPlayer.delay(t-this.context.currentTime);
+    await CWPlayer.delay(t-initTime);
   }
   getDuration() {
     if (this.text.length <= 0) return 0;
