@@ -976,7 +976,7 @@ class CWPlayer {
   get Playing() { return this.playing; }
   set Playing(value) {
     if (value === false && this.playing) {
-      this.stop();
+      this.pause();
     } else if (value === true && !this.playing) {
       this.play();
     }
