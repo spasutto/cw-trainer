@@ -918,10 +918,13 @@ class CWPlayer {
     // Intra-character space (the gap between dits and dahs within a character): 1 unit
     // Inter-character space (the gap between the characters of a word): 3 units
     // Word space (the gap between two words): 7 units
+    let effwpm=this.EffWPM; // on sauvegarde ça sinon c'est perdu vu que ça s'appuie sur elperiod
     this.options.elperiod = 6 / (5 * wpm);
+    this.options.spperiod = ((60/effwpm)-31*this.options.elperiod)/19;
     if (wpm<this.EffWPM) {
       this.EffWPM = wpm;
     } else {
+      // ce traitement aurait déjà été fait dans le if dans le setter de EffWPM
       this.totaltime = this.getDuration();
     }
     this.fireEvent('parameterchanged');
