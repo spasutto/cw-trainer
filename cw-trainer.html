@@ -646,8 +646,8 @@ function isTouchDevice() {
 }
 function showKeyboard(evt) {
   if (disablekb.checked) return;
-  placeKeyboard();
   keyboard.style.display = 'block';
+  placeKeyboard();
 }
 function hideKeyboard(evt) {
   // on ne ferme pas le clavier dans ce cas
