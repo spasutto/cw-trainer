@@ -1135,7 +1135,9 @@ class CWPlayer {
     }
     this.gain.connect(this.context.destination);
     this.booping = true;
-    await this.#playElement('t', 250);
+    await this.#playElement('e', 500);
+    await CWPlayer.delay(this.options.spperiod);
+    await this.#playElement('e', 250);
     this.booping = false;
   }
 
