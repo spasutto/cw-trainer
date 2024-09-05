@@ -563,6 +563,7 @@ function generateKeyboard() {
   });
   keyboard.innerHTML = keybhtml;
   [...document.querySelectorAll('#keyboard input')].forEach(i => i.onclick=key.bind(i, i.value));
+  keyboard.style.bottom = Math.min(0, window.innerHeight-462)+"px";
 }
 function setMinMax() {
   selwpm.min = CWPlayer.MIN_WPM;
