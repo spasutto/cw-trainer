@@ -563,6 +563,9 @@ function generateKeyboard() {
   });
   keyboard.innerHTML = keybhtml;
   [...document.querySelectorAll('#keyboard input')].forEach(i => i.onclick=key.bind(i, i.value));
+  placeKeyboard();
+}
+function placeKeyboard() {
   keyboard.style.bottom = Math.min(0, window.innerHeight-462)+"px";
 }
 function setMinMax() {
@@ -716,6 +719,7 @@ window.onload = async () => {
     iptfree.addEventListener("focus", showKeyboard);
     cwtext.addEventListener("blur", hideKeyboard);
     iptfree.addEventListener("blur", hideKeyboard);
+    window.addEventListener('resize', placeKeyboard);
   }
 };
 window.onerror = (a, b, c, d, e) => {
