@@ -562,7 +562,7 @@ async function verifycw() {
     if (cw_options.lesson <= 40) {
       let inpt = results.str2.split(' ');
       verif = results.str1.split(' ');
-      results = verif.map((a, i) => compareStrings(a, inpt[i]));
+      results = verif.map((a, i) => compareStrings(a, inpt[i] ?? ''));
       nbchars = verif.reduce((acc, cur) => acc+cur.length, 0);
       nberr = results.reduce((acc, cur) => acc+cur.errors, 0);
     } else {
