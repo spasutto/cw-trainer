@@ -22,7 +22,7 @@
         font-family: monospace;
         font-size: large;
       }
-      table {
+      table:not(.zonecontrols) {
         width: 100%;
         max-height: 500px;
         display: block;
@@ -33,11 +33,11 @@
         top: 0;
         background-color: white;
       }
-      th, td {
+      th, table:not(.zonecontrols) td {
         padding:2px 15px;
         text-align : center;
       }
-      td:not(:last-child), th:not(:last-child) {
+      table:not(.zonecontrols) td:not(:last-child), th:not(:last-child) {
         border-right: solid 1px;
       }
       a {
@@ -49,7 +49,7 @@
       small {
         color: #a0a0a0;
       }
-      label[for='seleffwpm'] {
+      label[for='seltone'] {
         margin-left: 15px;
       }
       select, input[type="button"] {
@@ -149,21 +149,43 @@
   </head>
 <body>
 <div>
-  <div class="zonecontrols">
-    <h2 id="cwtitle">CW Trainer <a href="#" onclick="selfDownload()" title="save CW Trainer for offline use">&#x0001f4be;</a></h2>
-    <label for="sellesson">Lesson : </label>
-    <input type="button" id="prevlesson" value="&lt;"><select id="sellesson">
-      <option value='1'>1 - K, M</option><option value='2'>2 - U</option><option value='3'>3 - R</option><option value='4'>4 - E</option><option value='5'>5 - S</option><option value='6'>6 - N</option><option value='7'>7 - A</option><option value='8'>8 - P</option><option value='9'>9 - T</option><option value='10'>10 - L</option><option value='11'>11 - W</option><option value='12'>12 - I</option><option value='13'>13 - .</option><option value='14'>14 - J</option><option value='15'>15 - Z</option><option value='16'>16 - =</option><option value='17'>17 - F</option><option value='18'>18 - O</option><option value='19'>19 - Y</option><option value='20'>20 - ,</option><option value='21'>21 - V</option><option value='22'>22 - G</option><option value='23'>23 - 5</option><option value='24'>24 - /</option><option value='25'>25 - Q</option><option value='26'>26 - 9</option><option value='27'>27 - 2</option><option value='28'>28 - H</option><option value='29'>29 - 3</option><option value='30'>30 - 8</option><option value='31'>31 - B</option><option value='32'>32 - ?</option><option value='33'>33 - 4</option><option value='34'>34 - 7</option><option value='35'>35 - C</option><option value='36'>36 - 1</option><option value='37'>37 - D</option><option value='38'>38 - 6</option><option value='39'>39 - 0</option><option value='40'>40 - X</option>
-      <option value='41'>QSO</option>
-    </select><input type="button" id="nxtlesson" value="&gt;">
-    <label for="seltone" title="Tone">Tone : </label>
-    <input type="number" step="100" id="seltone" title="Tone"><small>&nbsp;(Hz)</small>
-    <input type="checkbox" id="chkweightlastletters" title="more likely to hear 3 last letters" checked><label for="chkweightlastletters" title="more likely to hear 3 last letters">weigh more last letters</label><BR>
-    <label for="selwpm" title="Word Per Minute">WPM : </label>
-    <input type="number" id="selwpm" title="Word Per Minute">
-    <label for="seleffwpm" title="Effective Word Per Minute (Farnsworth)">Eff. WPM : </label>
-    <input type="number" id="seleffwpm" title="Effective Word Per Minute (Farnsworth)"><BR>
-  </div>
+  <table class="zonecontrols">
+    <tr>
+      <td colspan="2">
+        <h2 id="cwtitle">CW Trainer <a href="#" onclick="selfDownload()" title="save CW Trainer for offline use">&#x0001f4be;</a></h2>
+      </td>
+      <td>
+        <label for="sellesson">Lesson : </label>
+        <input type="button" id="prevlesson" value="&lt;"><select id="sellesson">
+          <option value='1'>1 - K, M</option><option value='2'>2 - U</option><option value='3'>3 - R</option><option value='4'>4 - E</option><option value='5'>5 - S</option><option value='6'>6 - N</option><option value='7'>7 - A</option><option value='8'>8 - P</option><option value='9'>9 - T</option><option value='10'>10 - L</option><option value='11'>11 - W</option><option value='12'>12 - I</option><option value='13'>13 - .</option><option value='14'>14 - J</option><option value='15'>15 - Z</option><option value='16'>16 - =</option><option value='17'>17 - F</option><option value='18'>18 - O</option><option value='19'>19 - Y</option><option value='20'>20 - ,</option><option value='21'>21 - V</option><option value='22'>22 - G</option><option value='23'>23 - 5</option><option value='24'>24 - /</option><option value='25'>25 - Q</option><option value='26'>26 - 9</option><option value='27'>27 - 2</option><option value='28'>28 - H</option><option value='29'>29 - 3</option><option value='30'>30 - 8</option><option value='31'>31 - B</option><option value='32'>32 - ?</option><option value='33'>33 - 4</option><option value='34'>34 - 7</option><option value='35'>35 - C</option><option value='36'>36 - 1</option><option value='37'>37 - D</option><option value='38'>38 - 6</option><option value='39'>39 - 0</option><option value='40'>40 - X</option>
+          <option value='41'>QSO</option>
+        </select><input type="button" id="nxtlesson" value="&gt;">
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <label for="selwpm" title="Word Per Minute">WPM : </label>
+      </td>
+      <td>
+        <input type="number" id="selwpm" title="Word Per Minute">
+      </td>
+      <td>
+        <input type="checkbox" id="chkweightlastletters" title="more likely to hear 3 last letters" checked><label for="chkweightlastletters" title="more likely to hear 3 last letters">weigh more last letters</label><BR>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <label for="seleffwpm" title="Effective Word Per Minute (Farnsworth)">Eff. WPM : </label>
+      </td>
+      <td>
+        <input type="number" id="seleffwpm" title="Effective Word Per Minute (Farnsworth)">
+      </td>
+      <td>
+        <label for="seltone" title="Tone">Tone : </label>
+        <input type="number" step="100" id="seltone" title="Tone"><small>&nbsp;(Hz)</small>
+      </td>
+    </tr>
+  </table>
   <input type="checkbox" id="chkfree"><label for="chkfree">simple mode</label><input type="checkbox" id="chkfreelisten"><label for="chkfreelisten">free listen mode</label>
   <div id="zonefree" style="display:none">
     <input type="text" id="iptfree" maxlength="1">
