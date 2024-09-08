@@ -862,6 +862,17 @@ chkfree.onchange = async () => {
   }
   iptfree.value = cwtext.value = '';
   cwplayer.AutoPlay = chkfreelisten.checked && !chkfree.checked;
+  [...document.querySelectorAll("label[for='seleffwpm'], #seleffwpm")].forEach(e => {
+    e.disabled = chkfree.checked;
+    let title = e.title;
+    let dtext = ' - disabled in free mode';
+    if (e.title.endsWith(dtext)) {
+      e.title = e.title.substring(0, e.title.indexOf(dtext));
+    }
+    if (chkfree.checked) {
+      e.title = e.title + dtext;
+    }
+  });
   generateText();
   if (chkfreelisten.checked) {
     zoneresultfree.innerHTML = '';
