@@ -388,9 +388,9 @@ async function generateText() {
         for(let i=0; i<nbi; i++) letters.push(...newletters);
       }
       cwgentext = generateRandomText(letters, cw_options.grouplen, cw_options.groupsnb);
-      return cwgentext;
     }
     cwplayer.Text = cwgentext;
+    return cwgentext;
   } else {
     cwplayer.PreDelay = 0;
     cwplayer.Text = chkfree.checked ? iptfree.value : cwtext.value;
