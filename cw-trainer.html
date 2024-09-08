@@ -22,6 +22,10 @@
         font-family: monospace;
         font-size: large;
       }
+      select, option {
+        font-family: monospace;
+        font-size: medium;
+      }
       table:not(.zonecontrols) {
         width: 100%;
         max-height: 500px;
@@ -52,7 +56,9 @@
       label[for='seltone'] {
         margin-left: 15px;
       }
-      select, input[type="button"] {
+      select, input[type="button"]:not(#cwsbm) {
+        font-family: monospace;
+        font-size: medium;
         height: 21px;
         display: inline-block !important;
       }
@@ -328,7 +334,7 @@ function generateRandomText(chars, grouplen, groupsnb) {
   else grouplen = irand(2, 8);
   return Array.apply(null, Array(groupsnb)).map(() => generateRandomString(chars, grouplen)).join(' ');
 }
-async function generateText(evt) {
+async function generateText() {
   if (!cwplayer) return;
   if (cwplayer.Playing) await cwplayer.stop();
   cw_options.lesson = parseInt(sellesson.value, 10);
@@ -344,6 +350,7 @@ async function generateText(evt) {
   seleffwpm.value = cw_options.eff = cwplayer.EffWPM;
   selews.value = cw_options.ews = cwplayer.EWS;
   seltone.value = cw_options.tone = cwplayer.Tone;
+  saveParams();
   let cwgentext = '';
   if (!chkfreelisten.checked) {
     if (chkfree.checked) {
@@ -352,7 +359,8 @@ async function generateText(evt) {
         // lettres "nouvelles"
         let newletters = kochcars.slice(cw_options.lesson-2, cw_options.lesson+1);
         // plus de poids pour les lettres nouvelles
-        for(let i=0; i<5; i++) letters.push(...newletters);
+        let nbi = Math.max(1, Math.round(cw_options.lesson/8));
+        for(let i=0; i<nbi; i++) letters.push(...newletters);
       }
       cwgentext = generateRandomString(letters, 1);
       cwplayer.PreDelay = 0;
@@ -376,16 +384,17 @@ async function generateText(evt) {
         // lettres "nouvelles"
         let newletters = kochcars.slice(cw_options.lesson-2, cw_options.lesson+1);
         // plus de poids pour les lettres nouvelles
-        for(let i=0; i<5; i++) letters.push(...newletters);
+        let nbi = Math.max(1, Math.round(cw_options.lesson/8));
+        for(let i=0; i<nbi; i++) letters.push(...newletters);
       }
       cwgentext = generateRandomText(letters, cw_options.grouplen, cw_options.groupsnb);
+      return cwgentext;
     }
     cwplayer.Text = cwgentext;
   } else {
     cwplayer.PreDelay = 0;
     cwplayer.Text = chkfree.checked ? iptfree.value : cwtext.value;
   }
-  saveParams();
 }
 // bug  compareStrings('C6YO. M?9RR C6YO. M?9RR C6YO. M?9RR C6YO. M?9RR C6YO. M?9RR C6YO. M?9RR', 'C6YO. M?9RR C6YO.M?9RR C6YO. M?9RR C6YO. M?9RR C6YO. M?9RR C6YO. M?9RR')
 function compareStrings(str1, str2, ignorecase=true, ignorewhitespaces=true){
