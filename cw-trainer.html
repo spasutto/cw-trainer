@@ -623,30 +623,61 @@ async function verifycw() {
     let nberr = results.reduce((acc, cur) => acc+cur.errors, 0);
     let maxerrs = nberr;
     if (inpt.length < verif.length) {
-      if (confirm('Warning : it seems that you have not entered enough groups, are you sure to proceed to verification?')) {
+      let nbtofill = verif.length-inpt.length;
+      // on cherche si par hasard il n'y aurait pas eu un oubli d'espace
+      let toobigwords = cw_options.grouplen < 0 ? [] : inpt.filter(ipt => ipt.length > cw_options.grouplen && ipt.length%cw_options.grouplen == 0);
+      if (cw_options.grouplen > 0 && toobigwords.length > 0) {
+        let newinpts = [];
+        for (let i=0; i<inpt.length; i++) {
+          if (inpt[i].length>cw_options.grouplen && inpt[i].length%cw_options.grouplen==0) {
+            newinpts.push(...inpt[i].match(new RegExp(`.{1,${cw_options.grouplen}}`, 'g')));
+          } else {
+            newinpts.push(inpt[i]);
+          }
+        }
+        inpt = newinpts;
+        results = verif.map((a, i) => compareStrings(a, inpt[i] ?? ''));
+        nberr = results.reduce((acc, cur) => acc+cur.errors, 0);
+      } else if (confirm('Warning : it seems that you have not entered enough groups, are you sure to proceed to verification?')) {
         // on tente de trouver l'emplacement du/des mot(s) qui manque(nt)
-        let nbtofill = verif.length-inpt.length;
-        for (let nb=0; nb<nbtofill; nb++) {
-          let temperr = Number.MAX_SAFE_INTEGER;
-          let iminerr = -1;
-          let inpttmp = null;
-          for (let i=0; i<=inpt.length; i++) {
-            inpttmp = inpt.slice();
-            inpttmp.splice(i, 0, '');
-            results = verif.map((a, i) => compareStrings(a, inpttmp[i] ?? ''));
-            nberr = results.reduce((acc, cur) => acc+cur.errors, 0);
-            if (nberr < temperr) {
-              temperr = nberr;
-              iminerr = i;
+        inpt.push(...Array(nbtofill).fill('')); // on insère pour permettre aux permutations de fonctionner sans soucis
+        let temperr = Number.MAX_SAFE_INTEGER;
+        let indices = Array(nbtofill).fill(0);
+        let inpttmp = null;
+        let minerrindice = -1;
+        let nbiter = Math.pow(inpt.length+1, nbtofill);
+        let citer = 0;
+        // on va faire tous les arrangements possible pour insérer les 'nbtofill' mots manquants
+        // pour chaque arrangement on va calculer le nombre d'erreur et on prendra l'arrangement avec le plus faible taux d'erreur
+        while (true) {
+          inpttmp = inpt.slice();
+          for (let y=0; y<nbtofill; y++) {
+            inpttmp.splice(indices[y], 0, '');
+          }
+          results = verif.map((a, i) => compareStrings(a, inpttmp[i] ?? ''));
+          nberr = results.reduce((acc, cur) => acc+cur.errors, 0);
+          if (nberr < temperr) {
+            temperr = nberr;
+            minerrindice = indices.slice();
+          }
+          indices[0]++;
+          if (++citer>=nbiter) break;
+          for (let i=0; i<nbtofill; i++) {
+            if (indices[i]>inpt.length) {
+              if (i==nbtofill-1) {
+                break;
+              }
+              indices[i] = 0;
+              indices[i+1]++;
             }
           }
-          if (iminerr > -1 && temperr < maxerrs) {
-            inpt.splice(iminerr, 0, '');
-            results = verif.map((a, i) => compareStrings(a, inpt[i] ?? ''));
-            maxerrs = nberr = results.reduce((acc, cur) => acc+cur.errors, 0);
-          }
-          //inpt.push(...Array(nbtofill).fill(''));
         }
+        // on a trouvé l'emplacement, on insère et on compare définitivement
+        for (let y=0; y<nbtofill; y++) {
+          inpt.splice(minerrindice[y], 0, '');
+        }
+        results = verif.map((a, i) => compareStrings(a, inpt[i] ?? ''));
+        nberr = results.reduce((acc, cur) => acc+cur.errors, 0);
       } else {
         cwsbm.disabled = false;
         cwchecking = false;
@@ -918,6 +949,8 @@ chkfree.onchange = async () => {
   window.freefirsttry = true;
 };
 sellesson.onchange = chkfree.onchange;
+grplen.onchange = chkfree.onchange;
+groupsnb.onchange = chkfree.onchange;
 selwpm.onchange = () => {
   if (!cwplayer) return;
   cwplayer.WPM = selwpm.value;
@@ -944,8 +977,6 @@ seltone.onchange = () => {
   seltone.value = cwplayer.Tone;
   saveParams();
 }
-grplen.onchange = generateText;
-groupsnb.onchange = generateText;
 cwsbm.onclick = verifycw;
 retrybtn.onclick = chkfree.onchange;
 prevlesson.onclick = () => {
