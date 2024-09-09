@@ -118,7 +118,9 @@
         font-family: monospace;
         font-size: medium;
         height: 21px;
-        display: inline-block !important;
+      }
+      #retrybtn, #retrynxt {
+        width: 150px;
       }
       #player button {
         width: 32px;
@@ -785,7 +787,7 @@ async function verifycw() {
     restable += '</table>';
     zonerestext.innerHTML += restable;
   
-    retrynxt.style.visibility = perc>=90?'visible':'hidden';
+    retrynxt.style.display = perc>=90?'inline-block':'none';
     zoneresult.style.display = 'block';
     keyboard.style.display = 'none';
   }
