@@ -156,6 +156,15 @@
       #chkweightlastletters {
         margin-left: 20px;
       }
+      #cwsbm {
+        float: right;
+      }
+      #zoneresult {
+        margin: 4px 0px;
+        padding: 4px 0px;
+        border-top: solid 2px #bbb;
+        text-align: center;
+      }
       .svg_inactif {
         fill: grey;
       }
@@ -778,6 +787,7 @@ async function verifycw() {
   
     retrynxt.style.visibility = perc>=90?'visible':'hidden';
     zoneresult.style.display = 'block';
+    keyboard.style.display = 'none';
   }
   cwchecking = false;
 }
@@ -887,7 +897,7 @@ function isTouchDevice() {
      (navigator.msMaxTouchPoints > 0));
 }
 function showKeyboard(evt) {
-  if (disablekb.checked) return;
+  if (disablekb.checked || zoneresult.style.display=='block') return;
   keyboard.style.display = 'block';
 }
 function hideKeyboard(evt) {
