@@ -641,43 +641,49 @@ async function verifycw() {
       } else if (confirm('Warning : it seems that you have not entered enough groups, are you sure to proceed to verification?')) {
         // on tente de trouver l'emplacement du/des mot(s) qui manque(nt)
         inpt.push(...Array(nbtofill).fill('')); // on insère pour permettre aux permutations de fonctionner sans soucis
-        let temperr = Number.MAX_SAFE_INTEGER;
-        let indices = Array(nbtofill).fill(0);
-        let inpttmp = null;
-        let minerrindice = -1;
         let nbiter = Math.pow(inpt.length+1, nbtofill);
-        let citer = 0;
-        // on va faire tous les arrangements possible pour insérer les 'nbtofill' mots manquants
-        // pour chaque arrangement on va calculer le nombre d'erreur et on prendra l'arrangement avec le plus faible taux d'erreur
-        while (true) {
-          inpttmp = inpt.slice();
-          for (let y=0; y<nbtofill; y++) {
-            inpttmp.splice(indices[y], 0, '');
-          }
-          results = verif.map((a, i) => compareStrings(a, inpttmp[i] ?? ''));
-          nberr = results.reduce((acc, cur) => acc+cur.errors, 0);
-          if (nberr < temperr) {
-            temperr = nberr;
-            minerrindice = indices.slice();
-          }
-          indices[0]++;
-          if (++citer>=nbiter) break;
-          for (let i=0; i<nbtofill; i++) {
-            if (indices[i]>inpt.length) {
-              if (i==nbtofill-1) {
-                break;
+        if (nbchars>0/* && nbiter<30000*/) {
+          let temperr = Number.MAX_SAFE_INTEGER;
+          let indices = Array(nbtofill).fill(0);
+          let inpttmp = null;
+          let minerrindice = -1;
+          let citer = 0;
+          let starttime = new Date().getTime();
+          // on va faire tous les arrangements possible pour insérer les 'nbtofill' mots manquants
+          // pour chaque arrangement on va calculer le nombre d'erreur et on prendra l'arrangement avec le plus faible taux d'erreur
+          while (true) {
+            inpttmp = inpt.slice();
+            for (let y=0; y<nbtofill; y++) {
+              inpttmp.splice(indices[y], 0, '');
+            }
+            results = verif.map((a, i) => compareStrings(a, inpttmp[i] ?? ''));
+            nberr = results.reduce((acc, cur) => acc+cur.errors, 0);
+            if (nberr < temperr) {
+              temperr = nberr;
+              minerrindice = indices.slice();
+            }
+            indices[0]++;
+            if (++citer>=nbiter || (citer%10 == 0 && (new Date().getTime())-starttime > 5000)) break;
+            for (let i=0; i<nbtofill; i++) {
+              if (indices[i]>inpt.length) {
+                if (i==nbtofill-1) {
+                  break;
+                }
+                indices[i] = 0;
+                indices[i+1]++;
               }
-              indices[i] = 0;
-              indices[i+1]++;
             }
           }
+          if (citer < nbiter) {
+            console.log(`aborted ${citer}/${nbiter} (${Math.round(100*citer/nbiter)}%)`);
+          }
+          // on a trouvé l'emplacement, on insère et on compare définitivement
+          for (let y=0; y<nbtofill; y++) {
+            inpt.splice(minerrindice[y], 0, '');
+          }
+          results = verif.map((a, i) => compareStrings(a, inpt[i] ?? ''));
+          nberr = results.reduce((acc, cur) => acc+cur.errors, 0);
         }
-        // on a trouvé l'emplacement, on insère et on compare définitivement
-        for (let y=0; y<nbtofill; y++) {
-          inpt.splice(minerrindice[y], 0, '');
-        }
-        results = verif.map((a, i) => compareStrings(a, inpt[i] ?? ''));
-        nberr = results.reduce((acc, cur) => acc+cur.errors, 0);
       } else {
         cwsbm.disabled = false;
         cwchecking = false;
