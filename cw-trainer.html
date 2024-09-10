@@ -8,15 +8,35 @@
 
     <style>
       body {
-        width : 380px;
+        min-width : 380px;
         font-family: sans-serif;
         margin: 0;
+      }
+      @media (max-width: 650px) {
+        body {
+          width : 400px;
+        }
       }
       #zonetrainer {
         border-style: none dashed dashed none;
         border-width: 1px;
         padding: 2px 2px 2px 5px;
         position: relative;
+      }
+      #zonemain {
+        display: inline-block;
+        vertical-align: top;
+        border-left: solid 2px #bbb;
+        margin: 0px 4px;
+        padding: 0px 4px;
+      }
+      #zoneresult {
+        display: inline-block;
+        vertical-align: top;
+        text-align: center;
+        border-left: solid 2px #bbb;
+        margin: 0px 4px;
+        padding: 0px 4px;
       }
       #overlay {
         display: none;
@@ -161,12 +181,6 @@
       #cwsbm {
         float: right;
       }
-      #zoneresult {
-        margin: 4px 0px;
-        padding: 4px 0px;
-        border-top: solid 2px #bbb;
-        text-align: center;
-      }
       .svg_inactif {
         fill: grey;
       }
@@ -224,91 +238,93 @@
   <div id="overlay">
     <div id="overlaycont">Loading...</div>
   </div>
-  <table class="zonecontrols">
-    <tr>
-      <td colspan="2">
-        <h2 id="cwtitle">CW Trainer</h2><a href="#" onclick="selfDownload()" title="save CW Trainer for offline use">&#x0001f4be;</a>
-      </td>
-      <td>
-        <label for="sellesson">Lesson : </label>
-        <input type="button" id="prevlesson" value="&lt;"><select id="sellesson">
-          <option value='1'>1 - K, M</option><option value='2'>2 - U</option><option value='3'>3 - R</option><option value='4'>4 - E</option><option value='5'>5 - S</option><option value='6'>6 - N</option><option value='7'>7 - A</option><option value='8'>8 - P</option><option value='9'>9 - T</option><option value='10'>10 - L</option><option value='11'>11 - W</option><option value='12'>12 - I</option><option value='13'>13 - .</option><option value='14'>14 - J</option><option value='15'>15 - Z</option><option value='16'>16 - =</option><option value='17'>17 - F</option><option value='18'>18 - O</option><option value='19'>19 - Y</option><option value='20'>20 - ,</option><option value='21'>21 - V</option><option value='22'>22 - G</option><option value='23'>23 - 5</option><option value='24'>24 - /</option><option value='25'>25 - Q</option><option value='26'>26 - 9</option><option value='27'>27 - 2</option><option value='28'>28 - H</option><option value='29'>29 - 3</option><option value='30'>30 - 8</option><option value='31'>31 - B</option><option value='32'>32 - ?</option><option value='33'>33 - 4</option><option value='34'>34 - 7</option><option value='35'>35 - C</option><option value='36'>36 - 1</option><option value='37'>37 - D</option><option value='38'>38 - 6</option><option value='39'>39 - 0</option><option value='40'>40 - X</option>
-          <option value='41'>QSO</option>
-        </select><input type="button" id="nxtlesson" value="&gt;">
-      </td>
-    </tr>
-    <tr>
-      <td>
-        <label for="selwpm" title="Word Per Minute">WPM : </label>
-      </td>
-      <td>
-        <input type="number" id="selwpm" title="Word Per Minute">
-      </td>
-      <td>
-        <input type="checkbox" id="chkweightlastletters" title="more likely to hear 3 last letters" checked><label for="chkweightlastletters" title="more likely to hear 3 last letters">weigh more last letters</label><BR>
-      </td>
-    </tr>
-    <tr>
-      <td>
-        <label for="seleffwpm" title="Effective Word Per Minute (Farnsworth)">Eff. WPM : </label>
-      </td>
-      <td>
-        <input type="number" id="seleffwpm" title="Effective Word Per Minute (Farnsworth)">
-      </td>
-      <td>
-        <label for="seltone" title="Tone">Tone : </label>
-        <input type="number" step="100" id="seltone" title="Tone"><small>&nbsp;(Hz)</small>
-      </td>
-    </tr>
-  </table>
-  <input type="checkbox" id="chkfree"><label for="chkfree">simple mode</label><input type="checkbox" id="chkfreelisten"><label for="chkfreelisten">free listen mode</label>
-  <div id="zonefree" style="display:none">
-    <input type="text" id="iptfree" maxlength="1">
-    <div id="zoneresultfree"></div>
-  </div>
-  <div id="zonekoch">
-    <label for="selews" title="Extra space between words (seconds)">Extra word spacing : </label>
-    <input type="number" step="0.1" id="selews" title="Extra space between words (seconds)"><small>&nbsp;(seconds)</small><BR>
-    <label for="grplen">Words length : </label>
-    <select id="grplen">
-      <option value="-1">random</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option>
-    </select>
-    <label for="groupsnb">Groups : </label>
-    <input type="number" id="groupsnb" min="1" max="250">
-    <div id="player">
-      <button id="btnstop" onclick="cwplayer.stop()" title="stop playing" class="svg_inactif" disabled><!--x25A0-->
-        <svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="20" height="20" viewBox="0 0 20 20">
-          <rect width="16" height="16" x="2" y="2" rx="1" ry="1"/>
-        </svg>
-      </button>
-      <button id="btnplay" onclick="cwplayer.play()" title="start playing"><!--&#x25B6;-->
-        <svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="20" height="20" viewBox="-10 -5 120 120">
-          <path d="M 13.677242369053593 5.970459221108368 L 99.32275763094641 55.02954077889163 C 103.6613788154732 57.514770389445815 103.50196896806634 62.18351020967654 99.00393793613266 64.36702041935308 L 13.996062063867347 105.63297958064692 C 9.498031031933674 107.81648979032346 5 105 5 100 L 5 11 C 5 6 9.338621184526797 3.485229610554184 13.677242369053593 5.970459221108368 Z" />
-        </svg>
-      </button>
-      <button id="btnpause" onclick="cwplayer.pause()" title="pause playing" class="svg_inactif" disabled><!--&#x23F8;-->
-        <svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="20" height="20" viewBox="0 0 20 20">
-          <rect width="5" height="15" x="3" y="2" rx="1" ry="1"/>
-          <rect width="5" height="15" x="12" y="2" rx="1" ry="1"/>
-        </svg>
-      </button>
-      <div class="progress-container">
-        <div class="progress-bar">
-          <div id="playperc" class="progress"></div>
-          <center><span id="playtime"></span></center>
+  <div id="zonemain">
+    <table class="zonecontrols">
+      <tr>
+        <td colspan="2">
+          <h2 id="cwtitle">CW Trainer</h2><a href="#" onclick="selfDownload()" title="save CW Trainer for offline use">&#x0001f4be;</a>
+        </td>
+        <td>
+          <label for="sellesson">Lesson : </label>
+          <input type="button" id="prevlesson" value="&lt;"><select id="sellesson">
+            <option value='1'>1 - K, M</option><option value='2'>2 - U</option><option value='3'>3 - R</option><option value='4'>4 - E</option><option value='5'>5 - S</option><option value='6'>6 - N</option><option value='7'>7 - A</option><option value='8'>8 - P</option><option value='9'>9 - T</option><option value='10'>10 - L</option><option value='11'>11 - W</option><option value='12'>12 - I</option><option value='13'>13 - .</option><option value='14'>14 - J</option><option value='15'>15 - Z</option><option value='16'>16 - =</option><option value='17'>17 - F</option><option value='18'>18 - O</option><option value='19'>19 - Y</option><option value='20'>20 - ,</option><option value='21'>21 - V</option><option value='22'>22 - G</option><option value='23'>23 - 5</option><option value='24'>24 - /</option><option value='25'>25 - Q</option><option value='26'>26 - 9</option><option value='27'>27 - 2</option><option value='28'>28 - H</option><option value='29'>29 - 3</option><option value='30'>30 - 8</option><option value='31'>31 - B</option><option value='32'>32 - ?</option><option value='33'>33 - 4</option><option value='34'>34 - 7</option><option value='35'>35 - C</option><option value='36'>36 - 1</option><option value='37'>37 - D</option><option value='38'>38 - 6</option><option value='39'>39 - 0</option><option value='40'>40 - X</option>
+            <option value='41'>QSO</option>
+          </select><input type="button" id="nxtlesson" value="&gt;">
+        </td>
+      </tr>
+      <tr>
+        <td>
+          <label for="selwpm" title="Word Per Minute">WPM : </label>
+        </td>
+        <td>
+          <input type="number" id="selwpm" title="Word Per Minute">
+        </td>
+        <td>
+          <input type="checkbox" id="chkweightlastletters" title="more likely to hear 3 last letters" checked><label for="chkweightlastletters" title="more likely to hear 3 last letters">weigh more last letters</label><BR>
+        </td>
+      </tr>
+      <tr>
+        <td>
+          <label for="seleffwpm" title="Effective Word Per Minute (Farnsworth)">Eff. WPM : </label>
+        </td>
+        <td>
+          <input type="number" id="seleffwpm" title="Effective Word Per Minute (Farnsworth)">
+        </td>
+        <td>
+          <label for="seltone" title="Tone">Tone : </label>
+          <input type="number" step="100" id="seltone" title="Tone"><small>&nbsp;(Hz)</small>
+        </td>
+      </tr>
+    </table>
+    <input type="checkbox" id="chkfree"><label for="chkfree">simple mode</label><input type="checkbox" id="chkfreelisten"><label for="chkfreelisten">free listen mode</label>
+    <div id="zonefree" style="display:none">
+      <input type="text" id="iptfree" maxlength="1">
+      <div id="zoneresultfree"></div>
+    </div>
+    <div id="zonekoch">
+      <label for="selews" title="Extra space between words (seconds)">Extra word spacing : </label>
+      <input type="number" step="0.1" id="selews" title="Extra space between words (seconds)"><small>&nbsp;(seconds)</small><BR>
+      <label for="grplen">Words length : </label>
+      <select id="grplen">
+        <option value="-1">random</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option>
+      </select>
+      <label for="groupsnb">Groups : </label>
+      <input type="number" id="groupsnb" min="1" max="250">
+      <div id="player">
+        <button id="btnstop" onclick="cwplayer.stop()" title="stop playing" class="svg_inactif" disabled><!--x25A0-->
+          <svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="20" height="20" viewBox="0 0 20 20">
+            <rect width="16" height="16" x="2" y="2" rx="1" ry="1"/>
+          </svg>
+        </button>
+        <button id="btnplay" onclick="cwplayer.play()" title="start playing"><!--&#x25B6;-->
+          <svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="20" height="20" viewBox="-10 -5 120 120">
+            <path d="M 13.677242369053593 5.970459221108368 L 99.32275763094641 55.02954077889163 C 103.6613788154732 57.514770389445815 103.50196896806634 62.18351020967654 99.00393793613266 64.36702041935308 L 13.996062063867347 105.63297958064692 C 9.498031031933674 107.81648979032346 5 105 5 100 L 5 11 C 5 6 9.338621184526797 3.485229610554184 13.677242369053593 5.970459221108368 Z" />
+          </svg>
+        </button>
+        <button id="btnpause" onclick="cwplayer.pause()" title="pause playing" class="svg_inactif" disabled><!--&#x23F8;-->
+          <svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="20" height="20" viewBox="0 0 20 20">
+            <rect width="5" height="15" x="3" y="2" rx="1" ry="1"/>
+            <rect width="5" height="15" x="12" y="2" rx="1" ry="1"/>
+          </svg>
+        </button>
+        <div class="progress-container">
+          <div class="progress-bar">
+            <div id="playperc" class="progress"></div>
+            <center><span id="playtime"></span></center>
+          </div>
         </div>
       </div>
+      <textarea id="cwtext" rows="4" cols="43" spellcheck="false" autocorrect="off"></textarea><br>
+      <input type="button" value="submit" id="cwsbm">
+      <span id="zonedkb"><input type="checkbox" id="disablekb"><label for="disablekb">disable keyboard</label></span><br>
     </div>
-    <textarea id="cwtext" rows="4" cols="43" spellcheck="false" autocorrect="off"></textarea><br>
-    <input type="button" value="submit" id="cwsbm">
-    <span id="zonedkb"><input type="checkbox" id="disablekb"><label for="disablekb">disable keyboard</label></span><br>
-    <div id="zoneresult" style="display:none;">
-      <div id="zonerestext"></div>
-      <input type="button" value="retry" id="retrybtn">
-      <input type="button" value="next lesson !" id="retrynxt" onclick="nxtlesson.click()">
-    </div>
+    <pre id="clearzone" style="display: none;"></pre>
   </div>
-  <pre id="clearzone" style="display: none;"></pre>
+  <div id="zoneresult" style="display:none;">
+    <div id="zonerestext"></div>
+    <input type="button" value="retry" id="retrybtn">
+    <input type="button" value="next lesson !" id="retrynxt" onclick="nxtlesson.click()">
+  </div>
 </div>
 <div id="keyboard"></div>
 <script>
@@ -788,7 +804,7 @@ async function verifycw() {
     zonerestext.innerHTML += restable;
   
     retrynxt.style.display = perc>=90?'inline-block':'none';
-    zoneresult.style.display = 'block';
+    zoneresult.style.display = 'inline-block';
     keyboard.style.display = 'none';
   }
   cwchecking = false;
@@ -1343,7 +1359,7 @@ class CWPlayer {
         let stopTime = this.context.currentTime + 0.005;
         this.gain.gain.linearRampToValueAtTime(curGain, this.context.currentTime);
         this.gain.gain.linearRampToValueAtTime(0, stopTime);
-        await CWPlayer.delay(0.005);
+        await CWPlayer.delay(0.01); // on attend plus longtemps sinon le disconnect produit souvent un click
       }
       try {
         this.gain.disconnect(this.context.destination);
@@ -1378,6 +1394,9 @@ class CWPlayer {
       this.starttime = localTime;
     }
     if (this.options.predelay>0) {
+      // tentative de résoudre un bug lors du démarrage de la lecture
+      this.osc.frequency.value = 24000;
+      this.gain.gain.linearRampToValueAtTime(1, this.context.currentTime + 0.005);
       // si la lecture a déjà commencée on pause le prédelai moins le temps déjà écoulé
       let predelay = Math.max(0, this.options.predelay-(performance.now()-this.starttime-this.totalpausetime)/1000);
       await CWPlayer.delay(predelay);
@@ -1428,11 +1447,11 @@ class CWPlayer {
     if (c == ' ' || c == '\t') {
       return await CWPlayer.delay(this.options.spperiod*7+this.options.ews);
     }
-    let mc = CWPlayer.translate(c[0]);
+    let mc = CWPlayer.morse[c];
     let initTime = this.context.currentTime;
     let t = initTime;
     this.osc.frequency.value = this.options.tone;
-    for (let i=0; i<mc.length; i++) {
+    for (let i=0; i<mc?.length; i++) {
       if (i>0) {
         // inter-element
         t+=this.options.elperiod;
