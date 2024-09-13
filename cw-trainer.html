@@ -746,6 +746,8 @@ async function verifycw() {
           let inpttmp = null;
           let minerrindice = Array(nbtofill).fill(0).map((_,i) => inpt.length-(nbtofill-i));
           let citer = 0;
+          let alreadytested = [inpt.join()];
+          let testcur = null;
           let starttime = new Date().getTime();
           loading();
           await CWPlayer.delay(0.05);//sinon l'overlay de chargement ne s'affiche pas
@@ -756,14 +758,19 @@ async function verifycw() {
             for (let y=0; y<nbtofill; y++) {
               inpttmp.splice(indices[y], 0, '');
             }
-            results = verif.map((a, i) => compareStrings(a, inpttmp[i] ?? ''));
-            nberr = results.reduce((acc, cur) => acc+cur.errors, 0);
-            if (nberr < temperr) {
-              temperr = nberr;
-              minerrindice = indices.slice();
+            inpttmp.splice(-1*nbtofill);
+            testcur = inpttmp.join();
+            if (alreadytested.indexOf(testcur) < 0) {
+              alreadytested.push(testcur);
+              results = verif.map((a, i) => compareStrings(a, inpttmp[i] ?? ''));
+              nberr = results.reduce((acc, cur) => acc+cur.errors, 0);
+              if (nberr < temperr) {
+                temperr = nberr;
+                minerrindice = indices.slice();
+              }
             }
-            indices[0]++;
             if (++citer>=nbiter || (citer%10 == 0 && (new Date().getTime())-starttime > 5000)) break;
+            indices[0]++;
             for (let i=0; i<nbtofill; i++) {
               if (indices[i]>inpt.length) {
                 if (i==nbtofill-1) {
@@ -774,6 +781,7 @@ async function verifycw() {
               }
             }
           }
+          alreadytested=null;
           loading(false);
           if (citer < nbiter) {
             console.log(`aborted ${citer}/${nbiter} (${Math.round(100*citer/nbiter)}%)`);
