@@ -741,10 +741,10 @@ async function verifycw() {
         inpt.push(...Array(nbtofill).fill('')); // on insère pour permettre aux permutations de fonctionner sans soucis
         let nbiter = Math.pow(inpt.length+1, nbtofill);
         if (inpt.reduce((a,c)=>a+=c.length,0)>0/* && nbiter<30000*/) {
-          let temperr = Number.MAX_SAFE_INTEGER;
+          let temperr = nberr;
           let indices = Array(nbtofill).fill(0);
           let inpttmp = null;
-          let minerrindice = -1;
+          let minerrindice = Array(nbtofill).fill(0).map((_,i) => inpt.length-(nbtofill-i));
           let citer = 0;
           let starttime = new Date().getTime();
           loading();
