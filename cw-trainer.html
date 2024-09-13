@@ -698,7 +698,7 @@ async function verifycw() {
       window.freetotal++;
       window.freefirsttry = true;
     }
-    zoneresultfree.innerHTML = `Success rate : ${Math.round((100*(freetotal-freeerr)/freetotal)*10)/10}%`;
+    zoneresultfree.innerHTML = `Success rate : ${Math.round((100*(freetotal-freeerr)/freetotal)*10)/10}% (${window.freetotal-1} symbols)`;
 
     iptfree.value = '';
     //iptfree.disabled = false;
