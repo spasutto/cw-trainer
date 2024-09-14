@@ -4,6 +4,9 @@ Offline morse code (CW) trainer based on Koch method. Inspired by the great [LCW
 The tool is available to use online :  [cw-trainer](https://spasutto.github.io/cw-trainer/cw-trainer.html)
 
 Just hit the "play" button and try to write the letters you copy. When the player stop  click "verify". If your score is > 90% you can go to the next lesson.
+<p align="center">
+  <a href="images/screenshot.png"><img src="images/screenshot.png" height="320" title="screenshot"></a>
+</p>
 
 ## Use
 Just copy [cw-trainer.html](cw-trainer.html) on your disk or your smartphone and you're free to practice anywhere without GSM coverage
