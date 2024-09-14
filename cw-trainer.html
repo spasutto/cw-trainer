@@ -675,12 +675,14 @@ function factorial(n) {
     return fact[n];
   return fact[n] = factorial(n-1) * n;
 }
-function combinaisons(array, length) {
+function combinaisons(array, length, action) {
   return array.flatMap((v, i) => {
     if (new Date().getTime() > window.intperm) return [];
-    return length > 1
-    ? combinaisons(array.slice(i + 1), length - 1).map(w => [v, ...w])
-    : [[v]]
+    let ret = length > 1
+    ? combinaisons(array.slice(i + 1), length - 1, action).map(w => [v, ...w])
+    : [[v]];
+    if (length > 1) action(ret);
+    return ret;
   });
 }
 async function verifycw() {
@@ -769,8 +771,8 @@ async function verifycw() {
           loading();
           await CWPlayer.delay(0.05);//sinon l'overlay de chargement ne s'affiche pas
           window.intperm = new Date().getTime() + 5000; // 5s max de traitement
-          let interrupted = combinaisons(Array(verif.length).fill(0).map((_,i) => i), nbtofill).some((perm, idx) => {
-            if (new Date().getTime() > window.intperm) return true;
+          combinaisons(Array(verif.length).fill(0).map((_,i) => i), nbtofill, perms => perms.forEach(perm => {
+            if (perm.length != nbtofill || new Date().getTime() > window.intperm) return;
             inpttmp = inpt.slice();
             for (let y=0; y<nbtofill; y++) {
               inpttmp.splice(perm[y], 0, '');
@@ -783,10 +785,9 @@ async function verifycw() {
             }
             //inpttmp.splice(-1*nbtofill);
             //console.log(perm, inpttmp, nberr);
-            return false;
-          });
+          }));
           loading(false);
-          if (interrupted) {
+          if (minerrindice == null) {
             // emplacements d'origine (en fin de chaîne)
             minerrindice = Array(nbtofill).fill(0).map((_,i) => inpt.length-(nbtofill-i));
           }
