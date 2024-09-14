@@ -247,6 +247,9 @@
         font-family: sans-serif;
         font-size: inherit;
       }
+      .active {
+        background-color: #fcff43;
+      }
     </style>
   </head>
 <body>
@@ -736,14 +739,11 @@ async function verifycw() {
     }
     let inpt = extractfn(cwtext.value);
     let verif = extractfn(cwplayer.Text);
-    let results = null;
+    let results = verif.map((a, i) => compareStrings(a, inpt[i] ?? ''));
     let nbchars = verif.reduce((acc, cur) => acc+cur.length, 0);
-    let nberr = 0;
+    let nberr = results.reduce((acc, cur) => acc+cur.errors, 0);
     let maxerrs = nberr;
-    if (inpt.length >= verif.length) {
-      results = verif.map((a, i) => compareStrings(a, inpt[i] ?? ''));
-      nberr = results.reduce((acc, cur) => acc+cur.errors, 0);
-    } else {
+    if (inpt.length < verif.length) {
       let nbtofill = verif.length-inpt.length;
       // on cherche si par hasard il n'y aurait pas eu un oubli d'espace
       let toobigwords = cw_options.grouplen < 0 ? [] : inpt.filter(ipt => ipt.length > cw_options.grouplen && ipt.length%cw_options.grouplen == 0);
@@ -807,10 +807,13 @@ async function verifycw() {
     results.forEach(r => {
       // hormis pour les QSOs on travaille par mot
       if (cw_options.lesson <= 40) {
+        r.str2bk = r.str2;
         r.str1 = r.str1.replaceAll(/\s/g, '\n');
         r.str2 = r.str2.replaceAll(/\s/g, '\n');
         r.str2 = formatTestString(r).replaceAll(/\s/g, '<BR>').replaceAll('<span<BR>class="', '<span class="');
-        r.str1 = r.str1.replaceAll(/\s+/g, '<BR>')
+        r.str2 = `<a href="#" title="listen" onclick="listen('${r.str2bk}', this);">${r.str2}</a>`;
+        r.str1 = r.str1.replaceAll(/\s+/g, '<BR>');
+        r.str1 = `<a href="#" title="listen" onclick="listen('${r.str1}', this);">${r.str1}</a>`;
       } else {
         r.str2 = formatTestString(r);
       }
@@ -837,7 +840,15 @@ async function verifycw() {
   cwsbm.disabled = false;
   cwchecking = false;
 }
-
+async function listen(text, elem) {
+  if (elem) elem.classList.add('active');
+  if (!cwplayer.Playing) {
+    cwplayer.PreDelay=0;
+    await cwplayer.play(text);
+    cwplayer.PreDelay=cw_options.predelay;
+  }
+  if (elem) elem.classList.remove('active');
+}
 function selfDownload() {
   fetch(window.location.href)
     .then( res => res.blob() )
