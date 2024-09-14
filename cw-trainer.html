@@ -302,7 +302,7 @@
       <input type="number" step="0.1" id="selews" title="Extra space between words (seconds)"><small>&nbsp;(seconds)</small><BR>
       <label for="grplen">Words length : </label>
       <select id="grplen">
-        <option value="-1">random</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option>
+        <option value="-1">random</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option>
       </select>
       <label for="groupsnb">Groups : </label>
       <input type="number" id="groupsnb" min="1" max="250">
@@ -431,8 +431,8 @@ function generateRandomString(chars, len) {
   }).join('');
 }
 function generateRandomText(chars, grouplen, groupsnb) {
-  if (grouplen != -1) grouplen = Math.max(2, Math.min(8, grouplen));
-  else grouplen = irand(2, 8);
+  if (grouplen != -1) grouplen = Math.max(1, Math.min(8, grouplen));
+  else grouplen = irand(1, 8);
   return Array.apply(null, Array(groupsnb)).map(() => generateRandomString(chars, grouplen)).join(' ');
 }
 async function generateText() {
@@ -667,6 +667,22 @@ function key(value) {
     cwtext.focus();
   }
 }
+var fact = [];
+function factorial(n) {
+  if (n == 0 || n == 1)
+    return 1;
+  if (fact[n] > 0)
+    return fact[n];
+  return fact[n] = factorial(n-1) * n;
+}
+function combinaisons(array, length) {
+  return array.flatMap((v, i) => {
+    if (new Date().getTime() > window.intperm) return [];
+    return length > 1
+    ? combinaisons(array.slice(i + 1), length - 1).map(w => [v, ...w])
+    : [[v]]
+  });
+}
 async function verifycw() {
   if (!cwplayer || cwchecking) return;
   cwchecking = true;
@@ -675,12 +691,10 @@ async function verifycw() {
       cwchecking = false;
       return; // controls keys
     }
-    //iptfree.disabled = true;
     if (chkfreelisten.checked || iptfree.value==' ') {
       await cwplayer.stop();
       await cwplayer.play(chkfreelisten.checked?iptfree.value:null);
       iptfree.value = '';
-      //iptfree.disabled = false;
       iptfree.focus();
       cwchecking = false;
       return;
@@ -706,7 +720,6 @@ async function verifycw() {
     zoneresultfree.innerHTML = `Success rate : ${Math.round((100*(freetotal-freeerr)/freetotal)*10)/10}% (${window.freetotal-1} symbols)`;
 
     iptfree.value = '';
-    //iptfree.disabled = false;
     iptfree.focus();
   } else {
     if (chkfreelisten.checked) {
@@ -721,11 +734,14 @@ async function verifycw() {
     }
     let inpt = extractfn(cwtext.value);
     let verif = extractfn(cwplayer.Text);
-    let results = verif.map((a, i) => compareStrings(a, inpt[i] ?? ''));
+    let results = null;
     let nbchars = verif.reduce((acc, cur) => acc+cur.length, 0);
-    let nberr = results.reduce((acc, cur) => acc+cur.errors, 0);
+    let nberr = 0;
     let maxerrs = nberr;
-    if (inpt.length < verif.length) {
+    if (inpt.length >= verif.length) {
+      results = verif.map((a, i) => compareStrings(a, inpt[i] ?? ''));
+      nberr = results.reduce((acc, cur) => acc+cur.errors, 0);
+    } else {
       let nbtofill = verif.length-inpt.length;
       // on cherche si par hasard il n'y aurait pas eu un oubli d'espace
       let toobigwords = cw_options.grouplen < 0 ? [] : inpt.filter(ipt => ipt.length > cw_options.grouplen && ipt.length%cw_options.grouplen == 0);
@@ -743,53 +759,36 @@ async function verifycw() {
         nberr = results.reduce((acc, cur) => acc+cur.errors, 0);
       } else if (confirm('Warning : it seems that you have not entered enough groups, are you sure to proceed to verification?')) {
         // on tente de trouver l'emplacement du/des mot(s) qui manque(nt)
-        inpt.push(...Array(nbtofill).fill('')); // on insère pour permettre aux permutations de fonctionner sans soucis
-        let nbiter = Math.pow(inpt.length+1, nbtofill);
-        if (inpt.reduce((a,c)=>a+=c.length,0)>0/* && nbiter<30000*/) {
-          let temperr = nberr;
-          let indices = Array(nbtofill).fill(0);
+        inpt.push(...Array(nbtofill).fill('')); // on insère pour permettre aux insertions de combinaisons de fonctionner sans soucis
+        // on va faire toutes les combinaisons possible pour insérer les 'nbtofill' mots manquants
+        // pour chaque combinaison on va calculer le nombre d'erreur et on prendra la combinaison avec le plus faible taux d'erreur
+        if (inpt.reduce((a,c)=>a+=c.length,0)>0 && factorial(verif.length)<Number.MAX_VALUE) {
+          let temperr = Number.MAX_VALUE;
+          let minerrindice = null;//Array(nbtofill).fill(0).map((_,i) => inpt.length-(nbtofill-i)); // valeur par défaut au cas où le traitement est interrompu
           let inpttmp = null;
-          let minerrindice = Array(nbtofill).fill(0).map((_,i) => inpt.length-(nbtofill-i));
-          let citer = 0;
-          let alreadytested = [inpt.join()];
-          let testcur = null;
-          let starttime = new Date().getTime();
           loading();
           await CWPlayer.delay(0.05);//sinon l'overlay de chargement ne s'affiche pas
-          // on va faire tous les arrangements possible pour insérer les 'nbtofill' mots manquants
-          // pour chaque arrangement on va calculer le nombre d'erreur et on prendra l'arrangement avec le plus faible taux d'erreur
-          while (true) {
+          window.intperm = new Date().getTime() + 5000; // 5s max de traitement
+          let interrupted = combinaisons(Array(verif.length).fill(0).map((_,i) => i), nbtofill).some((perm, idx) => {
+            if (new Date().getTime() > window.intperm) return true;
             inpttmp = inpt.slice();
             for (let y=0; y<nbtofill; y++) {
-              inpttmp.splice(indices[y], 0, '');
+              inpttmp.splice(perm[y], 0, '');
             }
-            inpttmp.splice(-1*nbtofill);
-            testcur = inpttmp.join();
-            if (alreadytested.indexOf(testcur) < 0) {
-              alreadytested.push(testcur);
-              results = verif.map((a, i) => compareStrings(a, inpttmp[i] ?? ''));
-              nberr = results.reduce((acc, cur) => acc+cur.errors, 0);
-              if (nberr < temperr) {
-                temperr = nberr;
-                minerrindice = indices.slice();
-              }
+            results = verif.map((a, i) => compareStrings(a, inpttmp[i] ?? ''));
+            nberr = results.reduce((acc, cur) => acc+cur.errors, 0);
+            if (nberr < temperr) {
+              temperr = nberr;
+              minerrindice = perm.slice();
             }
-            if (++citer>=nbiter || (citer%10 == 0 && (new Date().getTime())-starttime > 5000)) break;
-            indices[0]++;
-            for (let i=0; i<nbtofill; i++) {
-              if (indices[i]>inpt.length) {
-                if (i==nbtofill-1) {
-                  break;
-                }
-                indices[i] = 0;
-                indices[i+1]++;
-              }
-            }
-          }
-          alreadytested=null;
+            //inpttmp.splice(-1*nbtofill);
+            //console.log(perm, inpttmp, nberr);
+            return false;
+          });
           loading(false);
-          if (citer < nbiter) {
-            console.log(`aborted ${citer}/${nbiter} (${Math.round(100*citer/nbiter)}%)`);
+          if (interrupted) {
+            // emplacements d'origine (en fin de chaîne)
+            minerrindice = Array(nbtofill).fill(0).map((_,i) => inpt.length-(nbtofill-i));
           }
           // on a trouvé l'emplacement, on insère et on compare définitivement
           for (let y=0; y<nbtofill; y++) {
@@ -884,9 +883,8 @@ function formatTime(t) {
 function updateDisplayTime() {
   playperc.style.width = (100*cwplayer.CurrentTime/cwplayer.TotalTime)+'%';
   playtime.innerHTML = `${formatTime(cwplayer.CurrentTime)} / ${formatTime(cwplayer.TotalTime)}`;
+  if (cwplayer.Playing) requestAnimationFrame(updateDisplayTime);
 }
-function startTimeTimer() { window.timeTimer = window.setInterval(updateDisplayTime, 250); }
-function stopTimeTimer() { window.clearInterval(window.timeTimer); }
 function saveParams() {
   let params = encodeURIComponent(sellesson.value+HASHSEP+selwpm.value+HASHSEP+seleffwpm.value+HASHSEP+grplen.value+HASHSEP+groupsnb.value+HASHSEP+seltone.value+HASHSEP+selews.value+HASHSEP+(chkfree.checked?1:0)+HASHSEP+(chkweightlastletters.checked?1:0));
   try {
@@ -917,7 +915,7 @@ function loadParams() {
         break;
       case 3:
         cw_options.grouplen = Math.max(-1, Math.min(8, Math.trunc(val)));
-        if (cw_options.grouplen == 0 || cw_options.grouplen == 1) cw_options.grouplen = 2;
+        if (cw_options.grouplen == 0) cw_options.grouplen = 1;
         break;
       case 4:
         cw_options.groupsnb = Math.max(1, Math.min(250, Math.trunc(val)));
@@ -988,15 +986,13 @@ window.onload = async () => {
   cwplayer.addEventListener('play', () => {
     updateButtonsState();
     cwtext.focus();
-    startTimeTimer();
+    updateDisplayTime();
   });
   cwplayer.addEventListener('pause', () => {
     updateButtonsState();
-    stopTimeTimer();
   });
   cwplayer.addEventListener('stop', () => {
     updateButtonsState();
-    stopTimeTimer();
     updateDisplayTime();
   });
   cwplayer.addEventListener('indexchanged', () => {
