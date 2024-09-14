@@ -501,7 +501,6 @@ async function generateText() {
     cwplayer.Text = chkfree.checked ? iptfree.value : cwtext.value;
   }
 }
-// bug  compareStrings('C6YO. M?9RR C6YO. M?9RR C6YO. M?9RR C6YO. M?9RR C6YO. M?9RR C6YO. M?9RR', 'C6YO. M?9RR C6YO.M?9RR C6YO. M?9RR C6YO. M?9RR C6YO. M?9RR C6YO. M?9RR')
 function compareStrings(str1, str2, ignorecase=true, ignorewhitespaces=true){
   str1 = str1.replaceAll('\r', '').replaceAll(/\n+/g, ' ');
   str2 = str2.replaceAll('\r', '').replaceAll(/\n+/g, ' ');
@@ -576,15 +575,7 @@ https://stackoverflow.com/a/34807141
   sequences = Object.keys(sequences).map(k => {
     let idxs = k.split(',');
     return {'isrc' : parseInt(idxs[0], 10), 'idst' : parseInt(idxs[1], 10), 'text' : sequences[k]};
-  }).sort((a,b) => b.text.length-a.text.length);
-  
-  // on vire toutes les séquences qui sont trop petites
-  let c = 0;
-  let iok = sequences.findIndex(s =>(c+=s.text.length)>=str1.length);
-  if (iok>-1) {
-    sequences = sequences.slice(0, iok+1);
-  }
-  sequences = sequences.sort((a,b) => a.isrc-b.isrc);
+  });
 
   /******************************
   // FILTRAGE DES RESULTATS
@@ -1367,7 +1358,7 @@ class CWPlayer {
     }
     return cwtext;
   }
- 
+
   #initAudio() {
     if (this.context) {
       return;
