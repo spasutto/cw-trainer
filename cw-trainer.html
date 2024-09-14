@@ -843,6 +843,7 @@ async function verifycw() {
 async function listen(text, elem) {
   if (elem) elem.classList.add('active');
   if (!cwplayer.Playing) {
+    cwsbm.disabled = true;
     cwplayer.PreDelay=0;
     await cwplayer.play(text);
     cwplayer.PreDelay=cw_options.predelay;
@@ -1366,7 +1367,7 @@ class CWPlayer {
     }
     return cwtext;
   }
-
+ 
   #initAudio() {
     if (this.context) {
       return;
