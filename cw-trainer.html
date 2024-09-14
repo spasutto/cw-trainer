@@ -804,12 +804,6 @@ async function verifycw() {
         return;
       }
     }
-
-    // bug : cwplayer.Text='T5TWR DE N8LRT R FB ROBERT NICE TO MEET YOU BT THE RIG HR IS A KNWD TS-570D AT QRP 5W TO AN ATTIC RANDOM WIRE BT THE WX LITE SNOW ES 33 DEGREES HW? AR T5TWR DE N8LRT KN', cwtext.value='T5TWR DE N8LRT R FB ROBERT NICE TO MEET YOU BT THE RIG HR IS A KNWD TS-570D AT QRP 5W TO AN ATTIC RANDOM WIRE BT THE WX LITE SNOW ES 33 DEGREES HW? AR T5TWR N8LRT KN'
-    let perc = (nbchars-nberr)*100/nbchars;
-    perc = Math.round(perc*10)/10;
-    zonerestext.innerHTML = `${perc}% success rate (${nbchars-nberr}/${nbchars} characters sent)<BR>`;
-    let restable = '<table><th>original</th><th>input</th><th>errors</th>'
     results.forEach(r => {
       // hormis pour les QSOs on travaille par mot
       if (cw_options.lesson <= 40) {
@@ -820,6 +814,15 @@ async function verifycw() {
       } else {
         r.str2 = formatTestString(r);
       }
+    });
+    // bug : cwplayer.Text='T5TWR DE N8LRT R FB ROBERT NICE TO MEET YOU BT THE RIG HR IS A KNWD TS-570D AT QRP 5W TO AN ATTIC RANDOM WIRE BT THE WX LITE SNOW ES 33 DEGREES HW? AR T5TWR DE N8LRT KN', cwtext.value='T5TWR DE N8LRT R FB ROBERT NICE TO MEET YOU BT THE RIG HR IS A KNWD TS-570D AT QRP 5W TO AN ATTIC RANDOM WIRE BT THE WX LITE SNOW ES 33 DEGREES HW? AR T5TWR N8LRT KN'
+    let perc = (nbchars-nberr)*100/nbchars;
+    perc = Math.round(perc*10)/10;
+    let missing = results.reduce((a,c) => a+=(c.str2.match(new RegExp(emptyChar, 'g')) || []).length, 0);
+    missing = (missing <= 0)?'':`, ${missing} missing`;
+    zonerestext.innerHTML = `${perc}% success rate (${nbchars-nberr}/${nbchars} characters sent${missing})<BR>`;
+    let restable = '<table><th>original</th><th>input</th><th>errors</th>'
+    results.forEach(r => {
       restable += `<tr><td><span>${r.str1}</span></td>`;
       restable += `<td>${r.str2}</td>`;
       restable += `<td>${r.errors}</td></tr>`;
