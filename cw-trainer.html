@@ -1000,7 +1000,7 @@ window.onload = async () => {
     updateDisplayTime();
   });
   cwplayer.addEventListener('indexchanged', () => {
-    if (cwplayer.Index>0) {
+    if (cwplayer.Index>=0) {
       clearzone.innerHTML = cwplayer.Text.substring(0, cwplayer.Index+1);
     }
   });
