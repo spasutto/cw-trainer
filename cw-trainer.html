@@ -185,6 +185,8 @@
       }
       #clearzone {
         background-color: #ddd;
+        width : 368px;
+        white-space: pre-wrap;
       }
       #chkweightlastletters {
         margin-left: 20px;
@@ -1000,9 +1002,11 @@ window.onload = async () => {
     updateDisplayTime();
   });
   cwplayer.addEventListener('indexchanged', () => {
-    if (cwplayer.Index>=0) {
-      clearzone.innerHTML = cwplayer.Text.substring(0, cwplayer.Index+1);
+    let idx = cwplayer.Index;
+    if (idx<0) {
+      idx = cwplayer.Text.length;
     }
+    clearzone.innerHTML = cwplayer.Text.substring(0, idx+1);
   });
   cwplayer.addEventListener('parameterchanged', () => {
     updateDisplayTime();
@@ -1113,7 +1117,10 @@ cwtext.onkeyup = () => {
   cwplayer.Text = cwtext.value;
 }
 iptfree.onkeyup = verifycw;
-cwtitle.ondblclick = () => clearzone.style.display = clearzone.style.display == 'none' ? 'block' : 'none';
+cwtitle.ondblclick = () => {
+  clearzone.style.display = clearzone.style.display == 'none' ? 'block' : 'none';
+  cwplayer?.fireEvent('indexchanged'); // on force l'affichage du contenu de la clearZone
+}
 disablekb.onchange = () => {
   if (disablekb.checked) {
     hideKeyboard();
