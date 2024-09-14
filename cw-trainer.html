@@ -1079,6 +1079,7 @@ chkfree.onchange = async () => {
   window.freeerr = 0;
   window.freetotal = 1;
   window.freefirsttry = true;
+  cwplayer?.fireEvent('indexchanged'); // on force la mise à jour du contenu de la clearZone
 };
 sellesson.onchange = chkfree.onchange;
 grplen.onchange = chkfree.onchange;
@@ -1127,7 +1128,7 @@ cwtext.onkeyup = () => {
 iptfree.onkeyup = verifycw;
 cwtitle.ondblclick = () => {
   clearzone.style.display = clearzone.style.display == 'none' ? 'block' : 'none';
-  cwplayer?.fireEvent('indexchanged'); // on force l'affichage du contenu de la clearZone
+  cwplayer?.fireEvent('indexchanged'); // on force la mise à jour du contenu de la clearZone
 }
 disablekb.onchange = () => {
   if (disablekb.checked) {
