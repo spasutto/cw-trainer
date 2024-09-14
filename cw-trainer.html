@@ -181,8 +181,6 @@
         display: none;
         margin-top : 3px;
         width : 380px;
-        position: absolute;
-        bottom: 0;
       }
       #keyboard input[type='button'] {
         width: 45px;
@@ -964,7 +962,7 @@ function showKeyboard(evt) {
 }
 function hideKeyboard(evt) {
   // on ne ferme pas le clavier dans ce cas
-  if (evt && keyboard.contains(evt.relatedTarget)) return;
+  if (evt && (keyboard.contains(evt.relatedTarget) || evt.relatedTarget?.type=='button')) return;
   keyboard.style.display = 'none';
 }
 function updateButtonsState() {
@@ -1026,7 +1024,7 @@ window.onload = async () => {
   });
   // sur les périphériques à clavier virtuel on rajoute un autre clavier pour les touches spéciales
   // difficilement accessibles sur les claviers virtuels (soft keyboards)
-  if (isTouchDevice() && window.innerHeight > document.documentElement.offsetHeight+200/*keyboard.offsetHeight*/) {
+  if (isTouchDevice()) {
     generateKeyboard();
     zonedkb.style.display = 'initial';
     if (document.activeElement === cwtext || document.activeElement === iptfree) {
@@ -1034,8 +1032,8 @@ window.onload = async () => {
     }
     cwtext.addEventListener("focus", showKeyboard);
     iptfree.addEventListener("focus", showKeyboard);
-    cwtext.addEventListener("blur", hideKeyboard);
-    iptfree.addEventListener("blur", hideKeyboard);
+    cwtext.addEventListener("focusout", hideKeyboard);
+    iptfree.addEventListener("focusout", hideKeyboard);
   }
   chkfree.onchange();//generateText();
 };
