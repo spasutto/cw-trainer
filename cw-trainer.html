@@ -812,9 +812,7 @@ async function verifycw() {
         r.str1 = r.str1.replaceAll(/\s/g, '\n');
         r.str2 = r.str2.replaceAll(/\s/g, '\n');
         r.str2 = formatTestString(r).replaceAll(/\s/g, '<BR>').replaceAll('<span<BR>class="', '<span class="');
-        r.str2 = `<a href="#" title="listen" onclick="listen('${r.str2bk}', this);">${r.str2}</a>`;
         r.str1 = r.str1.replaceAll(/\s+/g, '<BR>');
-        r.str1 = `<a href="#" title="listen" onclick="listen('${r.str1}', this);">${r.str1}</a>`;
       } else {
         r.str2 = formatTestString(r);
       }
@@ -829,8 +827,8 @@ async function verifycw() {
     zonerestext.innerHTML = `<h5>${perc}% success rate</h5><small>(${stats.join(', ')})</small><BR>`;
     let restable = '<table><th>original</th><th>input</th><th>errors</th>'
     results.forEach(r => {
-      restable += `<tr><td><span>${r.str1}</span></td>`;
-      restable += `<td>${r.str2}</td>`;
+      restable += `<tr><td><span><a href="#" title="listen" onclick="listen('${r.str1.replaceAll('<BR>', '\\n').replaceAll('\'', '\\\'').replaceAll('"', '&quot;')}', this);">${r.str1}</a></span></td>`;
+      restable += `<td><a href="#" title="listen" onclick="listen('${r.str2bk.replaceAll('\'', '\\\'').replaceAll('"', '&quot;')}', this);">${r.str2}</a></td>`;
       restable += `<td>${r.errors}</td></tr>`;
     });
     restable += '</table>';
@@ -1362,7 +1360,7 @@ class CWPlayer {
     return text.normalize("NFD").replace(/[\u0300-\u036f]/g, "")
       .toUpperCase()
       .replaceAll(/(\r?\n)+/g, '  ') // retour à la ligne : deux espaces
-      .replaceAll(/[^A-Z0-9\/\+=\.,\?"\$\\\(\)\[\]\-\:;@_! ]/g, '?')
+      .replaceAll(/[^A-Z0-9\/\+=\.,"\$'\(\)\[\]\-\:;@_!\? ]/g, '?')
       /*.replaceAll(/\s+/g, ' ')*/;
   }
   static translate(text) {
