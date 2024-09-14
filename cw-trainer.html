@@ -827,7 +827,7 @@ async function verifycw() {
     zonerestext.innerHTML = `<h5>${perc}% success rate</h5><small>(${stats.join(', ')})</small><BR>`;
     let restable = '<table><th>original</th><th>input</th><th>errors</th>'
     results.forEach(r => {
-      restable += `<tr><td><span><a href="#" title="listen" onclick="listen('${r.str1.replaceAll('<BR>', '\\n').replaceAll('\'', '\\\'').replaceAll('"', '&quot;')}', this);">${r.str1}</a></span></td>`;
+      restable += `<tr><td><span><a href="#" title="listen" onclick="listen('${r.str1.replaceAll('<BR>', ' ').replaceAll('\'', '\\\'').replaceAll('"', '&quot;')}', this);">${r.str1}</a></span></td>`;
       restable += `<td><a href="#" title="listen" onclick="listen('${r.str2bk.replaceAll('\'', '\\\'').replaceAll('"', '&quot;')}', this);">${r.str2}</a></td>`;
       restable += `<td>${r.errors}</td></tr>`;
     });
