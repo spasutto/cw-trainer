@@ -203,6 +203,11 @@
         text-decoration : line-through;
         font-weight : bold;
       }
+      .empty {
+        color: #ff7600;
+        text-decoration : underline;
+        font-weight : normal;
+      }
       .error {
         background-color: #d00;
         color: white;
@@ -622,7 +627,7 @@ function formatTestString(ret) {
     sret += `<span class="wrong">${str2}</span>`;
   } else if (!sequences.length && str1.length && !str2.length) {
     // affichage du bon nombre de caractères vide
-    sret += `<span class="wrong">${emptyChar.repeat(str1.length)}</span>`;
+    sret += `<span class="empty">${emptyChar.repeat(str1.length)}</span>`;
   } else {
     let curl = 0;
     sequences.forEach(s => {
@@ -633,7 +638,7 @@ function formatTestString(ret) {
       }
       if (s.isrc > curl) {
         // affichage de tous les caractères de la chaine d'entrée qui ne sont pas en préambule dans la chaine de test
-        sret += `<span class="wrong">${emptyChar.repeat(s.isrc-curl)}</span>`;
+        sret += `<span class="empty">${emptyChar.repeat(s.isrc-curl)}</span>`;
         curl+=(s.isrc-curl);
       }
       sret += `<span class="right">${s.text}</span>`;
@@ -646,7 +651,7 @@ function formatTestString(ret) {
       suffix += str2.length-(slast.idst+slast.text.length);
     }
     if (slast.isrc+slast.text.length+suffix < str1.length) {
-      sret += `<span class="wrong">${emptyChar.repeat(str1.length-(slast.isrc+slast.text.length+suffix))}</span>`;
+      sret += `<span class="empty">${emptyChar.repeat(str1.length-(slast.isrc+slast.text.length+suffix))}</span>`;
     }
   }
   return sret;
