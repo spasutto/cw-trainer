@@ -25,6 +25,7 @@
         border-left: solid 2px #bbb;
         margin: 0px 4px;
         padding: 0px 4px;
+        max-width: 380px;
       }
       #zoneresult {
         display: inline-block;
@@ -33,6 +34,14 @@
         border-left: solid 2px #bbb;
         margin: 0px 4px;
         padding: 0px 4px;
+        width: 380px;
+      }
+      #zoneresult h5 {
+        margin: auto;
+        font-weight: normal;
+        font-size: 1.1em;
+        width: 75%;
+        background-color: #eee;
       }
       @media (max-width: 400px) {
         body {
@@ -112,7 +121,8 @@
         font-size: medium;
       }
       table:not(.zonecontrols) {
-        width: 100%;
+        width: fit-content;
+        margin: auto;
         max-height: 500px;
         display: block;
         overflow-y: auto;
@@ -814,9 +824,11 @@ async function verifycw() {
     // bug : cwplayer.Text='T5TWR DE N8LRT R FB ROBERT NICE TO MEET YOU BT THE RIG HR IS A KNWD TS-570D AT QRP 5W TO AN ATTIC RANDOM WIRE BT THE WX LITE SNOW ES 33 DEGREES HW? AR T5TWR DE N8LRT KN', cwtext.value='T5TWR DE N8LRT R FB ROBERT NICE TO MEET YOU BT THE RIG HR IS A KNWD TS-570D AT QRP 5W TO AN ATTIC RANDOM WIRE BT THE WX LITE SNOW ES 33 DEGREES HW? AR T5TWR N8LRT KN'
     let perc = (nbchars-nberr)*100/nbchars;
     perc = Math.round(perc*10)/10;
+    let stats = [`${nbchars-nberr}/${nbchars} characters sent`];
     let missing = results.reduce((a,c) => a+=(c.str2.match(new RegExp(emptyChar, 'g')) || []).length, 0);
-    missing = (missing <= 0)?'':`, ${missing} missing`;
-    zonerestext.innerHTML = `${perc}% success rate (${nbchars-nberr}/${nbchars} characters sent${missing})<BR>`;
+    if (missing > 0) stats.push(`${missing} missing${missing>1?'s':''}`);
+    if (nberr > missing) stats.push(`${nberr-missing} error${nberr-missing>1?'s':''}`);
+    zonerestext.innerHTML = `<h5>${perc}% success rate</h5><small>(${stats.join(', ')})</small><BR>`;
     let restable = '<table><th>original</th><th>input</th><th>errors</th>'
     results.forEach(r => {
       restable += `<tr><td><span>${r.str1}</span></td>`;
