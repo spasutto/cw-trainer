@@ -7,6 +7,9 @@
     <link rel="icon" type="image/x-icon" href="cw-trainer.ico">
 
     <style>
+      :root {
+        --btn-fill-color: #000;
+      }
       body {
         min-width : 380px;
         font-family: sans-serif;
@@ -204,12 +207,17 @@
         padding: 2px 0 0 0;
         border-radius: 3px;
         border-width: 1px;
+        fill: var(--btn-fill-color);
+      }
+      .svg_inactif {
+        --btn-fill-color: grey;
+        fill: var(--btn-fill-color);
       }
       .autoplay path {
         animation: blinker 1s linear infinite;
       }
       @keyframes blinker {
-        65% { fill: #000; }
+        65% { fill: var(--btn-fill-color); }
         70% { fill: #01ba11; }
       }
       #iptfree {
@@ -243,9 +251,6 @@
       }
       #cwsbm {
         float: right;
-      }
-      .svg_inactif {
-        fill: grey;
       }
       .right {
         color : green;
