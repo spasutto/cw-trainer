@@ -1537,6 +1537,7 @@ class CWPlayer {
     if (!this.context) {
       this.#initAudio();
     }
+    this.gain.connect(this.context.destination);
 
     // bug à l'init/reinit de l'audiocontext https://stackoverflow.com/a/69968781/1346098
     this.lastpausetime = performance.now();
@@ -1547,7 +1548,6 @@ class CWPlayer {
     this.totalpausetime += (performance.now()-this.lastpausetime);
     this.lastpausetime = 0;
 
-    this.gain.connect(this.context.destination);
     if (this.options.predelay>0) {
       // tentative de résoudre un bug lors du démarrage de la lecture
       this.osc.frequency.value = 24000;
@@ -1603,21 +1603,21 @@ class CWPlayer {
       return await CWPlayer.delay(this.options.spperiod*7+this.options.ews);
     }
     let mc = CWPlayer.morse[c];
-    let initTime = this.context.currentTime;
-    let t = initTime;
+    let it = this.context.currentTime;
+    let t = 0;
     this.osc.frequency.value = this.options.tone;
     for (let i=0; i<mc?.length; i++) {
       if (i>0) {
         // inter-element
         t+=this.options.elperiod;
       }
-      this.gain.gain.setValueAtTime(0, t);
-      this.gain.gain.linearRampToValueAtTime(1, t + 0.005);
+      this.gain.gain.setValueAtTime(0, it+t);
+      this.gain.gain.linearRampToValueAtTime(1, it+t + 0.005);
       t+=(mc[i] == '.' ? this.options.elperiod : 3*this.options.elperiod); // dit or dah
-      this.gain.gain.setValueAtTime(1, t - 0.005);
-      this.gain.gain.linearRampToValueAtTime(0, t);
+      this.gain.gain.setValueAtTime(1, it+t - 0.005);
+      this.gain.gain.linearRampToValueAtTime(0, it+t);
     }
-    await CWPlayer.delay(t-initTime);
+    await CWPlayer.delay(t);
   }
   getDuration() {
     if (this.text.length <= 0) return 0;
