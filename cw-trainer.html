@@ -1526,11 +1526,6 @@ class CWPlayer {
     if (typeof text === 'string') this.Text = text;
     this.playing = true;
     this.paused = false;
-    this.fireEvent('play');
-    if (!this.context) {
-      this.#initAudio();
-    }
-    this.gain.connect(this.context.destination);
     let localTime = performance.now();
     // on annule tous les autres threads de lecture
     this.currentPlay = localTime;
@@ -1538,6 +1533,21 @@ class CWPlayer {
       this.lastpausetime = this.totalpausetime = 0;
       this.starttime = localTime;
     }
+    this.fireEvent('play');
+    if (!this.context) {
+      this.#initAudio();
+    }
+
+    // bug à l'init/reinit de l'audiocontext https://stackoverflow.com/a/69968781/1346098
+    this.lastpausetime = performance.now();
+    let curtime = this.context.currentTime;
+    while (curtime == this.context.currentTime) {
+      await new Promise((r)=>setTimeout(r));
+    }
+    this.totalpausetime += (performance.now()-this.lastpausetime);
+    this.lastpausetime = 0;
+
+    this.gain.connect(this.context.destination);
     if (this.options.predelay>0) {
       // tentative de résoudre un bug lors du démarrage de la lecture
       this.osc.frequency.value = 24000;
