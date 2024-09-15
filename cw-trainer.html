@@ -58,7 +58,7 @@
           border: 0px;
         }
       }
-      #overlay {
+      .overlay {
         display: none;
         width: 100%;
         height: 100%;
@@ -71,7 +71,8 @@
         justify-content: center;
         align-items: center;
       }
-      #overlaycont {
+      #loadingzone {
+        display: none;
         padding: 5px 15px;
         font-size: 2em;
         font-weight: bold;
@@ -96,6 +97,38 @@
         100% {
             background-position: 0 50%;
         }
+      }
+      #toaster {
+        visibility: hidden;
+        z-index: 10;
+        user-select: none;
+        position: absolute;
+        text-align: center;
+        top: -500px;
+        right: 0;
+        padding: 5px 15px;
+        margin: 10px;
+        border-radius: 5px;
+        background-color: #00ceffed;
+        /* color: #3dff00; */
+        max-width: 150px;
+        max-height: 48px;
+        word-wrap: break-word;
+        overflow: hidden;
+        box-shadow: 0 0 10px 10px #ffffff;
+      }
+      .slidein {
+        animation: slide 5s forwards;
+      }
+      @keyframes slide {
+          0% { top: -500px; }
+          10% { top: 0; }
+          70% { top: 0; }
+      }
+      .fadeout {
+        visibility: hidden;
+        opacity: 0;
+        transition: visibility 0s 2s, opacity 2s linear;
       }
       h2 {
         display: inline;
@@ -169,6 +202,15 @@
         vertical-align: top;
         margin-bottom: 5px;
         padding: 2px 0 0 0;
+        border-radius: 3px;
+        border-width: 1px;
+      }
+      .autoplay path {
+        animation: blinker 1s linear infinite;
+      }
+      @keyframes blinker {
+        65% { fill: #000; }
+        70% { fill: #01ba11; }
       }
       #iptfree {
         width: 368px;
@@ -214,12 +256,16 @@
         font-weight : bold;
       }
       .empty {
-        color: #ff7600;
+        color: #ffb300;
         text-decoration : underline;
         font-weight : normal;
       }
       .error {
-        background-color: #d00;
+        background-color: #d00 !important;
+        color: white;
+      }
+      .warning {
+        background-color: #fa0 !important;
         color: white;
       }
       .ok {
@@ -264,8 +310,9 @@
   </head>
 <body>
 <div id="zonetrainer">
-  <div id="overlay">
-    <div id="overlaycont">Loading...</div>
+  <div id="toaster"></div>
+  <div class="overlay" id="overlayloading">
+    <div id="loadingzone">Loading...</div>
   </div>
   <div id="zonemain">
     <table class="zonecontrols">
@@ -320,17 +367,17 @@
       <label for="groupsnb">Groups : </label>
       <input type="number" id="groupsnb" min="1" max="250">
       <div id="player">
-        <button id="btnstop" onclick="cwplayer.stop()" title="stop playing" class="svg_inactif" disabled><!--x25A0-->
+        <button id="btnstop" title="stop playing" class="svg_inactif" disabled><!--x25A0-->
           <svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="20" height="20" viewBox="0 0 20 20">
             <rect width="16" height="16" x="2" y="2" rx="1" ry="1"/>
           </svg>
         </button>
-        <button id="btnplay" onclick="cwplayer.play()" title="start playing"><!--&#x25B6;-->
+        <button id="btnplay" title="start playing"><!--&#x25B6;-->
           <svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="20" height="20" viewBox="-10 -5 120 120">
             <path d="M 13.677242369053593 5.970459221108368 L 99.32275763094641 55.02954077889163 C 103.6613788154732 57.514770389445815 103.50196896806634 62.18351020967654 99.00393793613266 64.36702041935308 L 13.996062063867347 105.63297958064692 C 9.498031031933674 107.81648979032346 5 105 5 100 L 5 11 C 5 6 9.338621184526797 3.485229610554184 13.677242369053593 5.970459221108368 Z" />
           </svg>
         </button>
-        <button id="btnpause" onclick="cwplayer.pause()" title="pause playing" class="svg_inactif" disabled><!--&#x23F8;-->
+        <button id="btnpause" title="pause playing" class="svg_inactif" disabled><!--&#x23F8;-->
           <svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="20" height="20" viewBox="0 0 20 20">
             <rect width="5" height="15" x="3" y="2" rx="1" ry="1"/>
             <rect width="5" height="15" x="12" y="2" rx="1" ry="1"/>
@@ -661,7 +708,7 @@ function formatTestString(ret) {
   return sret;
 }
 function key(value) {
-  if (overlay.style.display==='flex') return;
+  if (overlayloading.style.display==='flex') return;
   if (chkfree.checked) {
     iptfree.value+=value;
     iptfree.focus();
@@ -745,7 +792,6 @@ async function verifycw() {
     let nberr = results.reduce((acc, cur) => acc+cur.errors, 0);
     let maxerrs = nberr;
     if (inpt.length < verif.length) {
-      let nbtofill = verif.length-inpt.length;
       // on cherche si par hasard il n'y aurait pas eu un oubli d'espace
       let toobigwords = cw_options.grouplen < 0 ? [] : inpt.filter(ipt => ipt.length > cw_options.grouplen && ipt.length%cw_options.grouplen == 0);
       if (cw_options.grouplen > 0 && toobigwords.length > 0) {
@@ -760,7 +806,11 @@ async function verifycw() {
         inpt = newinpts;
         results = verif.map((a, i) => compareStrings(a, inpt[i] ?? ''));
         nberr = results.reduce((acc, cur) => acc+cur.errors, 0);
-      } else if (confirm('Warning : it seems that you have not entered enough groups, are you sure to proceed to verification?')) {
+      }
+    }
+    if (inpt.length < verif.length) {
+      if (confirm('Warning : it seems that you have not entered enough groups, are you sure to proceed to verification?')) {
+        let nbtofill = verif.length-inpt.length;
         // on tente de trouver l'emplacement du/des mot(s) qui manque(nt)
         inpt.push(...Array(nbtofill).fill('')); // on insère pour permettre aux insertions de combinaisons de fonctionner sans soucis
         // on va faire toutes les combinaisons possible pour insérer les 'nbtofill' mots manquants
@@ -983,8 +1033,24 @@ function updateButtonsState() {
   }
 }
 function loading(load=true) {
-  if (typeof load === 'string') overlaycont.innerHTML= load;
-  overlay.style.display = load?'flex':'none';
+  window.isLoading = !!load;
+  if (typeof load === 'string') loadingzone.innerHTML= load;
+  overlayloading.style.display = load?'flex':'none';
+  loadingzone.style.display = load?'block':'none';
+}
+function message(msg='', style=null) {
+  msg = typeof msg !== 'string' ? '' : msg;
+  if (msg.trim().length <= 0) return;
+  toaster.style.visibility = 'visible';
+  toaster.removeAttribute('class');
+  // https://stackoverflow.com/a/16619298/1346098
+  window.setTimeout(() => {
+    toaster.innerHTML = msg;
+    toaster.classList.add('slidein');
+    if (style) {
+      toaster.classList.add(style);
+    }
+  }, 1);
 }
 window.onload = async () => {
   window.cwplayer = new CWPlayer();
@@ -1014,7 +1080,7 @@ window.onload = async () => {
     if (idx<0) {
       idx = cwplayer.Text.length;
     }
-    clearzone.innerHTML = cwplayer.Text.substring(0, idx+1);
+    clearzone.innerHTML = "<u>Current text :</u> "+cwplayer.Text.substring(0, idx+1);
   });
   cwplayer.addEventListener('parameterchanged', () => {
     updateDisplayTime();
@@ -1035,16 +1101,21 @@ window.onload = async () => {
   }
   chkfree.onchange();//generateText();
 };
-window.onerror = (a, b, c, d, e) => {
-  let err = `error : ${a}`;
-  err += ` source: ${b}`;
-  err += ` lineno: ${c}`;
-  err += ` colno: ${d}`;
-  err += ` error: ${e}`;
-  alert(err);
-
+window.addEventListener("error", (e) => {
+  let err = e;
+  let msg = 'unknow error';
+  if (e instanceof ErrorEvent) {
+    err = `${e.message}`;
+    msg = err;
+    err += `\n - source: ${e.filename}`;
+    err += `\n - lineno: ${e.lineno}`;
+    err += `\n - colno: ${e.lineno}`;
+    err += `\n - error: ${e.error}`;
+  }
+  message(msg, 'error');
+  console.error(err)
   return false;
-};
+});
 chkfree.onchange = async () => {
   if (!cwplayer) return;
   await cwplayer.stop();
@@ -1058,7 +1129,6 @@ chkfree.onchange = async () => {
     cwtext.focus();
   }
   iptfree.value = cwtext.value = '';
-  cwplayer.AutoPlay = chkfreelisten.checked && !chkfree.checked;
   [...document.querySelectorAll("label[for='seleffwpm'], #seleffwpm")].forEach(e => {
     e.disabled = chkfree.checked;
     let title = e.title;
@@ -1110,6 +1180,29 @@ seltone.onchange = () => {
   seltone.value = cwplayer.Tone;
   saveParams();
 }
+btnplay.onclick = () => {
+  if (cwplayer) cwplayer.play();
+}
+btnpause.onclick = () => {
+  if (cwplayer) cwplayer.pause();
+}
+btnstop.onclick = () => {
+  if (cwplayer) cwplayer.stop();
+}
+btnplay.oncontextmenu = () => {
+  if (cwplayer) {
+    cwplayer.AutoPlay = !cwplayer.AutoPlay;
+    if (cwplayer.AutoPlay) {
+      btnplay.classList.add('autoplay');
+      btnplay.title = 'automatically start playing when text change';
+    } else {
+      btnplay.classList.remove('autoplay');
+      btnplay.title = 'start playing';
+    }
+    message(`Autoplay ${cwplayer.AutoPlay?'':'de'}activated!`);
+    return false;
+  }
+}
 cwsbm.onclick = verifycw;
 retrybtn.onclick = chkfree.onchange;
 prevlesson.onclick = () => {
@@ -1129,6 +1222,9 @@ iptfree.onkeyup = verifycw;
 cwtitle.ondblclick = () => {
   clearzone.style.display = clearzone.style.display == 'none' ? 'block' : 'none';
   cwplayer?.fireEvent('indexchanged'); // on force la mise à jour du contenu de la clearZone
+  if (clearzone.style.display == 'block') {
+    message(`Cheating mode activated!`);
+  }
 }
 disablekb.onchange = () => {
   if (disablekb.checked) {
