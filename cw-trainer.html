@@ -1604,7 +1604,7 @@ class CWPlayer {
   }
 
   static async delay(s) {
-    return new Promise(res => setTimeout(res, s*1000))
+    return new Promise(res => setTimeout(res, s*1000));
   }
   async #playElement(c) {
     if (c == ' ' || c == '\t') {
@@ -1625,7 +1625,11 @@ class CWPlayer {
       this.gain.gain.setValueAtTime(1, it+t - 0.005);
       this.gain.gain.linearRampToValueAtTime(0, it+t);
     }
-    await CWPlayer.delay(t);
+    //await CWPlayer.delay(t);
+    // on ne peut pas faire confiance à currentTime...
+    while (this.context.currentTime-it < t) {
+      await CWPlayer.delay(0.005);
+    }
   }
   getDuration() {
     if (this.text.length <= 0) return 0;
