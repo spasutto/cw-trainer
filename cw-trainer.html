@@ -893,8 +893,8 @@ async function verifycw() {
     zonerestext.innerHTML = `<h5>${perc}% success rate</h5><small>(${stats.join(', ')})</small><BR>`;
     let restable = '<table><th>original</th><th>input</th><th>errors</th>'
     results.forEach(r => {
-      restable += `<tr><td><span><a href="#" title="listen" onclick="listen('${r.str1.replaceAll('<BR>', ' ').replaceAll('\'', '\\\'').replaceAll('"', '&quot;')}', this);">${r.str1}</a></span></td>`;
-      restable += `<td><a href="#" title="listen" onclick="listen('${r.str2bk.replaceAll('\'', '\\\'').replaceAll('"', '&quot;')}', this);">${r.str2}</a></td>`;
+      restable += `<tr><td><span><a href="#" title="listen" name="listen" onclick="listen('${r.str1.replaceAll('<BR>', ' ').replaceAll('\'', '\\\'').replaceAll('"', '&quot;')}', this);">${r.str1}</a></span></td>`;
+      restable += `<td><a href="#" title="listen" name="listen" onclick="listen('${r.str2bk.replaceAll('\'', '\\\'').replaceAll('"', '&quot;')}', this);">${r.str2}</a></td>`;
       restable += `<td>${r.errors}</td></tr>`;
     });
     restable += '</table>';
@@ -908,6 +908,7 @@ async function verifycw() {
   cwchecking = false;
 }
 async function listen(text, elem) {
+  [...document.querySelectorAll('a[name="listen"]')].forEach(e => e.classList.remove('active'));
   if (elem) elem.classList.add('active');
   if (!cwplayer.Playing) {
     cwsbm.disabled = true;
@@ -915,7 +916,6 @@ async function listen(text, elem) {
     await cwplayer.play(text);
     cwplayer.PreDelay=cw_options.predelay;
   }
-  if (elem) elem.classList.remove('active');
 }
 function selfDownload() {
   fetch(window.location.href)
