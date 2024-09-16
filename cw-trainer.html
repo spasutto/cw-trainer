@@ -428,7 +428,7 @@ var QSOs = [
   'CQ CQ CQ DE %IND1% %IND1% %IND1% PSE K',
   '%IND1% DE %IND2% %IND2% %IND2% KN',
   '%IND2% DE %IND1% = GA ES TNX FER CALL = UR RST %RST1% %RST1% = NAME IS %NAME1% %NAME1% QTH %QTH1% %QTH1% = HW? AR %IND2% DE %IND1% KN',
-  '%IND1% DE %IND2% = GA %NAME1% TNX FB RPT UR RST %RST2% %RST2% =  OP %NAME2% %NAME2% ES QTH %QTH2% %QTH2% = HW? AR %IND1% DE %IND2% KN',
+  '%IND1% DE %IND2% = GA %NAME1% TNX FB RPT UR RST %RST2% %RST2% = OP %NAME2% %NAME2% ES QTH %QTH2% %QTH2% = HW? AR %IND1% DE %IND2% KN',
   '%IND2% DE %IND1% = R TNX RPT ES INFO %NAME2% = RIG IS FTDX1200 PWR 100W ANT IS YAGI = WX IS SUNNY ES WARM 100F = HW? AR %IND2% DE %IND1% KN',
   '%IND1% DE %IND2% = RIG IS FT817 5W ES ANT IS DIPOLE = WX IS WET AND COLD AR %IND1% DE %IND2% KN',
   '%IND2% DE %IND1% = MNI TNX INFO ES FB QSO = PSE QSL VIA BURO = 73 ES CUAGN AR %IND2% DE %IND1% SK',
@@ -451,7 +451,12 @@ var QSOs = [
   '%IND2% DE %IND1% GM %NAME1% UR %RST2% %RST2% IN %QTH2% %QTH2% NAME IS %NAME2% %NAME2% HW? AR %IND2% DE %IND1% KN',
   '%IND1% DE %IND2% R FB %NAME2% NICE TO MEET YOU BT THE RIG HR IS A KNWD TS-570D AT QRP 5W TO AN ATTIC RANDOM WIRE BT THE WX LITE SNOW ES 33 DEGREES HW? AR %IND1% DE %IND2% KN',
   '%IND2% DE %IND1% R FB ON ALL %NAME1% BT THE XYL SAYS SUPPER IS READY SO I MUST GO BT TNX QSO HPE CUL 73 GE SK %IND2% DE %IND1% K',
-  '%IND1% DE %IND2% OK %NAME2% WONT HOLD YOU TNX QSO HPE CUAGN VY 73 GE SK %IND1% DE %IND2% E E'
+  '%IND1% DE %IND2% OK %NAME2% WONT HOLD YOU TNX QSO HPE CUAGN VY 73 GE SK %IND1% DE %IND2% E E',
+  //http://www.iv3ynb.altervista.org/samplecode.htm
+  '%IND2% DE %IND1% GM DR OM ES TNX FER CALL UR RST RST RST IS %RST1% %RST1% FB MY QTH QTH IS %QTH1% %QTH1% MY NAME NAME IS %NAME1% %NAME1% HW ? %IND2% DE %IND1% KN',
+  '%IND1% DE %IND2% R R GM DR %NAME1% ES TNX FER RST UR RST RST RST IS 599 599 5NN FB MY QTH QTH QTH IS %QTH2% %QTH2% %QTH2% MY NAME IS %NAME2% %NAME2% %NAME2% HW ? %IND1% DE %IND2% KN',
+  '%IND2% DE %IND1% FB DR %NAME2% IN %QTH2% HR RTX IS TS50 TS50 PWR IS %PWR1%W %PWR1%W ANT IS VERT VERT WX WX IS CLOUDY CLOUDY TEMP 15C = NW QRU QRU TNX FER NICE QSO = PSE QSL MY QSL SURE VIA BURO 73 73 ES CUAGN CIAO %IND2% DE %IND1% SK SK  I',
+  '%IND1% DE %IND2% R R OK DR %NAME1% FB HR RTX IS YAESU FT920 FT920 ANT IS DIPOLE DIPOLE WX WX FINE TEMP 30C TNX FER FB QSO QSL OK OK 73 73 GL GB %IND1% DE %IND2% SK SK I'
   ];
 function irand(start, end) {
   if (arguments.length < 2) {
@@ -543,8 +548,10 @@ async function generateText() {
           .replaceAll('%IND2%', callsign2)
           .replaceAll('%NAME1%', name1)
           .replaceAll('%NAME2%', name2)
-          .replaceAll('%RST1%', ''+irand(5)+irand(9)+irand(9))
-          .replaceAll('%RST2%', ''+irand(5)+irand(9)+irand(9));
+          .replaceAll('%RST1%', ''+irand(1, 5)+irand(1, 9)+irand(1, 9))
+          .replaceAll('%RST2%', ''+irand(1, 5)+irand(1, 9)+irand(1, 9))
+          .replaceAll('%PWR1%', ''+irand(1, 10)*10)
+          .replaceAll('%PWR2%', ''+irand(1, 10)*10);
     } else {
       let letters = kochcars.slice(0, cw_options.lesson+1);
       if (chkweightlastletters.checked) {
@@ -1596,7 +1603,7 @@ class CWPlayer {
   }
 
   static async delay(s) {
-    return new Promise(res => s?setTimeout(res, s*1000):res())
+    return new Promise(res => setTimeout(res, s*1000))
   }
   async #playElement(c) {
     if (c == ' ' || c == '\t') {
