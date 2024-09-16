@@ -490,7 +490,7 @@ function generateRandomCallsign(excepted=null) {
   let rdnchar = () => alpha.charAt(irand(alpha.length));
   let cs = null;
   do {
-    cs = rdnchar()+(Math.random()>0.8 ?rdnchar():'')+irand(1, 9)+rdnchar()+rdnchar()+(Math.random()>0.2?rdnchar():'')+(Math.random()>0.8 ?'/'+(Math.random()>=0.5?'P':'M'):'');
+    cs = rdnchar()+(Math.random()>0.98 ?rdnchar():'')+irand(1, 9)+rdnchar()+rdnchar()+(Math.random()>0.2?rdnchar():'')+(Math.random()>0.95 ?'/'+(Math.random()>=0.5?'P':'M'):'');
   }
   while (cs == excepted);
   return cs;
@@ -1544,6 +1544,7 @@ class CWPlayer {
     if (!this.context) {
       this.#initAudio();
     }
+    this.gain.gain.value = 0;
     this.gain.connect(this.context.destination);
 
     // bug à l'init/reinit de l'audiocontext https://stackoverflow.com/a/69968781/1346098
