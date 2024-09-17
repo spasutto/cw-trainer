@@ -330,6 +330,7 @@
           <input type="button" id="prevlesson" value="&lt;"><select id="sellesson">
             <option value='1'>1 - K, M</option><option value='2'>2 - U</option><option value='3'>3 - R</option><option value='4'>4 - E</option><option value='5'>5 - S</option><option value='6'>6 - N</option><option value='7'>7 - A</option><option value='8'>8 - P</option><option value='9'>9 - T</option><option value='10'>10 - L</option><option value='11'>11 - W</option><option value='12'>12 - I</option><option value='13'>13 - .</option><option value='14'>14 - J</option><option value='15'>15 - Z</option><option value='16'>16 - =</option><option value='17'>17 - F</option><option value='18'>18 - O</option><option value='19'>19 - Y</option><option value='20'>20 - ,</option><option value='21'>21 - V</option><option value='22'>22 - G</option><option value='23'>23 - 5</option><option value='24'>24 - /</option><option value='25'>25 - Q</option><option value='26'>26 - 9</option><option value='27'>27 - 2</option><option value='28'>28 - H</option><option value='29'>29 - 3</option><option value='30'>30 - 8</option><option value='31'>31 - B</option><option value='32'>32 - ?</option><option value='33'>33 - 4</option><option value='34'>34 - 7</option><option value='35'>35 - C</option><option value='36'>36 - 1</option><option value='37'>37 - D</option><option value='38'>38 - 6</option><option value='39'>39 - 0</option><option value='40'>40 - X</option>
             <option value='41'>QSO</option>
+            <option value='42'>Free Text</option>
           </select><input type="button" id="nxtlesson" value="&gt;">
         </td>
       </tr>
@@ -505,6 +506,40 @@ function generateRandomText(chars, grouplen, groupsnb) {
   else grouplen = irand(1, 8);
   return Array.apply(null, Array(groupsnb)).map(() => generateRandomString(chars, grouplen)).join(' ');
 }
+async function getUrl(url) {
+  let rep = null;
+  try {
+    rep = await fetch(url);
+    if (rep.status < 200 || rep.status >= 300) throw new Error();
+    rep = await rep.text();
+  } catch(e) {
+    rep=null;
+  }
+  return rep;
+}
+async function generateFreeText(minlength = 50, maxlength = 250) {
+  if (!window.navigator?.onLine) {
+    alert('Free text need internet connection !');
+    return;
+  }
+  // on peut appeler plusieurs fois les URL, normalement elles sont cachées
+  let text = await getUrl('https://raw.githubusercontent.com/spasutto/cw-trainer/main/freetext/CharlesDickens-OliverTwist.txt')
+    || await getUrl('https://raw.githubusercontent.com/spasutto/cw-trainer/main/README.md');
+  if (typeof text !== 'string' || text.trim().length <= minlength) {
+    alert('unable to load free text');
+  }
+  let gentext = '';
+  const uselength = text.lastIndexOf('.') - 1;
+  let nbtry = 0;
+  do {
+    let startind = irand(uselength);
+    let prvptid = text.lastIndexOf('.', startind);
+    let nxtptid = text.indexOf('.', startind);
+    if (prvptid == -1 || nxtptid == -1) continue;
+    gentext = text.substring(prvptid+1, nxtptid+1).replaceAll(/\r?\n/g, ' ').replaceAll(/\s+/g, ' ');
+  } while (gentext.length<minlength && gentext.length>maxlength && ++nbtry<80);
+  return gentext;
+}
 async function generateText() {
   if (!cwplayer) return;
   if (cwplayer.Playing) await cwplayer.stop();
@@ -536,7 +571,7 @@ async function generateText() {
       }
       cwgentext = generateRandomString(letters, 1);
       cwplayer.PreDelay = 0;
-    } else if (cw_options.lesson>40) {
+    } else if (cw_options.lesson==41) {
       let callsign1 = generateRandomCallsign();
       let callsign2 = generateRandomCallsign(callsign1);
       let name1 = generateRandomFirstname();
@@ -552,6 +587,8 @@ async function generateText() {
           .replaceAll('%RST2%', ''+irand(1, 5)+irand(1, 9)+irand(1, 9))
           .replaceAll('%PWR1%', ''+irand(1, 10)*10)
           .replaceAll('%PWR2%', ''+irand(1, 10)*10);
+    } else if (cw_options.lesson==42) {
+      cwgentext = await generateFreeText();
     } else {
       let letters = kochcars.slice(0, cw_options.lesson+1);
       if (chkweightlastletters.checked) {
@@ -1226,7 +1263,7 @@ prevlesson.onclick = () => {
   chkfree.onchange.call(this);
 };
 nxtlesson.onclick = () => {
-  sellesson.value = Math.min(41, parseInt(sellesson.value, 10)+1);
+  sellesson.value = Math.min(42, parseInt(sellesson.value, 10)+1);
   chkfree.onchange.call(this);
 };
 chkfreelisten.onchange = chkfree.onchange;
@@ -1629,9 +1666,10 @@ class CWPlayer {
       this.gain.gain.setValueAtTime(1, it+t - 0.005);
       this.gain.gain.linearRampToValueAtTime(0, it+t);
     }
-    //await CWPlayer.delay(t);
+    await CWPlayer.delay(t);
     // on ne peut pas faire confiance à currentTime...
     while (this.context.currentTime-it < t) {
+      this.totalpausetime += 5;
       await CWPlayer.delay(0.005);
     }
   }
