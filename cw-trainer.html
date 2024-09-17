@@ -958,14 +958,15 @@ async function verifycw() {
   cwchecking = false;
 }
 async function listen(text, elem) {
+  if (cwplayer.Playing) {
+    return ;
+  }
   [...document.querySelectorAll('a[name="listen"]')].forEach(e => e.classList.remove('active'));
   if (elem) elem.classList.add('active');
-  if (!cwplayer.Playing) {
-    cwsbm.disabled = true;
-    cwplayer.PreDelay=0;
-    await cwplayer.play(text);
-    cwplayer.PreDelay=cw_options.predelay;
-  }
+  cwsbm.disabled = true;
+  cwplayer.PreDelay=0;
+  await cwplayer.play(text);
+  cwplayer.PreDelay=cw_options.predelay;
 }
 function selfDownload() {
   fetch(window.location.href)
