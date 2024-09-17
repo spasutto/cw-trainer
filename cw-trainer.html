@@ -852,7 +852,8 @@ async function verifycw() {
     }
     let inpt = extractfn(cwtext.value);
     let verif = extractfn(cwplayer.Text);
-    let results = verif.map((a, i) => compareStrings(a, inpt[i] ?? ''));
+    let ignorewhitespaces = cw_options.lesson <= 40;
+    let results = verif.map((a, i) => compareStrings(a, inpt[i] ?? '', true, ignorewhitespaces));
     let nbchars = verif.reduce((acc, cur) => acc+cur.length, 0);
     let nberr = results.reduce((acc, cur) => acc+cur.errors, 0);
     let maxerrs = nberr;
