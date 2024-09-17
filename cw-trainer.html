@@ -518,10 +518,6 @@ async function getUrl(url) {
   return rep;
 }
 async function generateFreeText(minlength = 60, maxlength = 150) {
-  if (!window.navigator?.onLine) {
-    alert('Free text need internet connection !');
-    return;
-  }
   // on peut appeler plusieurs fois les URL, normalement elles sont cachées
   loading();
   let text = (await getUrl('https://raw.githubusercontent.com/spasutto/cw-trainer/main/freetext/CharlesDickens-OliverTwist.txt'))?.trim();
@@ -533,7 +529,7 @@ async function generateFreeText(minlength = 60, maxlength = 150) {
     text = text.substring(startidx).trim();
   }
   if (typeof text !== 'string' || text.length <= minlength) {
-    alert('unable to load free text');
+    alert('Unable to load free text (need internet connection !)');
   }
   let gentext = '';
   const uselength = text.lastIndexOf('.') - 1;
