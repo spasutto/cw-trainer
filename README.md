@@ -9,7 +9,17 @@ Just hit the "play" button and try to write the letters you copy. When the playe
 </p>
 
 ## Use
-Just copy [cw-trainer.html](cw-trainer.html) on your disk or your smartphone and you're free to practice anywhere without GSM coverage
+You can use the tool [online](https://spasutto.github.io/cw-trainer/cw-trainer.html) or copy [cw-trainer.html](cw-trainer.html) on your disk or smartphone and you're free to practice anywhere without GSM coverage.
+
+Start with lesson 1, adjust the tonality to your hearing preference, set the WPM to a value between 20 and 25 Words per minute and the Effective speed somewhere between 10 and the WPM speed. Relax, concentrate on your keyboard/paper and hit the "play" button. Try to write the letters you copy, don't try to decode already sent, just write the current. When the player stops click "verify" ; If your score is > 90% you can go to the next lesson.
+
+If it's too hard you can decrease the "Eff. WPM" to whatever you want
+
+There are 40 lessons consisting in letters/symbols and 2 additional lessons :
+ - QSO : chunks of sample QSO, with randomly generated callsigns, RST...
+ - Free text : Randomly picked portions of Oliver Twist (Charles Dickens)
+
+
 ## Reuse
 The `CWPlayer` class (defined at the bottom of [cw-trainer.html](cw-trainer.html)) can be reused :
 

@@ -171,6 +171,8 @@
       th, table:not(.zonecontrols) td {
         padding:2px 15px;
         text-align : center;
+        word-wrap: break-word;
+        max-width: 100px;
       }
       table:not(.zonecontrols) th {
         color: #000;
@@ -919,9 +921,9 @@ async function verifycw() {
       }
     }
     results.forEach(r => {
+      r.str2bk = r.str2;
       // hormis pour les QSOs on travaille par mot
       if (cw_options.lesson <= 40) {
-        r.str2bk = r.str2;
         r.str1 = r.str1.replaceAll(/\s/g, '\n');
         r.str2 = r.str2.replaceAll(/\s/g, '\n');
         r.str2 = formatTestString(r).replaceAll(/\s/g, '<BR>').replaceAll('<span<BR>class="', '<span class="');
