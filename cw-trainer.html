@@ -531,13 +531,19 @@ async function generateFreeText(minlength = 70, maxlength = 150) {
   let gentext = '';
   const uselength = text.lastIndexOf('.') - 1;
   let nbtry = 0;
+  const regclean = /^\s*'\s*[^\w]/g;
   do {
     let startind = irand(uselength);
     let prvptid = text.lastIndexOf('.', startind);
     let nxtptid = text.indexOf('.', startind);
     if (prvptid == -1 || nxtptid == -1) continue;
-    gentext = text.substring(prvptid+1, nxtptid+1).replaceAll(/\r?\n/g, ' ').replaceAll(/\s+/g, ' ');
-  } while (gentext.length<minlength && gentext.length>maxlength && ++nbtry<80);
+    gentext = text.substring(prvptid+1, nxtptid+1)
+        .replaceAll(/\r?\n/g, ' ')
+        .replaceAll(/\s+/g, ' ').trim();
+    while (regclean.test(gentext)) {
+      gentext = gentext.replaceAll(regclean, '\'');
+    }
+  } while ((gentext.length<minlength || gentext.length>maxlength) && ++nbtry<80);
   return gentext;
 }
 async function generateText() {
