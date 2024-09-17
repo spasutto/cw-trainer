@@ -517,7 +517,7 @@ async function getUrl(url) {
   }
   return rep;
 }
-async function generateFreeText(minlength = 50, maxlength = 250) {
+async function generateFreeText(minlength = 70, maxlength = 150) {
   if (!window.navigator?.onLine) {
     alert('Free text need internet connection !');
     return;
@@ -1021,8 +1021,7 @@ function loadParams() {
     if (isNaN(val)) return;
     switch (i) {
       case 0:
-        // pas length-1 car la leçon 41 existe (QSO)
-        cw_options.lesson = Math.max(1, Math.min(kochcars.length, Math.trunc(val)));
+        cw_options.lesson = Math.max(1, Math.min(42, Math.trunc(val)));
         break;
       case 1:
         cw_options.wpm = Math.max(CWPlayer.MIN_WPM, Math.min(CWPlayer.MAX_WPM, Math.trunc(val)));
@@ -1193,7 +1192,7 @@ chkfree.onchange = async () => {
       e.title = e.title + dtext;
     }
   });
-  generateText();
+  await generateText();
   if (chkfreelisten.checked) {
     zoneresultfree.innerHTML = '';
     return;
