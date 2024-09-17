@@ -1130,7 +1130,10 @@ window.onload = async () => {
   selews.value = cw_options.ews;
   cwplayer.addEventListener('play', () => {
     updateButtonsState();
-    cwtext.focus();
+    // on ne focus le texte que si on est en mode normal et pas en train d'écouter un résultat
+    if (!chkfree.checked && !chkfreelisten.checked && !document.querySelectorAll('.active').length) {
+      cwtext.focus();
+    }
     updateDisplayTime();
   });
   cwplayer.addEventListener('pause', () => {
@@ -1601,13 +1604,12 @@ class CWPlayer {
     this.gain.connect(this.context.destination);
 
     // bug à l'init/reinit de l'audiocontext https://stackoverflow.com/a/69968781/1346098
-    this.lastpausetime = performance.now();
+    let preinitime = performance.now();
     let curtime = this.context.currentTime;
     while (curtime == this.context.currentTime) {
       await new Promise((r)=>setTimeout(r));
     }
-    this.totalpausetime += (performance.now()-this.lastpausetime);
-    this.lastpausetime = 0;
+    this.totalpausetime += (performance.now()-preinitime);
 
     if (this.options.predelay>0) {
       // tentative de résoudre un bug lors du démarrage de la lecture
