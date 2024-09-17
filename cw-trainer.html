@@ -509,7 +509,7 @@ function generateRandomText(chars, grouplen, groupsnb) {
 async function getUrl(url) {
   let rep = null;
   try {
-    rep = await fetch(url);
+    rep = await fetch(url, {'cache': 'force-cache'});
     if (rep.status < 200 || rep.status >= 300) throw new Error();
     rep = await rep.text();
   } catch(e) {
@@ -517,15 +517,22 @@ async function getUrl(url) {
   }
   return rep;
 }
-async function generateFreeText(minlength = 70, maxlength = 150) {
+async function generateFreeText(minlength = 60, maxlength = 150) {
   if (!window.navigator?.onLine) {
     alert('Free text need internet connection !');
     return;
   }
   // on peut appeler plusieurs fois les URL, normalement elles sont cachées
-  let text = await getUrl('https://raw.githubusercontent.com/spasutto/cw-trainer/main/freetext/CharlesDickens-OliverTwist.txt')
-    || await getUrl('https://raw.githubusercontent.com/spasutto/cw-trainer/main/README.md');
-  if (typeof text !== 'string' || text.trim().length <= minlength) {
+  loading();
+  let text = (await getUrl('https://raw.githubusercontent.com/spasutto/cw-trainer/main/freetext/CharlesDickens-OliverTwist.txt'))?.trim();
+  loading(false);
+  let startoftext = 'CHAPTER I';
+  let startidx = text?.indexOf(startoftext);
+  if (startidx>=0) {
+    startidx += startoftext.length;
+    text = text.substring(startidx).trim();
+  }
+  if (typeof text !== 'string' || text.length <= minlength) {
     alert('unable to load free text');
   }
   let gentext = '';
