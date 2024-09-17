@@ -1185,10 +1185,16 @@ window.addEventListener("error", (e) => {
   console.error(err)
   return false;
 });
+document.body.onkeypress = (e) => {
+  if (!cwplayer || e.key != ' ' || !e.ctrlKey) return;
+  if (cwplayer.Playing) cwplayer.pause();
+  else cwplayer.play();
+}
 chkfree.onchange = async () => {
   if (!cwplayer) return;
   await cwplayer.stop();
   zoneresult.style.display = 'none';
+  zonerestext.innerHTML = '';
   zonefree.style.display = chkfree.checked?'block':'none';
   zonekoch.style.display = !chkfree.checked?'block':'none';
   cwsbm.disabled = chkfreelisten.checked;
