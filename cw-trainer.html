@@ -1403,7 +1403,7 @@ class CWPlayer {
     this.options = {...this.DEFAULT_OPTIONS, ...options};
     this.text = '';
     this.curti = -1;
-    this.lastnotestart = this.lastpausetime = this.totalpausetime = this.totaltime = 0;
+    this.lastpausetime = this.totalpausetime = this.totaltime = 0;
     this.stime = [];
     this.booping = this.playing = this.paused = false;
     this.events = {};
@@ -1520,8 +1520,8 @@ class CWPlayer {
   }
   get Index() { return this.curti; }
   set Index(value) {
-    if (!this.playing && !this.paused)  return;
-    let breset = (value == -2);
+    if (!this.playing && !this.paused) return;
+    let breset = (value < -1);
     if (breset && this.playing) {
       this.stop().then(() => this.play());
       return;
@@ -1530,7 +1530,7 @@ class CWPlayer {
     if (value >= this.text.length) value = -1;
     this.curti = value;
     let now = performance.now();
-    this.starttime = now-(breset ? 0 : this.stime[value+1]);
+    this.starttime = now-this.stime[value+1];
     this.totalpausetime = 0;
     if (this.paused) {
       this.lastpausetime = now;
@@ -1542,7 +1542,7 @@ class CWPlayer {
     if (this.paused) {
       return (this.lastpausetime-this.starttime-this.totalpausetime)/1000;
     } else if (this.playing) {
-        return (performance.now()-this.starttime-this.totalpausetime)/1000;
+      return (performance.now()-this.starttime-this.totalpausetime)/1000;
     } else {
       return 0;
     }
@@ -1634,6 +1634,7 @@ class CWPlayer {
       this.lastpausetime = 0;
     }
     if (typeof text === 'string') this.Text = text;
+    if (this.text.length == 0) return;
     this.playing = true;
     this.paused = false;
     let localTime = performance.now();
@@ -1710,7 +1711,6 @@ class CWPlayer {
     return new Promise(res => setTimeout(res, s*1000));
   }
   async #playElement(c) {
-    this.lastnotestart = Date.now();
     if (c == ' ' || c == '\t') {
       return await CWPlayer.delay(this.options.spperiod*7+this.options.ews);
     }
