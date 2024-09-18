@@ -1522,6 +1522,10 @@ class CWPlayer {
   set Index(value) {
     if (!this.playing && !this.paused)  return;
     let breset = (value == -2);
+    if (breset && this.playing) {
+      this.stop().then(() => this.play());
+      return;
+    }
     value = Math.max(-1, value);
     if (value >= this.text.length) value = -1;
     this.curti = value;
