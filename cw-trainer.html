@@ -369,13 +369,15 @@
     </div>
     <div id="zonekoch">
       <label for="selews" title="Extra space between words (seconds)">Extra word spacing : </label>
-      <input type="number" step="0.1" id="selews" title="Extra space between words (seconds)"><small>&nbsp;(seconds)</small><BR>
-      <label for="grplen">Words length : </label>
-      <select id="grplen">
-        <option value="-1">random</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option>
-      </select>
-      <label for="groupsnb">Groups : </label>
-      <input type="number" id="groupsnb" min="1" max="250">
+      <input type="number" step="0.1" id="selews" title="Extra space between words (seconds)"><small>&nbsp;(seconds)</small>
+      <div id="zonewords">
+        <label for="grplen">Words length : </label>
+        <select id="grplen">
+          <option value="-1">random</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option>
+        </select>
+        <label for="groupsnb">Groups : </label>
+        <input type="number" id="groupsnb" min="1" max="250">
+      </div>
       <div id="player">
         <button id="btnstop" title="stop playing" class="svg_inactif" disabled><!--x25A0-->
           <svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="20" height="20" viewBox="0 0 20 20">
@@ -1221,6 +1223,7 @@ chkfree.onchange = async () => {
   zonerestext.innerHTML = '';
   zonefree.style.display = chkfree.checked?'block':'none';
   zonekoch.style.display = !chkfree.checked?'block':'none';
+  zonewords.style.display = sellesson.value < 41?'block':'none';
   cwsbm.disabled = chkfreelisten.checked;
   if (chkfree.checked) {
     iptfree.focus();
