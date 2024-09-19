@@ -1146,7 +1146,6 @@ window.onload = async () => {
   });
   cwplayer.addEventListener('stop', () => {
     updateButtonsState();
-    updateDisplayTime();
   });
   cwplayer.addEventListener('indexchanged', () => {
     let idx = cwplayer.Index;
@@ -1154,7 +1153,7 @@ window.onload = async () => {
       idx = cwplayer.Text.length;
     }
     clearzone.innerHTML = "<u>Current text :</u> "+cwplayer.Text.substring(0, idx+1);
-    updateDisplayTime();
+    if (!cwplayer.Playing && !cwplayer.Paused) updateDisplayTime();
   });
   cwplayer.addEventListener('parameterchanged', () => {
     updateDisplayTime();
