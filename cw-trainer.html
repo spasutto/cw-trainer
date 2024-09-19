@@ -1549,10 +1549,10 @@ class CWPlayer {
   get Index() { return this.curti; }
   set Index(value) {
     if (value < -1) return;
-    if (value >= this.text.length) value = -1;
+    if (value > this.text.length) value = -1;
     this.curti = value;
     let now = performance.now();
-    this.starttime = now-this.stime[value] ?? 0;
+    this.starttime = now-(this.stime[value] ?? 0);
     this.totalpausetime = 0;
     if (!this.playing) {
       this.lastpausetime = now;
@@ -1573,7 +1573,7 @@ class CWPlayer {
     value = Math.max(0, Math.min(this.totaltime, value));
     value *= 1000;
     if (this.stime[0] > value) {
-      this.Index = -2;
+      this.Index = -1;
     } else {
       // remplacé par findLast
       let i = this.stime.length;
@@ -1693,32 +1693,32 @@ class CWPlayer {
     }
     this.totalpausetime += (performance.now()-preinitime);
 
-    if (this.curti < 0) {
-      if (this.options.predelay>0) {
-        // tentative de résoudre un bug lors du démarrage de la lecture
-        this.osc.frequency.value = 24000;
-        this.gain.gain.linearRampToValueAtTime(1, this.context.currentTime + 0.005);
-        // si la lecture a déjà commencée on pause le prédelai moins le temps déjà écoulé
-        let predelay = Math.max(0, this.options.predelay-(performance.now()-this.starttime-this.totalpausetime)/1000);
-        //let predelay = Math.max(0, this.options.predelay-this.CurrentTime);
-        await CWPlayer.delay(predelay);
-        // quit si pas le thread courant
-        if (this.currentPlay != localTime) {
-          return;
-        }
-      }
-      this.curti = 0;
-    }
     while (this.playing && this.currentPlay == localTime) {
-      if (this.curti >= this.text.length) {
+      if (this.curti < 0) {
+        if (this.options.predelay>0) {
+          // tentative de résoudre un bug lors du démarrage de la lecture
+          this.osc.frequency.value = 24000;
+          this.gain.gain.linearRampToValueAtTime(1, this.context.currentTime + 0.005);
+          // si la lecture a déjà commencée on pause le prédelai moins le temps déjà écoulé
+          let predelay = Math.max(0, this.options.predelay-(performance.now()-this.starttime-this.totalpausetime)/1000);
+          //let predelay = Math.max(0, this.options.predelay-this.CurrentTime);
+          await CWPlayer.delay(predelay);
+          // quit si pas le thread courant
+          if (this.currentPlay != localTime) {
+            return;
+          }
+        }
+        this.curti = 0;
+      } else if (this.curti >= this.text.length) {
         return await this.stop();//le lecteur arrive en bout on stop
-      }
-      this.fireEvent('indexchanged');
-      await this.#playElement(this.text[this.curti++]);
-      if (this.playing && this.currentPlay == localTime) {
-        // on ajoute l'espacement inter caractère (si on est dans le thread courant, s'il reste des caractères à jouer et si le caractère courant ou suivant n'est pas un espace)
-        if (this.text[this.curti-1] != ' ' && this.text[this.curti-1] != '\t' && this.curti < this.text.length && this.text[this.curti] != ' ' && this.text[this.curti] != '\t') {
-          await CWPlayer.delay(this.options.spperiod*3);
+      } else {
+        this.fireEvent('indexchanged');
+        await this.#playElement(this.text[this.curti++]);
+        if (this.playing && this.currentPlay == localTime) {
+          // on ajoute l'espacement inter caractère (si on est dans le thread courant, s'il reste des caractères à jouer et si le caractère courant ou suivant n'est pas un espace)
+          if (this.text[this.curti-1] != ' ' && this.text[this.curti-1] != '\t' && this.curti < this.text.length && this.text[this.curti] != ' ' && this.text[this.curti] != '\t') {
+            await CWPlayer.delay(this.options.spperiod*3);
+          }
         }
       }
     }
