@@ -1548,18 +1548,13 @@ class CWPlayer {
   }
   get Index() { return this.curti; }
   set Index(value) {
-    let breset = (value < -1);
-    if (breset && this.playing) {
-      this.stop().then(() => this.play());
-      return;
-    }
-    value = Math.max(-1, value);
+    if (value < -1) return;
     if (value >= this.text.length) value = -1;
     this.curti = value;
     let now = performance.now();
-    this.starttime = now-this.stime[value+1];
+    this.starttime = now-this.stime[value] ?? 0;
     this.totalpausetime = 0;
-    if (this.paused) {
+    if (!this.playing) {
       this.lastpausetime = now;
     }
     this.fireEvent('indexchanged');
@@ -1719,9 +1714,8 @@ class CWPlayer {
         return await this.stop();//le lecteur arrive en bout on stop
       }
       this.fireEvent('indexchanged');
-      await this.#playElement(this.text[this.curti]);
+      await this.#playElement(this.text[this.curti++]);
       if (this.playing && this.currentPlay == localTime) {
-        this.curti++;
         // on ajoute l'espacement inter caractère (si on est dans le thread courant, s'il reste des caractères à jouer et si le caractère courant ou suivant n'est pas un espace)
         if (this.text[this.curti-1] != ' ' && this.text[this.curti-1] != '\t' && this.curti < this.text.length && this.text[this.curti] != ' ' && this.text[this.curti] != '\t') {
           await CWPlayer.delay(this.options.spperiod*3);
