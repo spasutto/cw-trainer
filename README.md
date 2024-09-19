@@ -19,6 +19,10 @@ There are 40 lessons consisting in letters/symbols and 2 additional lessons :
  - QSO : chunks of sample QSO, with randomly generated callsigns, RST...
  - Free text : Randomly picked portions of Oliver Twist (Charles Dickens)
 
+## Commands
+ - <kbd>ctrl</kbd>-<kbd>space</kbd> : pause
+ - <kbd>ctrl</kbd>-<kbd>left</kbd>/<kbd>right</kbd> : fast forward
+ - **Right click on  play** (long click on touch devices) to activate "Automatic start"
 
 ## Reuse
 The `CWPlayer` class (defined at the bottom of [cw-trainer.html](cw-trainer.html)) can be reused :
