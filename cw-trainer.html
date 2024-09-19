@@ -279,8 +279,9 @@
         background-color: green;
         color: white;
       }
-      .progress-container {
+      #prgcont {
         display: inline-block;
+        user-select: none;
       }
       .progress-bar {
         height: 25px;
@@ -392,7 +393,7 @@
             <rect width="5" height="15" x="12" y="2" rx="1" ry="1"/>
           </svg>
         </button>
-        <div class="progress-container">
+        <div id="prgcont">
           <div class="progress-bar">
             <div id="playperc" class="progress"></div>
             <center><span id="playtime"></span></center>
@@ -1151,6 +1152,7 @@ window.onload = async () => {
       idx = cwplayer.Text.length;
     }
     clearzone.innerHTML = "<u>Current text :</u> "+cwplayer.Text.substring(0, idx+1);
+    updateDisplayTime();
   });
   cwplayer.addEventListener('parameterchanged', () => {
     updateDisplayTime();
@@ -1168,6 +1170,10 @@ window.onload = async () => {
     iptfree.addEventListener("focus", showKeyboard);
     cwtext.addEventListener("focusout", hideKeyboard);
     iptfree.addEventListener("focusout", hideKeyboard);
+    document.addEventListener("touchstart", document.onmousedown);
+    document.addEventListener("touchend", document.onmouseup);
+    document.addEventListener("touchcancel", document.onmouseup);
+    document.addEventListener("touchmove", document.onmousemove);
   }
   chkfree.onchange();//generateText();
 };
@@ -1191,7 +1197,9 @@ document.body.onkeydown = (e) => {
   e = e || window.event;
   let keyCode = e.keyCode || e.which,
       keys = {space: 32, left: 37, up: 38, right: 39, down: 40 };
-  if (e.ctrlKey && keyCode != 17) { //17 == left ctrl
+  if (keyCode == 27) { // echap
+    document.onmouseup.call(this);
+  } else if (e.ctrlKey && keyCode != 17) { //17 == left ctrl
     switch (keyCode) {
       case keys.space:
         if (cwplayer.Playing) cwplayer.pause();
@@ -1326,6 +1334,21 @@ chkweightlastletters.onchange = () => {
   generateText();
   saveParams();
 };
+document.onmouseup = (e) => {
+  window.progresschanging = false;
+};
+document.onmousedown = (e) => {
+  let elem = (e.target || e.srcElement);
+  if (elem != prgcont && !prgcont.contains(elem)) return;
+  window.prgcontrect = e.target.getBoundingClientRect();
+  window.progresschanging = true;
+};
+document.onmousemove = (e) => {
+  if (!window.progresschanging || !cwplayer || cwplayer.TotalTime <= 0) return;
+  let clientX = e.clientX ?? (e?.touches?.length>0?e.touches[0].clientX:0);
+  let perc = Math.min(prgcontrect.width, Math.max(0, clientX - prgcontrect.left))/prgcontrect.width;
+  cwplayer.CurrentTime = perc * cwplayer.TotalTime;
+}
 </script>
 
 <script>
@@ -1520,7 +1543,6 @@ class CWPlayer {
   }
   get Index() { return this.curti; }
   set Index(value) {
-    if (!this.playing && !this.paused) return;
     let breset = (value < -1);
     if (breset && this.playing) {
       this.stop().then(() => this.play());
@@ -1544,7 +1566,19 @@ class CWPlayer {
     } else if (this.playing) {
       return (performance.now()-this.starttime-this.totalpausetime)/1000;
     } else {
-      return 0;
+      return (this.stime[this.curti] ?? 0)/1000;
+    }
+  }
+  set CurrentTime(value) {
+    value = Math.max(0, Math.min(this.totaltime, value));
+    value *= 1000;
+    if (this.stime[0] > value) {
+      this.Index = -2;
+    } else {
+      // remplacé par findLast
+      let i = this.stime.length;
+      while (--i>=0 && this.stime[i]>value);
+      this.Index = i;
     }
   }
 
