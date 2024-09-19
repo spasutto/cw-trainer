@@ -346,7 +346,7 @@
           <input type="number" id="selwpm" title="Word Per Minute">
         </td>
         <td>
-          <input type="checkbox" id="chkweightlastletters" title="more likely to hear 3 last letters" checked><label for="chkweightlastletters" title="more likely to hear 3 last letters">weigh more last letters</label><BR>
+          <input type="checkbox" id="chkweightlastletters" title="more likely to hear 3 last letters" checked><label id="lblweightlastletters" for="chkweightlastletters" title="more likely to hear 3 last letters">weigh more last letters</label><BR>
         </td>
       </tr>
       <tr>
@@ -1223,7 +1223,7 @@ chkfree.onchange = async () => {
   zonerestext.innerHTML = '';
   zonefree.style.display = chkfree.checked?'block':'none';
   zonekoch.style.display = !chkfree.checked?'block':'none';
-  zonewords.style.display = sellesson.value < 41?'block':'none';
+  lblweightlastletters.style.display = chkweightlastletters.style.display = zonewords.style.display = sellesson.value < 41?'initial':'none';
   cwsbm.disabled = chkfreelisten.checked;
   if (chkfree.checked) {
     iptfree.focus();
