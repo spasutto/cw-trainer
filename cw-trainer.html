@@ -745,6 +745,9 @@ function formatTestString(ret) {
   if (!sequences.length && str2.length) {
     // affichage de toute la chaine de test (fausse)
     sret += `<span class="wrong">${str2}</span>`;
+    if (str2.length <= str1.length) {
+      sret += `<span class="empty">${emptyChar.repeat(str1.length-str2.length)}</span>`;
+    }
   } else if (!sequences.length && str1.length && !str2.length) {
     // affichage du bon nombre de caractères vide
     sret += `<span class="empty">${emptyChar.repeat(str1.length)}</span>`;
