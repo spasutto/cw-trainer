@@ -1340,8 +1340,11 @@ document.onmouseup = (e) => {
 document.onmousedown = (e) => {
   let elem = (e.target || e.srcElement);
   if (elem != prgcont && !prgcont.contains(elem)) return;
-  window.prgcontrect = e.target.getBoundingClientRect();
+  if (!window.prgcontrect) {
+    window.prgcontrect = prgcont.getBoundingClientRect();
+  }
   window.progresschanging = true;
+  document.onmousemove.call(this, e);
 };
 document.onmousemove = (e) => {
   if (!window.progresschanging || !cwplayer || cwplayer.TotalTime <= 0) return;
