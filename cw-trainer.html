@@ -1225,7 +1225,8 @@ chkfree.onchange = async () => {
   zonerestext.innerHTML = '';
   zonefree.style.display = chkfree.checked?'block':'none';
   zonekoch.style.display = !chkfree.checked?'block':'none';
-  lblweightlastletters.style.display = chkweightlastletters.style.display = zonewords.style.display = sellesson.value < 41?'initial':'none';
+  zonewords.style.display = sellesson.value < 41?'block':'none';
+  chkweightlastletters.style.display = lblweightlastletters.style.display = sellesson.value < 41?'inline':'none';
   cwsbm.disabled = chkfreelisten.checked;
   if (chkfree.checked) {
     iptfree.focus();
