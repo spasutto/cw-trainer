@@ -1540,14 +1540,20 @@ class CWPlayer {
     value = CWPlayer.cleanText(value);
     // si on modifie le texte qui a déjà été joué on remet la lecture à 0
     if (this.curti>=0 && (value.length<=this.curti || value.substring(0, this.curti) != this.text.substring(0, this.curti))) {
-      this.stop();
-    }
-    this.text = value;
-    this.totaltime = this.getDuration();
-    this.fireEvent('parameterchanged');
-    this.fireEvent('indexchanged');
-    if (this.options.autoplay && !this.playing) {
-      this.play();
+      this.text = value;
+      this.totaltime = this.getDuration();
+      this.fireEvent('parameterchanged');
+      this.Index = -1;
+    } else {
+      this.text = value;
+      this.totaltime = this.getDuration();
+      this.fireEvent('parameterchanged');
+      this.fireEvent('indexchanged');
+      if (this.playing) {
+        this.schedule(this.context.currentTime-this.starttime-this.totalpausetime);
+      } else if (this.options.autoplay) {
+        this.play();
+      }
     }
   }
   get Index() { return this.curti; }
@@ -1557,11 +1563,12 @@ class CWPlayer {
     this.curti = value;
     this.totalpausetime = 0;
     let now = this.context?.currentTime ?? 0;
-    this.starttime = now-(this.itime[value] ?? 0);
+    let time = this.itime[value] ?? this.itime[0];
+    this.starttime = now-time;
     this.lastpausetime = now;
     this.fireEvent('indexchanged');
     this.stopSound().then(() => {
-      this.schedule();
+      this.schedule(time);
     })
   }
   get TotalTime() { return this.totaltime;  }
@@ -1731,10 +1738,10 @@ class CWPlayer {
       this.stop();
     }
   }
-  schedule(timefromstart) {
+  schedule(timefromstart=0) {
     if (!this.context) return;
     this.osc.frequency.value = this.options.tone;
-    timefromstart = timefromstart ?? this.itime[this.curti] ?? 0;
+    //timefromstart = timefromstart ?? this.itime[this.curti] ?? 0;
     let it = this.context.currentTime;
     this.gain.gain.cancelScheduledValues(it);
     this.stime.forEach((t,i) => {
