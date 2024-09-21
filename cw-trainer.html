@@ -973,7 +973,6 @@ async function listen(text, elem) {
   cwsbm.disabled = true;
   cwplayer.PreDelay=0;
   await cwplayer.play(text);
-  cwplayer.PreDelay=cw_options.predelay;
 }
 function selfDownload() {
   fetch(window.location.href)
@@ -1435,7 +1434,7 @@ class CWPlayer {
     this.options = {...this.DEFAULT_OPTIONS, ...options};
     this.text = '';
     this.curti = -1;
-    this.lastpausetime = this.totalpausetime = this.totaltime = 0;
+    this.endtime = this.starttime = this.lastpausetime = this.totalpausetime = this.totaltime = 0;
     this.stime = [];
     this.booping = this.playing = this.paused = false;
     this.events = {};
@@ -1546,44 +1545,45 @@ class CWPlayer {
     this.text = value;
     this.totaltime = this.getDuration();
     this.fireEvent('parameterchanged');
+    this.fireEvent('indexchanged');
     if (this.options.autoplay && !this.playing) {
       this.play();
     }
   }
   get Index() { return this.curti; }
   set Index(value) {
-    if (value < -1) return;
-    if (value > this.text.length) value = -1;
+    value = Math.max(-1, Math.min(this.text.length-1, value));
+    if (value == this.curti) return;
     this.curti = value;
-    let now = performance.now();
-    this.starttime = now-(this.stime[value] ?? 0);
     this.totalpausetime = 0;
-    if (!this.playing) {
-      this.lastpausetime = now;
-    }
+    let now = this.context?.currentTime ?? 0;
+    this.starttime = now-(this.itime[value] ?? 0);
+    this.lastpausetime = now;
     this.fireEvent('indexchanged');
+    this.stopSound().then(() => {
+      this.schedule();
+    })
   }
   get TotalTime() { return this.totaltime;  }
   get CurrentTime() {
-    if (this.paused) {
-      return (this.lastpausetime-this.starttime-this.totalpausetime)/1000;
-    } else if (this.playing) {
-      return (performance.now()-this.starttime-this.totalpausetime)/1000;
+    if (this.playing) {
+      return (this.context.currentTime-this.starttime-this.totalpausetime);
     } else {
-      return (this.stime[this.curti] ?? 0)/1000;
+      return (this.lastpausetime-this.starttime-this.totalpausetime);
     }
   }
   set CurrentTime(value) {
     value = Math.max(0, Math.min(this.totaltime, value));
-    value *= 1000;
-    if (this.stime[0] > value) {
-      this.Index = -1;
-    } else {
-      // remplacé par findLast
-      let i = this.stime.length;
-      while (--i>=0 && this.stime[i]>value);
-      this.Index = i;
-    }
+    this.curti = this.itime.findIndex(s => s>=value)-1;
+    this.totalpausetime = 0;
+    let now = this.context?.currentTime ?? 0;
+    this.starttime = now-value;
+    this.lastpausetime = now;
+    this.fireEvent('indexchanged');
+    this.stopSound();
+    this.stopSound().then(() => {
+      this.schedule(value);
+    })
   }
 
   fireEvent(evtname, args) {
@@ -1624,6 +1624,10 @@ class CWPlayer {
     return cwtext;
   }
 
+  static async delay(s) {
+    return new Promise(res => setTimeout(res, s*1000));
+  }
+
   #initAudio() {
     if (this.context) {
       return;
@@ -1635,97 +1639,6 @@ class CWPlayer {
     this.osc.frequency.value = this.options.tone;
     this.gain.gain.value = 0;
     this.osc.start();
-  }
-  async stop(pause=false) {
-    if (this.booping) return;
-    this.paused = pause;
-    if (!pause) {
-      this.curti = -1;
-      this.totalpausetime = this.lastpausetime = this.starttime = 0;
-      this.fireEvent('indexchanged');
-    }
-    if (this.playing) {
-      this.playing = false;
-      this.gain.gain.cancelScheduledValues(this.context.currentTime);
-      let curGain = this.gain.gain.value;
-      if (curGain > 0) {
-        let stopTime = this.context.currentTime + 0.005;
-        this.gain.gain.linearRampToValueAtTime(curGain, this.context.currentTime);
-        this.gain.gain.linearRampToValueAtTime(0, stopTime);
-        await CWPlayer.delay(0.01); // on attend plus longtemps sinon le disconnect produit souvent un click
-      }
-      try {
-        this.gain.disconnect(this.context.destination);
-      } catch(e) {}
-    }
-    this.fireEvent(pause?'pause':'stop');
-  }
-  async pause() {
-    if (!this.playing || this.booping) return;
-    this.lastpausetime = performance.now();
-    return await this.stop(true);
-  }
-  async play(text) {
-    if (this.playing || this.booping) return;
-    if (this.lastpausetime > 0) {
-      this.totalpausetime += (performance.now()-this.lastpausetime);
-      this.lastpausetime = 0;
-    }
-    if (typeof text === 'string') this.Text = text;
-    if (this.text.length == 0) return;
-    this.playing = true;
-    this.paused = false;
-    let localTime = performance.now();
-    // on annule tous les autres threads de lecture
-    this.currentPlay = localTime;
-    if (this.starttime==0) {
-      this.lastpausetime = this.totalpausetime = 0;
-      this.starttime = localTime;
-    }
-    this.fireEvent('play');
-    if (!this.context) {
-      this.#initAudio();
-    }
-    this.gain.gain.value = 0;
-    this.gain.connect(this.context.destination);
-
-    // bug à l'init/reinit de l'audiocontext https://stackoverflow.com/a/69968781/1346098
-    let preinitime = performance.now();
-    let curtime = this.context.currentTime;
-    while (curtime == this.context.currentTime) {
-      await new Promise((r)=>setTimeout(r));
-    }
-    this.totalpausetime += (performance.now()-preinitime);
-
-    while (this.playing && this.currentPlay == localTime) {
-      if (this.curti < 0) {
-        if (this.options.predelay>0) {
-          // tentative de résoudre un bug lors du démarrage de la lecture
-          this.osc.frequency.value = 24000;
-          this.gain.gain.linearRampToValueAtTime(1, this.context.currentTime + 0.005);
-          // si la lecture a déjà commencée on pause le prédelai moins le temps déjà écoulé
-          let predelay = Math.max(0, this.options.predelay-(performance.now()-this.starttime-this.totalpausetime)/1000);
-          //let predelay = Math.max(0, this.options.predelay-this.CurrentTime);
-          await CWPlayer.delay(predelay);
-          // quit si pas le thread courant
-          if (this.currentPlay != localTime) {
-            return;
-          }
-        }
-        this.curti = 0;
-      } else if (this.curti >= this.text.length) {
-        return await this.stop();//le lecteur arrive en bout on stop
-      } else {
-        this.fireEvent('indexchanged');
-        await this.#playElement(this.text[this.curti++]);
-        if (this.playing && this.currentPlay == localTime) {
-          // on ajoute l'espacement inter caractère (si on est dans le thread courant, s'il reste des caractères à jouer et si le caractère courant ou suivant n'est pas un espace)
-          if (this.text[this.curti-1] != ' ' && this.text[this.curti-1] != '\t' && this.curti < this.text.length && this.text[this.curti] != ' ' && this.text[this.curti] != '\t') {
-            await CWPlayer.delay(this.options.spperiod*3);
-          }
-        }
-      }
-    }
   }
   async playBoop() {
     if (this.playing) {
@@ -1749,69 +1662,130 @@ class CWPlayer {
     await CWPlayer.delay(t-initTime);
     this.booping = false;
   }
-
-  static async delay(s) {
-    return new Promise(res => setTimeout(res, s*1000));
+  async stopSound() {
+    let curGain = this.gain.gain.value;
+    if (curGain > 0) {
+      let stopTime = this.context.currentTime + 0.005;
+      this.gain.gain.linearRampToValueAtTime(curGain, this.context.currentTime);
+      this.gain.gain.linearRampToValueAtTime(0, stopTime);
+      await CWPlayer.delay(0.01); // on attend plus longtemps sinon le disconnect produit souvent un click
+    }
   }
-  async #playElement(c) {
-    if (c == ' ' || c == '\t') {
-      return await CWPlayer.delay(this.options.spperiod*7+this.options.ews);
+  async stop(pause=false) {
+    if (this.booping) return;
+    this.paused = pause;
+    if (!pause) {
+      this.curti = -1;
+      this.totalpausetime = this.lastpausetime = this.starttime = this.endtime = 0;
+      this.fireEvent('indexchanged');
     }
-    let mc = CWPlayer.morse[c];
-    let it = this.context.currentTime;
-    let t = 0;
-    this.osc.frequency.value = this.options.tone;
-    for (let i=0; i<mc?.length; i++) {
-      if (i>0) {
-        // inter-element
-        t+=this.options.elperiod;
+    if (this.playing) {
+      this.playing = false;
+      this.gain.gain.cancelScheduledValues(this.context.currentTime);
+      await this.stopSound();
+      try {
+        this.gain.disconnect(this.context.destination);
+      } catch(e) {}
+    }
+    this.fireEvent(pause?'pause':'stop');
+  }
+  async pause() {
+    if (!this.playing || this.booping) return;
+    this.lastpausetime = this.context.currentTime;
+    return await this.stop(true);
+  }
+  play(text) {
+    if (this.playing || this.booping) return;
+    if (typeof text === 'string') this.Text = text;
+    if (this.text.length == 0) return;
+    if (!this.context) {
+      this.#initAudio();
+    }
+    if (this.starttime==0) {
+      this.totalpausetime = 0;
+      this.lastpausetime = this.starttime = this.context.currentTime;
+    }
+    this.gain.gain.value = 0;
+    this.gain.connect(this.context.destination);
+
+    this.playing = true;
+    this.paused = false;
+    this.schedule(this.lastpausetime-this.starttime-this.totalpausetime);
+    if (this.lastpausetime > 0) {
+      this.totalpausetime += (this.context.currentTime-this.lastpausetime);
+      this.lastpausetime = 0;
+    }
+    this.fireEvent('play');
+  }
+  async startStopWaiter() {
+    let localTime = performance.now();
+    this.localTime = localTime;
+    while (this.playing && this.localTime == localTime && this.context.currentTime<this.endtime) {
+      if (this.itime[this.curti+1]+this.starttime <= this.context.currentTime) {
+        this.curti++;
+        this.fireEvent('indexchanged');
       }
-      this.gain.gain.setValueAtTime(0, it+t);
-      this.gain.gain.linearRampToValueAtTime(1, it+t + 0.005);
-      t+=(mc[i] == '.' ? this.options.elperiod : 3*this.options.elperiod); // dit or dah
-      this.gain.gain.setValueAtTime(1, it+t - 0.005);
-      this.gain.gain.linearRampToValueAtTime(0, it+t);
+      await CWPlayer.delay(0.01);
     }
-    await CWPlayer.delay(t);
-    // on ne peut pas faire confiance à currentTime...
-    while (this.context.currentTime-it < t) {
-      this.totalpausetime += 5;
-      await CWPlayer.delay(0.005);
+    if (this.playing && this.localTime == localTime) {
+      this.stop();
     }
+  }
+  schedule(timefromstart) {
+    if (!this.context) return;
+    this.osc.frequency.value = this.options.tone;
+    timefromstart = timefromstart ?? this.itime[this.curti] ?? 0;
+    let it = this.context.currentTime;
+    this.gain.gain.cancelScheduledValues(it);
+    this.stime.forEach((t,i) => {
+      if (t<timefromstart) return;
+      t-=timefromstart;
+      if (i%2) {
+        this.gain.gain.setValueAtTime(1, it+t - 0.005);
+        this.gain.gain.linearRampToValueAtTime(0, it+t);
+      } else {
+        this.gain.gain.setValueAtTime(0, it+t);
+        this.gain.gain.linearRampToValueAtTime(1, it+t + 0.005);
+      }
+    });
+    this.endtime = it + this.stime[this.stime.length-1] - timefromstart;
+    this.startStopWaiter();
   }
   getDuration() {
+    this.stime = [];
+    this.itime = [];
     if (this.text.length <= 0) return 0;
-    let c = null;
-    let inchar=false;
-    this.stime = [Math.max(0, this.options.predelay)];
-    for (let j=0,k=1; j<this.text.length; j++,k++) {
-      let cwtext = '';
-       // on rajoute un espace après tout caractère (sauf si le celui-ci ou le courant est un espace)
-      if (j>0 && !CWPlayer.isSpace(this.text[j-1]) && !CWPlayer.isSpace(this.text[j])) cwtext += ' ';
-      cwtext += CWPlayer.#internalTranslate(this.text[j]);
-      this.stime[k] = this.stime[k-1];
-      for (let i=0; i<cwtext.length; i++) {
-        c = cwtext[i];
-        if (c == ' ') {
-          this.stime[k] += this.options.spperiod*3;
+    let d = Math.max(0, this.options.predelay), k = 0, inchar = false;
+    this.itime.push(d);
+
+    CWPlayer.#internalTranslate(this.text).split('').forEach(c => {
+      switch (c) {
+        case ' ':
+          d += this.options.spperiod*3;
           inchar=false;
-          continue;
-        } else if (c == '\t') {
-          this.stime[k] += (this.options.spperiod*7+this.options.ews);
+          this.itime.push(d);
+          break;
+        case '\t':
+          this.itime.push(d);
+          d += (this.options.spperiod*7+this.options.ews);
           inchar=false;
-          continue;
-        }
-        if (inchar) {
-          //inter-element
-          this.stime[k]+=this.options.elperiod;
-        }
-        this.stime[k]+=(c == '.' ? this.options.elperiod : 3*this.options.elperiod); // dit or dah
-        inchar=true;
+          this.itime.push(d);
+          break;
+        case '.':
+        case '-':
+          if (inchar) {
+            //inter-element
+            d += this.options.elperiod;
+          }
+          this.stime.push(d);
+          d += (c == '.' ? this.options.elperiod : 3*this.options.elperiod); // dit or dah
+          this.stime.push(d);
+          inchar=true;
+          break;
       }
-    }
-    let duration = this.stime[this.stime.length-1];
-    this.stime = this.stime.map(t => t*1000);
-    return duration;
+    });
+    this.itime.push(d);
+    return d;
   }
 }
 </script>
