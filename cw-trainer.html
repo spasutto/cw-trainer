@@ -1476,6 +1476,7 @@ class CWPlayer {
     } else {
       // ce traitement aurait déjà été fait dans le if dans le setter de EffWPM
       this.totaltime = this.getDuration();
+      this.schedule();
     }
     this.fireEvent('parameterchanged');
   }
@@ -1490,6 +1491,7 @@ class CWPlayer {
     }
     this.options.spperiod = ((60/effwpm)-31*this.options.elperiod)/19;
     this.totaltime = this.getDuration();
+    this.schedule();
     this.fireEvent('parameterchanged');
   }
   get EWS() { return this.options.ews; }
@@ -1498,6 +1500,7 @@ class CWPlayer {
     value = Math.min(CWPlayer.MAX_EWS, Math.max(CWPlayer.MIN_EWS, value));
     this.options.ews = value;
     this.totaltime = this.getDuration();
+    this.schedule();
     this.fireEvent('parameterchanged');
   }
   get Tone() { return this.options.tone; }
@@ -1516,6 +1519,7 @@ class CWPlayer {
     value = Math.max(0, value);
     this.options.predelay = value;
     this.totaltime = this.getDuration();
+    this.schedule();
     this.fireEvent('parameterchanged');
   }
   get AutoPlay() { return this.options.autoplay; }
@@ -1550,7 +1554,7 @@ class CWPlayer {
       this.fireEvent('parameterchanged');
       this.fireEvent('indexchanged');
       if (this.playing) {
-        this.schedule(this.context.currentTime-this.starttime-this.totalpausetime);
+        this.schedule();
       } else if (this.options.autoplay) {
         this.play();
       }
@@ -1563,13 +1567,11 @@ class CWPlayer {
     this.curti = value;
     this.totalpausetime = 0;
     let now = this.context?.currentTime ?? 0;
-    let time = this.itime[value] ?? this.itime[0];
+    let time = value<0 ? 0 : this.itime[value];
     this.starttime = now-time;
     this.lastpausetime = now;
     this.fireEvent('indexchanged');
-    this.stopSound().then(() => {
-      this.schedule(time);
-    })
+    this.schedule(time);
   }
   get TotalTime() { return this.totaltime;  }
   get CurrentTime() {
@@ -1587,10 +1589,7 @@ class CWPlayer {
     this.starttime = now-value;
     this.lastpausetime = now;
     this.fireEvent('indexchanged');
-    this.stopSound();
-    this.stopSound().then(() => {
-      this.schedule(value);
-    })
+    this.schedule(value);
   }
 
   fireEvent(evtname, args) {
@@ -1669,13 +1668,13 @@ class CWPlayer {
     await CWPlayer.delay(t-initTime);
     this.booping = false;
   }
-  async stopSound() {
+  stopSound() {
+    this.gain.gain.cancelScheduledValues(this.context.currentTime);
     let curGain = this.gain.gain.value;
     if (curGain > 0) {
       let stopTime = this.context.currentTime + 0.005;
       this.gain.gain.linearRampToValueAtTime(curGain, this.context.currentTime);
       this.gain.gain.linearRampToValueAtTime(0, stopTime);
-      await CWPlayer.delay(0.01); // on attend plus longtemps sinon le disconnect produit souvent un click
     }
   }
   async stop(pause=false) {
@@ -1688,9 +1687,9 @@ class CWPlayer {
     }
     if (this.playing) {
       this.playing = false;
-      this.gain.gain.cancelScheduledValues(this.context.currentTime);
-      await this.stopSound();
+      this.stopSound();
       try {
+        await CWPlayer.delay(0.01); // on attend plus longtemps sinon le disconnect produit souvent un click
         this.gain.disconnect(this.context.destination);
       } catch(e) {}
     }
@@ -1710,7 +1709,7 @@ class CWPlayer {
     }
     if (this.starttime==0) {
       this.totalpausetime = 0;
-      this.lastpausetime = this.starttime = this.context.currentTime;
+      this.lastpausetime = this.starttime = this.context.currentTime+Number.EPSILON; // au premier coup -> après initaudio currentTime vaut 0
     }
     this.gain.gain.value = 0;
     this.gain.connect(this.context.destination);
@@ -1727,9 +1726,11 @@ class CWPlayer {
   async startStopWaiter() {
     let localTime = performance.now();
     this.localTime = localTime;
+    let curti = 0;
     while (this.playing && this.localTime == localTime && this.context.currentTime<this.endtime) {
-      if (this.itime[this.curti+1]+this.starttime <= this.context.currentTime) {
-        this.curti++;
+      curti = this.itime.findIndex(s => s+this.starttime >= this.context.currentTime-this.totalpausetime)-1;
+      if (curti != this.curti) {
+        this.curti = curti;
         this.fireEvent('indexchanged');
       }
       await CWPlayer.delay(0.01);
@@ -1738,12 +1739,12 @@ class CWPlayer {
       this.stop();
     }
   }
-  schedule(timefromstart=0) {
-    if (!this.context) return;
+  schedule(timefromstart) {
+    if (!this.context || !this.playing) return;
     this.osc.frequency.value = this.options.tone;
-    //timefromstart = timefromstart ?? this.itime[this.curti] ?? 0;
     let it = this.context.currentTime;
-    this.gain.gain.cancelScheduledValues(it);
+    timefromstart = timefromstart ?? (this.context.currentTime-this.starttime-this.totalpausetime);
+    this.stopSound();
     this.stime.forEach((t,i) => {
       if (t<timefromstart) return;
       t-=timefromstart;
