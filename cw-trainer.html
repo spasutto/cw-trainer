@@ -1652,7 +1652,6 @@ class MorseAmp extends HTMLElement {
 
   constructor(...args) {
     super();
-    this.style.display = 'block';
     for (const arg of args) {
       if (arg instanceof CWPlayer) {
         this.cwplayer = arg;
@@ -1698,6 +1697,9 @@ class MorseAmp extends HTMLElement {
     const style = document.createElement("style");
 
     style.textContent = `
+      :host {
+        display: block;
+      }
       :root {
         --btn-fill-color: #000;
       }
