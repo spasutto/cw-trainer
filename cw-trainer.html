@@ -1690,12 +1690,18 @@ class MorseAmp extends HTMLElement {
     const wrapper = document.createElement("div");
     wrapper.id="player";
 
+    const clearzone = document.createElement("pre");
+    clearzone.id="clearzone";
+
     // Create some CSS to apply to the shadow dom
     const style = document.createElement("style");
 
     style.textContent = `
       :root {
         --btn-fill-color: #000;
+      }
+      #player {
+        display: flex;
       }
       #player button {
         width: 32px;
@@ -1720,14 +1726,15 @@ class MorseAmp extends HTMLElement {
       }
       #prgcont {
         display: inline-block;
+        flex-grow: 1;
         user-select: none;
+        margin-left: 5px;
       }
       .progress-bar {
         height: 25px;
         background-color: #ddd;
         border-radius: 2px;
         position:relative;
-        width: 261px;
         top: 2px;
         overflow-x: hidden;
       }
@@ -1754,7 +1761,6 @@ class MorseAmp extends HTMLElement {
       #clearzone {
         display: none;
         background-color: #ddd;
-        width : 368px;
         white-space: pre-wrap;
         margin: 0;
       }
@@ -1763,7 +1769,10 @@ class MorseAmp extends HTMLElement {
     // Attach the created elements to the shadow dom
     shadow.appendChild(style);
     shadow.appendChild(wrapper);
-    wrapper.innerHTML = `        <button id="btnstop" title="stop playing" class="svg_inactif" disabled>
+    shadow.appendChild(clearzone);
+    wrapper.innerHTML = `
+      <div>
+        <button id="btnstop" title="stop playing" class="svg_inactif" disabled>
           <svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="20" height="20" viewBox="0 0 20 20">
             <rect width="16" height="16" x="2" y="2" rx="1" ry="1"/>
           </svg>
@@ -1779,20 +1788,20 @@ class MorseAmp extends HTMLElement {
             <rect width="5" height="15" x="12" y="2" rx="1" ry="1"/>
           </svg>
         </button>
-        <div id="prgcont">
-          <div class="progress-bar">
-            <div id="playperc" class="progress"></div>
-            <center><span id="playtime"></span></center>
-          </div>
+      </div>
+      <div id="prgcont">
+        <div class="progress-bar">
+          <div id="playperc" class="progress"></div>
+          <center><span id="playtime"></span></center>
         </div>
-        <pre id="clearzone"></pre>`;
+      </div>`;
     this.btnstop = this.shadowRoot.getElementById('btnstop');
     this.btnplay = this.shadowRoot.getElementById('btnplay');
     this.btnpause = this.shadowRoot.getElementById('btnpause');
     this.playperc = this.shadowRoot.getElementById('playperc');
     this.playtime = this.shadowRoot.getElementById('playtime');
     this.prgcont = this.shadowRoot.getElementById('prgcont');
-    this.clearzone = this.shadowRoot.getElementById('clearzone');
+    this.clearzone = clearzone;
 
     this.cwplayer.addEventListener('play', () => {
       this.updateButtonsState(true);
@@ -1824,24 +1833,19 @@ class MorseAmp extends HTMLElement {
         }
         return false;
     }
-    document.onmouseup = (e) => {
-      window.progresschanging = false;
-    };
-    document.onmousedown = (e) => {
+    document.addEventListener("mouseup", (e) => {
+      this.progresschanging = false;
+    });
+    this.prgcont.addEventListener("mousedown", (e) => {
       let elem = (e.target || e.srcElement);
       if (elem != this.prgcont && !this.prgcont.contains(elem)) return;
       if (!this.prgcontrect) {
         this.prgcontrect = this.prgcont.getBoundingClientRect();
       }
-      window.progresschanging = true;
-      document.onmousemove.call(this, e);
-    };
-    document.onmousemove = (e) => {
-      if (!window.progresschanging || !this.cwplayer || this.cwplayer.TotalTime <= 0) return;
-      let clientX = e.clientX ?? (e?.touches?.length>0?e.touches[0].clientX:0);
-      let perc = Math.min(this.prgcontrect.width, Math.max(0, clientX - this.prgcontrect.left))/this.prgcontrect.width;
-      this.cwplayer.CurrentTime = perc * this.cwplayer.TotalTime;
-    }
+      this.progresschanging = true;
+      this.mousemove(e);
+    });
+    document.addEventListener("mousemove", this.mousemove.bind(this));
 
     if (this.hasAttribute("displayprogressbar")) {
       this.options.displayProgressBar = this.getAttribute("displayprogressbar")?.trim().toLowerCase() === 'true';
@@ -1930,6 +1934,13 @@ class MorseAmp extends HTMLElement {
   addEventListener(evtname, cb) { this.cwplayer.addEventListener(evtname, cb); }
   on(evtname, cb) { this.cwplayer.addEventListener(evtname, cb); }
   removeEventListener(evtname, cb=null) { this.cwplayer.removeEventListener(evtname, cb); }
+  
+  mousemove(e) {
+    if (!this.progresschanging || !this.cwplayer || this.cwplayer.TotalTime <= 0) return;
+    let clientX = e.clientX ?? (e?.touches?.length>0?e.touches[0].clientX:0);
+    let perc = Math.min(this.prgcontrect.width, Math.max(0, clientX - this.prgcontrect.left))/this.prgcontrect.width;
+    this.cwplayer.CurrentTime = perc * this.cwplayer.TotalTime;
+  }
 
   formatTime(t) {
     let tf = (Math.floor(t/60)+"").padStart(2, '0') + ':';
