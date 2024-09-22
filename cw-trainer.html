@@ -1652,6 +1652,7 @@ class MorseAmp extends HTMLElement {
 
   constructor(...args) {
     super();
+    this.style.display = 'block';
     for (const arg of args) {
       if (arg instanceof CWPlayer) {
         this.cwplayer = arg;
