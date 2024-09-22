@@ -7,9 +7,6 @@
     <link rel="icon" type="image/x-icon" href="cw-trainer.ico">
 
     <style>
-      :root {
-        --btn-fill-color: #000;
-      }
       body {
         min-width : 380px;
         font-family: sans-serif;
@@ -201,27 +198,6 @@
       #retrybtn, #retrynxt {
         width: 150px;
       }
-      #player button {
-        width: 32px;
-        height: 28px;
-        vertical-align: top;
-        margin-bottom: 5px;
-        padding: 2px 0 0 0;
-        border-radius: 3px;
-        border-width: 1px;
-        fill: var(--btn-fill-color);
-      }
-      .svg_inactif {
-        --btn-fill-color: grey;
-        fill: var(--btn-fill-color);
-      }
-      .autoplay path {
-        animation: blinker 1s linear infinite;
-      }
-      @keyframes blinker {
-        65% { fill: var(--btn-fill-color); }
-        70% { fill: #01ba11; }
-      }
       #iptfree {
         width: 368px;
         height: 100px;
@@ -242,11 +218,6 @@
       }
       #zonedkb {
         display: none;
-      }
-      #clearzone {
-        background-color: #ddd;
-        width : 368px;
-        white-space: pre-wrap;
       }
       #chkweightlastletters {
         margin-left: 20px;
@@ -278,39 +249,6 @@
       .ok {
         background-color: green;
         color: white;
-      }
-      #prgcont {
-        display: inline-block;
-        user-select: none;
-      }
-      .progress-bar {
-        height: 25px;
-        background-color: #ddd;
-        border-radius: 2px;
-        position:relative;
-        width: 261px;
-        top: 2px;
-        overflow-x: hidden;
-      }
-      .progress {
-        height: 100%;
-        border-radius: 2px;
-        background: #49aade/*linear-gradient(to right, #ffbf00 0%, #ff007f 100%)*/;
-        width: 0%;
-        position:relative;
-      }
-      .progress-bar center {
-        position:absolute;
-        left:0;
-        right:0;
-        top:0;
-        bottom:0;
-        margin:auto;
-        margin-top: 3px;
-      }
-      .progress-bar span {
-        font-family: sans-serif;
-        font-size: inherit;
       }
       .active {
         background-color: #fcff43;
@@ -378,35 +316,11 @@
         <label for="groupsnb">Groups : </label>
         <input type="number" id="groupsnb" min="1" max="250">
       </div>
-      <div id="player">
-        <button id="btnstop" title="stop playing" class="svg_inactif" disabled><!--x25A0-->
-          <svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="20" height="20" viewBox="0 0 20 20">
-            <rect width="16" height="16" x="2" y="2" rx="1" ry="1"/>
-          </svg>
-        </button>
-        <button id="btnplay" title="start playing"><!--&#x25B6;-->
-          <svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="20" height="20" viewBox="-10 -5 120 120">
-            <path d="M 13.677242369053593 5.970459221108368 L 99.32275763094641 55.02954077889163 C 103.6613788154732 57.514770389445815 103.50196896806634 62.18351020967654 99.00393793613266 64.36702041935308 L 13.996062063867347 105.63297958064692 C 9.498031031933674 107.81648979032346 5 105 5 100 L 5 11 C 5 6 9.338621184526797 3.485229610554184 13.677242369053593 5.970459221108368 Z" />
-          </svg>
-        </button>
-        <button id="btnpause" title="pause playing" class="svg_inactif" disabled><!--&#x23F8;-->
-          <svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="20" height="20" viewBox="0 0 20 20">
-            <rect width="5" height="15" x="3" y="2" rx="1" ry="1"/>
-            <rect width="5" height="15" x="12" y="2" rx="1" ry="1"/>
-          </svg>
-        </button>
-        <div id="prgcont">
-          <div class="progress-bar">
-            <div id="playperc" class="progress"></div>
-            <center><span id="playtime"></span></center>
-          </div>
-        </div>
-      </div>
+      <morse-amp id="cwplayer"></morse-amp>
       <textarea id="cwtext" rows="4" cols="43" spellcheck="false" autocorrect="off"></textarea><br>
       <input type="button" value="submit" id="cwsbm">
       <span id="zonedkb"><input type="checkbox" id="disablekb"><label for="disablekb">disable keyboard</label></span><br>
     </div>
-    <pre id="clearzone" style="display: none;"></pre>
   </div>
   <div id="zoneresult" style="display:none;">
     <div id="zonerestext"></div>
@@ -817,8 +731,8 @@ async function verifycw() {
       return; // controls keys
     }
     if (chkfreelisten.checked || iptfree.value==' ') {
-      await cwplayer.stop();
-      await cwplayer.play(chkfreelisten.checked?iptfree.value:null);
+      cwplayer.stop();
+      cwplayer.play(chkfreelisten.checked?iptfree.value:null);
       iptfree.value = '';
       iptfree.focus();
       cwchecking = false;
@@ -826,7 +740,7 @@ async function verifycw() {
     }
     if (iptfree.value.toUpperCase() != cwplayer.Text[0]) {
       iptfree.classList.add('error');
-      await cwplayer.stop();
+      cwplayer.stop();
       //play boop
       await cwplayer.playBoop();
       iptfree.classList.remove('error');
@@ -838,7 +752,7 @@ async function verifycw() {
       iptfree.classList.add('ok');
       CWPlayer.delay(0.15).then(() => iptfree.classList.remove('ok'));
       await generateText();
-      await cwplayer.play();
+      cwplayer.play();
       window.freetotal++;
       window.freefirsttry = true;
     }
@@ -850,7 +764,7 @@ async function verifycw() {
     if (chkfreelisten.checked) {
       return;
     }
-    if (cwplayer.Playing) await cwplayer.stop();
+    if (cwplayer.Playing) cwplayer.stop();
     cwsbm.disabled = true;
     let extractfn = (t) => [CWPlayer.cleanText(t.trim()).replaceAll('\t', ' ')];
     // hormis pour les QSOs on travaille par mot => on recompare mot par mot
@@ -972,7 +886,7 @@ async function listen(text, elem) {
   if (elem) elem.classList.add('active');
   cwsbm.disabled = true;
   cwplayer.PreDelay=0;
-  await cwplayer.play(text);
+  cwplayer.play(text);
 }
 function selfDownload() {
   fetch(window.location.href)
@@ -1008,19 +922,6 @@ function setMinMax() {
   selews.max = CWPlayer.MAX_EWS;
   seltone.min = CWPlayer.MIN_TONE;
   seltone.max = CWPlayer.MAX_TONE;
-}
-function formatTime(t) {
-  let tf = (Math.floor(t/60)+"").padStart(2, '0') + ':';
-  let s = Math.round(10*(t%60))/10;
-  if (s<10) tf += '0';
-  s = s+"";
-  if (s.indexOf('.') < 0) s+='.0';
-  return tf+s;
-}
-function updateDisplayTime() {
-  playperc.style.width = (100*cwplayer.CurrentTime/cwplayer.TotalTime)+'%';
-  playtime.innerHTML = `${formatTime(cwplayer.CurrentTime)} / ${formatTime(cwplayer.TotalTime)}`;
-  if (cwplayer.Playing || cwplayer.Paused) requestAnimationFrame(updateDisplayTime);
 }
 function saveParams() {
   let params = encodeURIComponent(sellesson.value+HASHSEP+selwpm.value+HASHSEP+seleffwpm.value+HASHSEP+grplen.value+HASHSEP+groupsnb.value+HASHSEP+seltone.value+HASHSEP+selews.value+HASHSEP+(chkfree.checked?1:0)+HASHSEP+(chkweightlastletters.checked?1:0));
@@ -1085,25 +986,6 @@ function hideKeyboard(evt) {
   if (evt && (keyboard.contains(evt.relatedTarget) || evt.relatedTarget?.type=='button')) return;
   keyboard.style.display = 'none';
 }
-function updateButtonsState() {
-  let playing = cwplayer.Playing;
-  btnpause.disabled = !playing;
-  if (playing) {
-    btnstop.classList.remove(SVG_INACTIF);
-    btnpause.classList.remove(SVG_INACTIF);
-    btnstop.disabled = false;
-  } else {
-    if (cwplayer.CurrentTime <= 0) btnstop.classList.add(SVG_INACTIF);
-    btnpause.classList.add(SVG_INACTIF);
-  }
-  if (!playing && cwplayer.TotalTime > 0) {
-    btnplay.disabled = false;
-    btnplay.classList.remove(SVG_INACTIF);
-  } else {
-    btnplay.disabled = true;
-    btnplay.classList.add(SVG_INACTIF);
-  }
-}
 function loading(load=true) {
   window.isLoading = !!load;
   if (typeof load === 'string') loadingzone.innerHTML= load;
@@ -1125,7 +1007,6 @@ function message(msg='', style=null) {
   }, 1);
 }
 window.onload = async () => {
-  window.cwplayer = new CWPlayer();
   setMinMax();
   loadParams();
   sellesson.value = cw_options.lesson;
@@ -1136,30 +1017,15 @@ window.onload = async () => {
   seltone.value = cw_options.tone;
   selews.value = cw_options.ews;
   cwplayer.addEventListener('play', () => {
-    updateButtonsState();
     // on ne focus le texte que si on est en mode normal et pas en train d'écouter un résultat
     if (!chkfree.checked && !chkfreelisten.checked && !document.querySelectorAll('.active').length) {
       cwtext.focus();
     }
-    updateDisplayTime();
   });
-  cwplayer.addEventListener('pause', () => {
-    updateButtonsState();
-  });
-  cwplayer.addEventListener('stop', () => {
-    updateButtonsState();
-  });
-  cwplayer.addEventListener('indexchanged', () => {
-    let idx = cwplayer.Index;
-    if (idx<0) {
-      idx = cwplayer.Text.length;
+  cwplayer.addEventListener('parameterchanged', (arg) => {
+    if (arg == 'AutoPlay') {
+      message(`Autoplay ${cwplayer.AutoPlay?'':'de'}activated!`);
     }
-    clearzone.innerHTML = "<u>Current text :</u> "+cwplayer.Text.substring(0, idx+1);
-    if (!cwplayer.Playing && !cwplayer.Paused) updateDisplayTime();
-  });
-  cwplayer.addEventListener('parameterchanged', () => {
-    updateDisplayTime();
-    updateButtonsState();
   });
   // sur les périphériques à clavier virtuel on rajoute un autre clavier pour les touches spéciales
   // difficilement accessibles sur les claviers virtuels (soft keyboards)
@@ -1219,7 +1085,7 @@ document.body.onkeydown = (e) => {
 }
 chkfree.onchange = async () => {
   if (!cwplayer) return;
-  await cwplayer.stop();
+  cwplayer.stop();
   zoneresult.style.display = 'none';
   zonerestext.innerHTML = '';
   zonefree.style.display = chkfree.checked?'block':'none';
@@ -1253,7 +1119,6 @@ chkfree.onchange = async () => {
   window.freeerr = 0;
   window.freetotal = 1;
   window.freefirsttry = true;
-  cwplayer?.fireEvent('indexchanged'); // on force la mise à jour du contenu de la clearZone
 };
 sellesson.onchange = chkfree.onchange;
 grplen.onchange = chkfree.onchange;
@@ -1284,29 +1149,6 @@ seltone.onchange = () => {
   seltone.value = cwplayer.Tone;
   saveParams();
 }
-btnplay.onclick = () => {
-  if (cwplayer) cwplayer.play();
-}
-btnpause.onclick = () => {
-  if (cwplayer) cwplayer.pause();
-}
-btnstop.onclick = () => {
-  if (cwplayer) cwplayer.stop();
-}
-btnplay.oncontextmenu = () => {
-  if (cwplayer) {
-    cwplayer.AutoPlay = !cwplayer.AutoPlay;
-    if (cwplayer.AutoPlay) {
-      btnplay.classList.add('autoplay');
-      btnplay.title = 'automatically start playing when text change';
-    } else {
-      btnplay.classList.remove('autoplay');
-      btnplay.title = 'start playing';
-    }
-    message(`Autoplay ${cwplayer.AutoPlay?'':'de'}activated!`);
-    return false;
-  }
-}
 cwsbm.onclick = verifycw;
 retrybtn.onclick = chkfree.onchange;
 prevlesson.onclick = () => {
@@ -1324,9 +1166,8 @@ cwtext.onkeyup = () => {
 }
 iptfree.onkeyup = verifycw;
 cwtitle.ondblclick = () => {
-  clearzone.style.display = clearzone.style.display == 'none' ? 'block' : 'none';
-  cwplayer?.fireEvent('indexchanged'); // on force la mise à jour du contenu de la clearZone
-  if (clearzone.style.display == 'block') {
+  cwplayer.DisplayClearZone = !cwplayer.DisplayClearZone;
+  if (cwplayer.DisplayClearZone) {
     message(`Cheating mode activated!`);
   }
 }
@@ -1339,30 +1180,9 @@ chkweightlastletters.onchange = () => {
   generateText();
   saveParams();
 };
-document.onmouseup = (e) => {
-  window.progresschanging = false;
-};
-document.onmousedown = (e) => {
-  let elem = (e.target || e.srcElement);
-  if (elem != prgcont && !prgcont.contains(elem)) return;
-  if (!window.prgcontrect) {
-    window.prgcontrect = prgcont.getBoundingClientRect();
-  }
-  window.progresschanging = true;
-  document.onmousemove.call(this, e);
-};
-document.onmousemove = (e) => {
-  if (!window.progresschanging || !cwplayer || cwplayer.TotalTime <= 0) return;
-  let clientX = e.clientX ?? (e?.touches?.length>0?e.touches[0].clientX:0);
-  let perc = Math.min(prgcontrect.width, Math.max(0, clientX - prgcontrect.left))/prgcontrect.width;
-  cwplayer.CurrentTime = perc * cwplayer.TotalTime;
-}
 </script>
 
 <script>
-/*
-  https://morsecode.world/international/timing.html
-*/
 class CWPlayer {
   static morse = {
     ' ' : '\t',
@@ -1422,22 +1242,32 @@ class CWPlayer {
     '!' : '---.',
     '?' : '..--..'
   };
-  DEFAULT_OPTIONS = {
-    elperiod : 0.06, // 20WPM.
-    spperiod : 0.06,
+  static DEFAULT_OPTIONS = {
+    wpm : 20,
+    effwpm : 20,
     tone : 800,
     ews : 0,
     predelay : 0,
     autoplay : false
   };
+  elperiod = 0.06; // 20WPM.
+  spperiod = 0.06;
   constructor(options) {
-    this.options = {...this.DEFAULT_OPTIONS, ...options};
     this.text = '';
     this.curti = -1;
     this.endtime = this.starttime = this.lastpausetime = this.totalpausetime = this.totaltime = 0;
     this.stime = [];
     this.booping = this.playing = this.paused = false;
     this.events = {};
+    this.init(options);
+  }
+  init(options) {
+    this.options = {...CWPlayer.DEFAULT_OPTIONS, ...options};
+    let defaultkeys = Object.keys(CWPlayer.DEFAULT_OPTIONS);
+    // suppression des options invalides
+    Object.keys(this.options).forEach(k => {
+      if (!defaultkeys.includes(k)) delete this.options[k];
+    });
     if (this.options.wpm) {
       this.WPM = this.options.wpm;
     }
@@ -1454,14 +1284,14 @@ class CWPlayer {
   static get MIN_TONE() { return 100; };
   static get MAX_TONE() { return 5000; };
   /*FIN CONSTANTES*/
-  
 
   get WPM() {
-    return Math.round(6 / (5 * this.options.elperiod));
+    return Math.round(6 / (5 * this.elperiod));
   }
   set WPM(wpm) {
     wpm = isNaN(wpm) ? 0 : wpm;
     wpm = Math.min(CWPlayer.MAX_WPM, Math.max(CWPlayer.MIN_WPM, wpm));
+    this.options.wpm = wpm;
     // "PARIS " ==> 50 unités. à 1 WPM il faut donc 60/50 secondes pour envoyer une unité (un 'dit')
     // Dit: 1 unit
     // Dah: 3 units
@@ -1469,8 +1299,8 @@ class CWPlayer {
     // Inter-character space (the gap between the characters of a word): 3 units
     // Word space (the gap between two words): 7 units
     let effwpm=this.EffWPM; // on sauvegarde ça sinon c'est perdu vu que ça s'appuie sur elperiod
-    this.options.elperiod = 6 / (5 * wpm);
-    this.options.spperiod = ((60/effwpm)-31*this.options.elperiod)/19;
+    this.elperiod = 6 / (5 * wpm);
+    this.spperiod = ((60/effwpm)-31*this.elperiod)/19;
     if (wpm<this.EffWPM) {
       this.EffWPM = wpm;
     } else {
@@ -1478,21 +1308,22 @@ class CWPlayer {
       this.totaltime = this.getDuration();
       this.schedule();
     }
-    this.fireEvent('parameterchanged');
+    this.fireEvent('parameterchanged', 'WPM');
   }
   get EffWPM() {
-    return Math.round(60/(19*this.options.spperiod+31*this.options.elperiod));
+    return Math.round(60/(19*this.spperiod+31*this.elperiod));
   }
   set EffWPM(effwpm) {
     effwpm = isNaN(effwpm) ? 0 : effwpm;
     effwpm = Math.min(CWPlayer.MAX_WPM, Math.max(CWPlayer.MIN_WPM, effwpm));
+    this.options.effwpm = effwpm;
     if (this.WPM<effwpm) {
       this.WPM = effwpm;
     }
-    this.options.spperiod = ((60/effwpm)-31*this.options.elperiod)/19;
+    this.spperiod = ((60/effwpm)-31*this.elperiod)/19;
     this.totaltime = this.getDuration();
     this.schedule();
-    this.fireEvent('parameterchanged');
+    this.fireEvent('parameterchanged', 'EffWPM');
   }
   get EWS() { return this.options.ews; }
   set EWS(value) {
@@ -1501,7 +1332,7 @@ class CWPlayer {
     this.options.ews = value;
     this.totaltime = this.getDuration();
     this.schedule();
-    this.fireEvent('parameterchanged');
+    this.fireEvent('parameterchanged', 'EWS');
   }
   get Tone() { return this.options.tone; }
   set Tone(value) {
@@ -1511,7 +1342,7 @@ class CWPlayer {
     if (this.context) {
       this.osc.frequency.value = this.options.tone;
     }
-    this.fireEvent('parameterchanged');
+    this.fireEvent('parameterchanged', 'Tone');
   }
   get PreDelay() { return this.options.predelay; }
   set PreDelay(value) {
@@ -1520,12 +1351,12 @@ class CWPlayer {
     this.options.predelay = value;
     this.totaltime = this.getDuration();
     this.schedule();
-    this.fireEvent('parameterchanged');
+    this.fireEvent('parameterchanged', 'PreDelay');
   }
   get AutoPlay() { return this.options.autoplay; }
   set AutoPlay(value) {
     this.options.autoplay = !!value;
-    this.fireEvent('parameterchanged');
+    this.fireEvent('parameterchanged', 'AutoPlay');
   }
   get Paused() { return this.paused; }
   set Paused(value) { this.Playing = !value; }
@@ -1546,12 +1377,12 @@ class CWPlayer {
     if (this.curti>=0 && (value.length<=this.curti || value.substring(0, this.curti) != this.text.substring(0, this.curti))) {
       this.text = value;
       this.totaltime = this.getDuration();
-      this.fireEvent('parameterchanged');
+      this.fireEvent('parameterchanged', 'Text');
       this.Index = -1;
     } else {
       this.text = value;
       this.totaltime = this.getDuration();
-      this.fireEvent('parameterchanged');
+      this.fireEvent('parameterchanged', 'Text');
       this.fireEvent('indexchanged');
       if (this.playing) {
         this.schedule();
@@ -1594,7 +1425,7 @@ class CWPlayer {
 
   fireEvent(evtname, args) {
     if (!this.events[evtname]) return;
-    this.events[evtname].forEach(evt => evt(args));
+    this.events[evtname].forEach(evt => {if (typeof evt === 'function') evt(args);});
   }
   addEventListener(evtname, cb) {
     if (!this.events[evtname]) this.events[evtname] = [];
@@ -1602,11 +1433,18 @@ class CWPlayer {
   }
   on(evtname, cb) { return addEventListener(evtname, cb); }
   removeEventListener(evtname, cb=null) {
-    if (!this.events[evtname]) return;
-    if (!cb) {
-      delete this.events[evtname];
+    if (typeof evtname === 'function') {
+      cb = evtname;
+      Object.keys(this.events).forEach(k => {
+        this.events[k] = this.events[k].filter(cb2 => cb2!==cb);
+      });
     } else {
-      this.events[evtname] = this.events[evtname].filter(cb2 => cb2!==cb);
+      if (!this.events[evtname]) return;
+      if (!cb) {
+        delete this.events[evtname];
+      } else {
+        this.events[evtname] = this.events[evtname].filter(cb2 => cb2!==cb);
+      }
     }
   }
   static cleanText(text) {
@@ -1645,10 +1483,11 @@ class CWPlayer {
     this.osc.frequency.value = this.options.tone;
     this.gain.gain.value = 0;
     this.osc.start();
+    this.gain.connect(this.context.destination);
   }
   async playBoop() {
     if (this.playing) {
-      await this.stop();
+      this.stop();
     } else if (!this.context) {
       this.#initAudio();
     }
@@ -1677,7 +1516,7 @@ class CWPlayer {
       this.gain.gain.linearRampToValueAtTime(0, stopTime);
     }
   }
-  async stop(pause=false) {
+  stop(pause=false) {
     if (this.booping) return;
     this.paused = pause;
     if (!pause) {
@@ -1688,17 +1527,16 @@ class CWPlayer {
     if (this.playing) {
       this.playing = false;
       this.stopSound();
-      try {
-        await CWPlayer.delay(0.01); // on attend plus longtemps sinon le disconnect produit souvent un click
+      /*try {
         this.gain.disconnect(this.context.destination);
-      } catch(e) {}
+      } catch(e) {}*/
     }
     this.fireEvent(pause?'pause':'stop');
   }
-  async pause() {
+  pause() {
     if (!this.playing || this.booping) return;
     this.lastpausetime = this.context.currentTime;
-    return await this.stop(true);
+    return this.stop(true);
   }
   play(text) {
     if (this.playing || this.booping) return;
@@ -1712,7 +1550,7 @@ class CWPlayer {
       this.lastpausetime = this.starttime = this.context.currentTime+Number.EPSILON; // au premier coup -> après initaudio currentTime vaut 0
     }
     this.gain.gain.value = 0;
-    this.gain.connect(this.context.destination);
+    //this.gain.connect(this.context.destination);
 
     this.playing = true;
     this.paused = false;
@@ -1743,7 +1581,9 @@ class CWPlayer {
     if (!this.context || !this.playing) return;
     this.osc.frequency.value = this.options.tone;
     let it = this.context.currentTime;
-    timefromstart = timefromstart ?? (this.context.currentTime-this.starttime-this.totalpausetime);
+    if (typeof timefromstart !== 'number') {
+      timefromstart = this.context.currentTime-this.starttime-this.totalpausetime;
+    }
     this.stopSound();
     this.stime.forEach((t,i) => {
       if (t<timefromstart) return;
@@ -1759,6 +1599,9 @@ class CWPlayer {
     this.endtime = it + this.stime[this.stime.length-1] - timefromstart;
     this.startStopWaiter();
   }
+  /*
+    https://morsecode.world/international/timing.html
+  */
   getDuration() {
     this.stime = [];
     this.itime = [];
@@ -1769,13 +1612,13 @@ class CWPlayer {
     CWPlayer.#internalTranslate(this.text).split('').forEach(c => {
       switch (c) {
         case ' ':
-          d += this.options.spperiod*3;
+          d += this.spperiod*3;
           inchar=false;
           this.itime.push(d);
           break;
         case '\t':
           this.itime.push(d);
-          d += (this.options.spperiod*7+this.options.ews);
+          d += (this.spperiod*7+this.options.ews);
           inchar=false;
           this.itime.push(d);
           break;
@@ -1783,10 +1626,10 @@ class CWPlayer {
         case '-':
           if (inchar) {
             //inter-element
-            d += this.options.elperiod;
+            d += this.elperiod;
           }
           this.stime.push(d);
-          d += (c == '.' ? this.options.elperiod : 3*this.options.elperiod); // dit or dah
+          d += (c == '.' ? this.elperiod : 3*this.elperiod); // dit or dah
           this.stime.push(d);
           inchar=true;
           break;
@@ -1796,6 +1639,341 @@ class CWPlayer {
     return d;
   }
 }
+
+class MorseAmp extends HTMLElement {
+  static get TAG() { return "morse-amp"; }
+  static get SVG_INACTIF() { return 'svg_inactif'; }
+
+  static DEFAULT_OPTIONS = {
+    ...CWPlayer.DEFAULT_OPTIONS,
+    displayProgressBar : true,
+    displayClearZone : true
+  };
+
+  constructor(...args) {
+    super();
+    for (const arg of args) {
+      if (arg instanceof CWPlayer) {
+        this.cwplayer = arg;
+      } else if (typeof arg === 'object') {
+        let aks = Object.keys(arg);
+        if (Object.keys(MorseAmp.DEFAULT_OPTIONS).some(k => aks.includes(k))) {
+          this.init(arg);
+        }
+      }
+    }
+    if (!this.cwplayer) {
+      this.cwplayer = new CWPlayer();
+    }
+    if (!this.options) {
+      this.init();
+    }
+  }
+  init(options) {
+    this.options = {...MorseAmp.DEFAULT_OPTIONS, ...options};
+    let defaultkeys = Object.keys(MorseAmp.DEFAULT_OPTIONS);
+    // suppression des options invalides
+    Object.keys(this.options).forEach(k => {
+      if (!defaultkeys.includes(k)) delete this.options[k];
+    });
+    this.cwplayer.init(this.options);
+    // suppression des options propres à CWPlayer
+    this.options = {...this.options};
+    defaultkeys = Object.keys(CWPlayer.DEFAULT_OPTIONS);
+    Object.keys(this.options).forEach(k => {
+      if (defaultkeys.includes(k)) delete this.options[k];
+    });
+  }
+  connectedCallback() {
+    const shadow = this.attachShadow({ mode: "open" });
+
+    const wrapper = document.createElement("div");
+    wrapper.id="player";
+
+    // Create some CSS to apply to the shadow dom
+    const style = document.createElement("style");
+
+    style.textContent = `
+      :root {
+        --btn-fill-color: #000;
+      }
+      #player button {
+        width: 32px;
+        height: 28px;
+        vertical-align: top;
+        margin-bottom: 5px;
+        padding: 2px 0 0 0;
+        border-radius: 3px;
+        border-width: 1px;
+        fill: var(--btn-fill-color);
+      }
+      .svg_inactif {
+        --btn-fill-color: grey;
+        fill: var(--btn-fill-color);
+      }
+      .autoplay path {
+        animation: blinker 1s linear infinite;
+      }
+      @keyframes blinker {
+        65% { fill: var(--btn-fill-color); }
+        70% { fill: #01ba11; }
+      }
+      #prgcont {
+        display: inline-block;
+        user-select: none;
+      }
+      .progress-bar {
+        height: 25px;
+        background-color: #ddd;
+        border-radius: 2px;
+        position:relative;
+        width: 261px;
+        top: 2px;
+        overflow-x: hidden;
+      }
+      .progress {
+        height: 100%;
+        border-radius: 2px;
+        background: #49aade/*linear-gradient(to right, #ffbf00 0%, #ff007f 100%)*/;
+        width: 0%;
+        position:relative;
+      }
+      .progress-bar center {
+        position:absolute;
+        left:0;
+        right:0;
+        top:0;
+        bottom:0;
+        margin:auto;
+        margin-top: 3px;
+      }
+      .progress-bar span {
+        font-family: sans-serif;
+        font-size: inherit;
+      }
+      #clearzone {
+        display: none;
+        background-color: #ddd;
+        width : 368px;
+        white-space: pre-wrap;
+        margin: 0;
+      }
+    `;
+
+    // Attach the created elements to the shadow dom
+    shadow.appendChild(style);
+    shadow.appendChild(wrapper);
+    wrapper.innerHTML = `        <button id="btnstop" title="stop playing" class="svg_inactif" disabled>
+          <svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="20" height="20" viewBox="0 0 20 20">
+            <rect width="16" height="16" x="2" y="2" rx="1" ry="1"/>
+          </svg>
+        </button>
+        <button id="btnplay" title="start playing">
+          <svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="20" height="20" viewBox="-10 -5 120 120">
+            <path d="M 13.677242369053593 5.970459221108368 L 99.32275763094641 55.02954077889163 C 103.6613788154732 57.514770389445815 103.50196896806634 62.18351020967654 99.00393793613266 64.36702041935308 L 13.996062063867347 105.63297958064692 C 9.498031031933674 107.81648979032346 5 105 5 100 L 5 11 C 5 6 9.338621184526797 3.485229610554184 13.677242369053593 5.970459221108368 Z" />
+          </svg>
+        </button>
+        <button id="btnpause" title="pause playing" class="svg_inactif" disabled>
+          <svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="20" height="20" viewBox="0 0 20 20">
+            <rect width="5" height="15" x="3" y="2" rx="1" ry="1"/>
+            <rect width="5" height="15" x="12" y="2" rx="1" ry="1"/>
+          </svg>
+        </button>
+        <div id="prgcont">
+          <div class="progress-bar">
+            <div id="playperc" class="progress"></div>
+            <center><span id="playtime"></span></center>
+          </div>
+        </div>
+        <pre id="clearzone"></pre>`;
+    this.btnstop = this.shadowRoot.getElementById('btnstop');
+    this.btnplay = this.shadowRoot.getElementById('btnplay');
+    this.btnpause = this.shadowRoot.getElementById('btnpause');
+    this.playperc = this.shadowRoot.getElementById('playperc');
+    this.playtime = this.shadowRoot.getElementById('playtime');
+    this.prgcont = this.shadowRoot.getElementById('prgcont');
+    this.clearzone = this.shadowRoot.getElementById('clearzone');
+
+    this.cwplayer.addEventListener('play', () => {
+      this.updateButtonsState(true);
+      this.updateDisplayTime();
+    });
+    this.cwplayer.addEventListener('pause', this.updateButtonsState.bind(this));
+    this.cwplayer.addEventListener('stop', this.updateButtonsState.bind(this));
+    this.cwplayer.addEventListener('parameterchanged', (arg) => {
+      this.updateDisplayTime();
+      this.updateButtonsState();
+    });
+    
+    this.cwplayer.addEventListener('indexchanged', () => {
+      if (!this.cwplayer.Playing && !this.cwplayer.Paused) this.updateDisplayTime();
+      this.updateButtonsState();
+      this.updateClearZone();
+    });
+    this.btnplay.onclick = this.play.bind(this);
+    this.btnpause.onclick = this.pause.bind(this);
+    this.btnstop.onclick = this.stop.bind(this);
+    this.btnplay.oncontextmenu = () => {
+        this.cwplayer.AutoPlay = !this.cwplayer.AutoPlay;
+        if (this.cwplayer.AutoPlay) {
+          this.btnplay.classList.add('autoplay');
+          this.btnplay.title = 'automatically start playing when text change';
+        } else {
+          this.btnplay.classList.remove('autoplay');
+          this.btnplay.title = 'start playing';
+        }
+        return false;
+    }
+    document.onmouseup = (e) => {
+      window.progresschanging = false;
+    };
+    document.onmousedown = (e) => {
+      let elem = (e.target || e.srcElement);
+      if (elem != this.prgcont && !this.prgcont.contains(elem)) return;
+      if (!this.prgcontrect) {
+        this.prgcontrect = this.prgcont.getBoundingClientRect();
+      }
+      window.progresschanging = true;
+      document.onmousemove.call(this, e);
+    };
+    document.onmousemove = (e) => {
+      if (!window.progresschanging || !this.cwplayer || this.cwplayer.TotalTime <= 0) return;
+      let clientX = e.clientX ?? (e?.touches?.length>0?e.touches[0].clientX:0);
+      let perc = Math.min(this.prgcontrect.width, Math.max(0, clientX - this.prgcontrect.left))/this.prgcontrect.width;
+      this.cwplayer.CurrentTime = perc * this.cwplayer.TotalTime;
+    }
+
+    if (this.hasAttribute("displayprogressbar")) {
+      this.options.displayProgressBar = this.getAttribute("displayprogressbar")?.trim().toLowerCase() === 'true';
+    }
+    if (this.hasAttribute("displayclearzone")) {
+      this.options.displayClearZone = this.getAttribute("displayclearzone")?.trim().toLowerCase() === 'true';
+    }
+    if (this.hasAttribute("wpm")) {
+      this.WPM = parseInt(this.getAttribute("wpm"), 10);
+    }
+    if (this.hasAttribute("effwpm")) {
+      this.EffWPM = parseInt(this.getAttribute("effwpm"), 10);
+    }
+    if (this.hasAttribute("ews")) {
+      this.EWS = parseInt(this.getAttribute("ews"), 10);
+    }
+    if (this.hasAttribute("tone")) {
+      this.Tone = parseInt(this.getAttribute("tone"), 10);
+    }
+    if (this.hasAttribute("predelay")) {
+      this.PreDelay = parseInt(this.getAttribute("predelay"), 10);
+    }
+
+    if (!this.options.displayProgressBar) this.prgcont.style.display='none';
+    if (this.options.displayClearZone) this.clearzone.style.display='block';
+
+    if (this.innerHTML?.trim().length>0) {
+      this.cwplayer.Text = this.innerHTML.trim();
+    } else if (this.hasAttribute("text")) {
+      this.cwplayer.Text = this.getAttribute("text");
+    } else {
+      this.cwplayer.Text = '';// déclenche les évenements
+    }
+  }
+
+  get Player() { return this.cwplayer; }
+  
+  get Playing() { return this.cwplayer.Playing; }
+  set Playing(value) { this.cwplayer.Playing = !!value; }
+  get Paused() { return this.cwplayer.Paused; }
+  set Paused(value) { this.cwplayer.Paused = !!value; }
+  get AutoPlay() { return this.cwplayer.AutoPlay; }
+  set AutoPlay(value) { this.cwplayer.AutoPlay = !!value; }
+  get WPM() { return this.cwplayer.WPM; }
+  set WPM(value) { this.cwplayer.WPM = value; }
+  get EffWPM() { return this.cwplayer.EffWPM; }
+  set EffWPM(value) { this.cwplayer.EffWPM = value; }
+  get EWS() { return this.cwplayer.EWS; }
+  set EWS(value) { this.cwplayer.EWS = value; }
+  get Tone() { return this.cwplayer.Tone; }
+  set Tone(value) { this.cwplayer.Tone = value; }
+  get PreDelay() { return this.cwplayer.PreDelay; }
+  set PreDelay(value) { this.cwplayer.PreDelay = value; }
+  get Text() { return this.cwplayer.Text; }
+  set Text(value) { this.cwplayer.Text = value; }
+  get Index() { return this.cwplayer.Index; }
+  set Index(value) { this.cwplayer.Index = value; }
+
+  get DisplayProgressBar() { return this.options.displayProgressBar; }
+  set DisplayProgressBar(value) {
+    this.options.displayProgressBar = !!value;
+    this.prgcont.style.display = this.options.displayProgressBar ? 'block' : 'none';
+    this.cwplayer.fireEvent('parameterchanged', 'DisplayProgressBar');
+  }
+  get DisplayClearZone() { return this.options.displayClearZone; }
+  set DisplayClearZone(value) {
+    this.options.displayClearZone = !!value;
+    this.clearzone.style.display = this.options.displayClearZone ? 'block' : 'none';
+    this.cwplayer.fireEvent('parameterchanged', 'DisplayClearZone');
+  }
+
+  async playBoop() { await this.cwplayer.playBoop(); }
+  play(text) {
+    [...document.querySelectorAll(MorseAmp.TAG)].forEach(ma => {
+      if (ma.Player != this.cwplayer) ma.Player?.pause();
+    });
+    this.cwplayer.play(text);
+  }
+  pause() {
+    this.cwplayer.pause();
+  }
+  stop() {
+    this.cwplayer.stop();
+  }
+  
+  addEventListener(evtname, cb) { this.cwplayer.addEventListener(evtname, cb); }
+  on(evtname, cb) { this.cwplayer.addEventListener(evtname, cb); }
+  removeEventListener(evtname, cb=null) { this.cwplayer.removeEventListener(evtname, cb); }
+
+  formatTime(t) {
+    let tf = (Math.floor(t/60)+"").padStart(2, '0') + ':';
+    let s = Math.round(10*(t%60))/10;
+    if (s<10) tf += '0';
+    s = s+"";
+    if (s.indexOf('.') < 0) s+='.0';
+    return tf+s;
+  }
+  updateDisplayTime() {
+    this.playperc.style.width = (100*this.cwplayer.CurrentTime/this.cwplayer.TotalTime)+'%';
+    this.playtime.innerHTML = `${this.formatTime(this.cwplayer.CurrentTime)} / ${this.formatTime(this.cwplayer.TotalTime)}`;
+    if (this.cwplayer.Playing || this.cwplayer.Paused) requestAnimationFrame(this.updateDisplayTime.bind(this));
+  }
+  updateButtonsState(en_stop, en_play, en_pause) {
+    let playing = this.cwplayer.Playing;
+    let paused = this.cwplayer.Paused;
+    let havecontent = this.cwplayer.TotalTime > 0;
+
+    this.btnstop.disabled = typeof en_stop === 'boolean' ? !en_stop : !havecontent || this.cwplayer.CurrentTime <= 0;
+    this.btnplay.disabled = typeof en_play === 'boolean' ? !en_play : !havecontent || playing;
+    this.btnpause.disabled = typeof en_pause === 'boolean' ? !en_pause : !havecontent || paused || !playing;
+    
+    let applyClass = (btn) => {
+      if (btn.disabled) {
+        btn.classList.add(MorseAmp.SVG_INACTIF);
+      } else {
+        btn.classList.remove(MorseAmp.SVG_INACTIF);
+      }
+    }
+    applyClass(this.btnstop);
+    applyClass(this.btnplay);
+    applyClass(this.btnpause);
+  }
+  updateClearZone() {
+    let idx = this.cwplayer.Index;
+    if (idx<0) {
+      idx = this.cwplayer.Text.length;
+    }
+    this.clearzone.innerHTML = "<u>Current text :</u> "+this.cwplayer.Text.substring(0, idx+1);
+  }
+}
+
+customElements.define(MorseAmp.TAG, MorseAmp);
 </script>
 </body>
 </html>
