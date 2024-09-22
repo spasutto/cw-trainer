@@ -25,10 +25,13 @@ There are 40 lessons consisting in letters/symbols and 2 additional lessons :
  - **Right click on  play** (long click on touch devices) to activate "Automatic start"
 
 ## Reuse
-The `CWPlayer` class (defined at the bottom of [cw-trainer.html](cw-trainer.html)) can be reused :
+
+The `CWPlayer` and `MorseAmp` classes (defined at the bottom of [cw-trainer.html](cw-trainer.html)) can be reused :
+
+### CWPlayer
 
 ```HTML
-  <textarea id="cwtext" rows="4" cols="43" spellcheck="false">CQ CQ CQ DE F8XYZ AR</textarea><br>
+  <textarea id="cwtext" rows="4" cols="43" spellcheck="false">CQ CQ CQ DE F8XYZ K</textarea><br>
   <input type="button" onclick="player.play(cwtext.value)" value="play">
   <input type="button" onclick="player.pause()" value="pause">
   <input type="button" onclick="player.stop()" value="stop">
@@ -55,4 +58,12 @@ The `CWPlayer` class (defined at the bottom of [cw-trainer.html](cw-trainer.html
     console.log(player.Text);
     // 'STRANGE INPUT TEXT'
   </script>
+```
+
+### MorseAmp
+
+```HTML
+  <morse-amp id="player1" text="cq cq cq de F8XYZ" displayprogressbar="false" predelay="2"></morse-amp>
+  <morse-amp id="player2" displayclearzone="true">this text is played in morse</morse-amp>
+  <morse-amp id="player3" wpm="25" effwpm="17" tone="1000">this also</morse-amp>
 ```
