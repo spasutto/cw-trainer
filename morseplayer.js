@@ -335,7 +335,9 @@ class CWPlayer {
       let stopTime = this.context.currentTime + 0.005;
       this.gain.gain.linearRampToValueAtTime(curGain, this.context.currentTime);
       this.gain.gain.linearRampToValueAtTime(0, stopTime);
+      return 0.005;
     }
+    return 0;
   }
   stop(pause=false) {
     if (this.booping) return;
@@ -405,9 +407,11 @@ class CWPlayer {
     if (typeof timefromstart !== 'number') {
       timefromstart = this.context.currentTime-this.starttime-this.totalpausetime;
     }
-    this.stopSound();
-    this.stime.forEach((t,i) => {
-      if (t<timefromstart) return;
+    timefromstart-=this.stopSound();
+    let t=0;
+    for (let i=0; i<this.stime.length; i++) {
+      t = this.stime[i];
+      if (t<timefromstart) continue;
       t-=timefromstart;
       if (i%2) {
         this.gain.gain.setValueAtTime(1, it+t - 0.005);
@@ -416,7 +420,7 @@ class CWPlayer {
         this.gain.gain.setValueAtTime(0, it+t);
         this.gain.gain.linearRampToValueAtTime(1, it+t + 0.005);
       }
-    });
+    }
     this.endtime = it + this.stime[this.stime.length-1] - timefromstart;
     this.startStopWaiter();
   }
@@ -609,19 +613,24 @@ class MorsePlayer extends HTMLElement {
       #czwrapper {
         background-color: #ccc;
         overflow: hidden;
+        margin-left:auto;
+        margin-right:auto;
+        text-align:right;
+        overflow:hidden;
+        white-space: nowrap;
       }
       #clearzone {
         display: none;
         background-color: #ccc;
         overflow: hidden;
-        margin: 0 0 0 auto;
+        float:right;
         font-size: 0.8em;
         font-family: monospace;
       }
       #clearzone td {
         background-color: #f8f8f8;
         text-align: center;
-        min-width: 40px;
+        min-width: 30px;
       }
       .lastchar {
         background-color: yellow !important;
@@ -721,8 +730,6 @@ class MorsePlayer extends HTMLElement {
     this.updateDisplayTime();
     this.updateButtonsState();
     this.updateClearZone();
-    
-    new ResizeObserver(this.updateClearZone.bind(this)).observe(this);
   }
   attributeChangedCallback(name, oldValue, newValue) {
     let setter = this.setters?.find(p => p.toLowerCase() == name?.toLowerCase());
@@ -841,9 +848,7 @@ class MorsePlayer extends HTMLElement {
     let trc = this.clearzone.rows[0];
     let trm = this.clearzone.rows[1];
     trc.innerHTML = trm.innerHTML = '';
-    let nbcells = Math.floor(this.czwrapper.offsetWidth/48);
-    if (nbcells <= 0) return;
-    let text = this.cwplayer.Text.substring(idx-nbcells-1, idx).split('');
+    let text = this.cwplayer.Text.substring(0, idx).split('');
     text.forEach((c,i) => {
       let lastcell = playing && i == text.length-1;
       let cell = trc.insertCell();
