@@ -23,6 +23,7 @@ There are 40 lessons consisting in letters/symbols and 2 additional lessons :
  - <kbd>ctrl</kbd>-<kbd>space</kbd> : pause
  - <kbd>ctrl</kbd>-<kbd>left</kbd>/<kbd>right</kbd> : fast forward/rewind
  - **Right click on  play** (long click on touch devices) to activate "Automatic start"
+ - **double click on app's name** to display symbols currently being played
 
 ## Reuse
 
