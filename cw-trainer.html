@@ -1268,12 +1268,12 @@ class CWPlayer {
     Object.keys(this.options).forEach(k => {
       if (!defaultkeys.includes(k)) delete this.options[k];
     });
-    if (this.options.wpm) {
-      this.WPM = this.options.wpm;
-    }
-    if (this.options.effwpm) {
-      this.EffWPM = this.options.effwpm;
-    }
+    this.WPM = this.options.wpm;
+    this.EffWPM = this.options.effwpm;
+    this.Tone = this.options.tone;
+    this.EWS = this.options.ews;
+    this.PreDelay = this.options.predelay;
+    this.AutoPlay = this.options.autoplay;
   }
 
   /*CONSTANTES*/
@@ -1288,10 +1288,10 @@ class CWPlayer {
   get WPM() {
     return Math.round(6 / (5 * this.elperiod));
   }
-  set WPM(wpm) {
-    wpm = isNaN(wpm) ? 0 : wpm;
-    wpm = Math.min(CWPlayer.MAX_WPM, Math.max(CWPlayer.MIN_WPM, wpm));
-    this.options.wpm = wpm;
+  set WPM(value) {
+    value = CWPlayer.parseint(value);
+    value = Math.min(CWPlayer.MAX_WPM, Math.max(CWPlayer.MIN_WPM, value));
+    this.options.wpm = value;
     // "PARIS " ==> 50 unités. à 1 WPM il faut donc 60/50 secondes pour envoyer une unité (un 'dit')
     // Dit: 1 unit
     // Dah: 3 units
@@ -1299,10 +1299,10 @@ class CWPlayer {
     // Inter-character space (the gap between the characters of a word): 3 units
     // Word space (the gap between two words): 7 units
     let effwpm=this.EffWPM; // on sauvegarde ça sinon c'est perdu vu que ça s'appuie sur elperiod
-    this.elperiod = 6 / (5 * wpm);
+    this.elperiod = 6 / (5 * value);
     this.spperiod = ((60/effwpm)-31*this.elperiod)/19;
-    if (wpm<this.EffWPM) {
-      this.EffWPM = wpm;
+    if (value<this.EffWPM) {
+      this.EffWPM = value;
     } else {
       // ce traitement aurait déjà été fait dans le if dans le setter de EffWPM
       this.totaltime = this.getDuration();
@@ -1313,21 +1313,21 @@ class CWPlayer {
   get EffWPM() {
     return Math.round(60/(19*this.spperiod+31*this.elperiod));
   }
-  set EffWPM(effwpm) {
-    effwpm = isNaN(effwpm) ? 0 : effwpm;
-    effwpm = Math.min(CWPlayer.MAX_WPM, Math.max(CWPlayer.MIN_WPM, effwpm));
-    this.options.effwpm = effwpm;
-    if (this.WPM<effwpm) {
-      this.WPM = effwpm;
+  set EffWPM(value) {
+    value = CWPlayer.parseint(value);
+    value = Math.min(CWPlayer.MAX_WPM, Math.max(CWPlayer.MIN_WPM, value));
+    this.options.effwpm = value;
+    if (this.WPM<value) {
+      this.WPM = value;
     }
-    this.spperiod = ((60/effwpm)-31*this.elperiod)/19;
+    this.spperiod = ((60/value)-31*this.elperiod)/19;
     this.totaltime = this.getDuration();
     this.schedule();
     this.fireEvent('parameterchanged', 'EffWPM');
   }
   get EWS() { return this.options.ews; }
   set EWS(value) {
-    value = isNaN(value) ? 0 : value;
+    value = CWPlayer.parseint(value);
     value = Math.min(CWPlayer.MAX_EWS, Math.max(CWPlayer.MIN_EWS, value));
     this.options.ews = value;
     this.totaltime = this.getDuration();
@@ -1336,7 +1336,7 @@ class CWPlayer {
   }
   get Tone() { return this.options.tone; }
   set Tone(value) {
-    value = isNaN(value) ? 0 : value;
+    value = CWPlayer.parseint(value);
     value = Math.min(CWPlayer.MAX_TONE, Math.max(CWPlayer.MIN_TONE, value));
     this.options.tone = value;
     if (this.context) {
@@ -1346,7 +1346,7 @@ class CWPlayer {
   }
   get PreDelay() { return this.options.predelay; }
   set PreDelay(value) {
-    value = isNaN(value) ? 0 : value;
+    value = CWPlayer.parseint(value);
     value = Math.max(0, value);
     this.options.predelay = value;
     this.totaltime = this.getDuration();
@@ -1355,13 +1355,14 @@ class CWPlayer {
   }
   get AutoPlay() { return this.options.autoplay; }
   set AutoPlay(value) {
-    this.options.autoplay = !!value;
+    this.options.autoplay = CWPlayer.parsebool(value);
     this.fireEvent('parameterchanged', 'AutoPlay');
   }
   get Paused() { return this.paused; }
   set Paused(value) { this.Playing = !value; }
   get Playing() { return this.playing; }
   set Playing(value) {
+    value = CWPlayer.parsebool(value);
     if (value === false && this.playing) {
       this.pause();
     } else if (value === true && !this.playing) {
@@ -1393,6 +1394,7 @@ class CWPlayer {
   }
   get Index() { return this.curti; }
   set Index(value) {
+    value = CWPlayer.parseint(value);
     value = Math.max(-1, Math.min(this.text.length-1, value));
     if (value == this.curti) return;
     this.curti = value;
@@ -1413,6 +1415,7 @@ class CWPlayer {
     }
   }
   set CurrentTime(value) {
+    value = CWPlayer.parsefloat(value);
     value = Math.max(0, Math.min(this.totaltime, value));
     this.curti = this.itime.findIndex(s => s>=value)-1;
     this.totalpausetime = 0;
@@ -1447,6 +1450,9 @@ class CWPlayer {
       }
     }
   }
+  static parsebool(value) { return (typeof value === 'string') ? value.trim().toLowerCase() == 'true' : !!value; }
+  static parseint(value) { value = (typeof value === 'string') ? parseInt(value.trim(), 10) : value; return value = isNaN(value) ? 0 : value; }
+  static parsefloat(value) { value = (typeof value === 'string') ? parseFloat(value.trim()) : value; return value = isNaN(value) ? 0 : value; }
   static cleanText(text) {
     return text.normalize("NFD").replace(/[\u0300-\u036f]/g, "")
       .toUpperCase()
@@ -1643,6 +1649,8 @@ class CWPlayer {
 class MorseAmp extends HTMLElement {
   static get TAG() { return "morse-amp"; }
   static get SVG_INACTIF() { return 'svg_inactif'; }
+  static observedAttributes = ['player', 'playing', 'paused', 'autoplay', 'wpm', 'effwpm', 'ews', 'tone', 'predelay', 'text', 'index', 'displayprogressbar', 'displayclearzone'];
+  setters = [];
 
   static DEFAULT_OPTIONS = {
     ...CWPlayer.DEFAULT_OPTIONS,
@@ -1652,22 +1660,18 @@ class MorseAmp extends HTMLElement {
 
   constructor(...args) {
     super();
+    this.enumerateSetters();
     for (const arg of args) {
       if (arg instanceof CWPlayer) {
         this.cwplayer = arg;
       } else if (typeof arg === 'object') {
         let aks = Object.keys(arg);
         if (Object.keys(MorseAmp.DEFAULT_OPTIONS).some(k => aks.includes(k))) {
-          this.init(arg);
+          this.options = arg
         }
       }
     }
-    if (!this.cwplayer) {
-      this.cwplayer = new CWPlayer();
-    }
-    if (!this.options) {
-      this.init();
-    }
+    this.init();
   }
   init(options) {
     this.options = {...MorseAmp.DEFAULT_OPTIONS, ...options};
@@ -1676,13 +1680,22 @@ class MorseAmp extends HTMLElement {
     Object.keys(this.options).forEach(k => {
       if (!defaultkeys.includes(k)) delete this.options[k];
     });
-    this.cwplayer.init(this.options);
+    if (!this.cwplayer) {
+      this.cwplayer = new CWPlayer(this.options);
+    } else {
+      this.cwplayer.init(this.options);
+    }
     // suppression des options propres à CWPlayer
     this.options = {...this.options};
     defaultkeys = Object.keys(CWPlayer.DEFAULT_OPTIONS);
     Object.keys(this.options).forEach(k => {
       if (defaultkeys.includes(k)) delete this.options[k];
     });
+  }
+  enumerateSetters() {
+    this.setters = Object.entries(Object.getOwnPropertyDescriptors(Reflect.getPrototypeOf(this)))
+    .filter(e => typeof e[1].set === 'function' && e[0] !== '__proto__')
+    .map(e => e[0]);
   }
   connectedCallback() {
     const shadow = this.attachShadow({ mode: "open" });
@@ -1850,48 +1863,28 @@ class MorseAmp extends HTMLElement {
     });
     document.addEventListener("mousemove", this.mousemove.bind(this));
 
-    if (this.hasAttribute("displayprogressbar")) {
-      this.options.displayProgressBar = this.getAttribute("displayprogressbar")?.trim().toLowerCase() === 'true';
-    }
-    if (this.hasAttribute("displayclearzone")) {
-      this.options.displayClearZone = this.getAttribute("displayclearzone")?.trim().toLowerCase() === 'true';
-    }
-    if (this.hasAttribute("wpm")) {
-      this.WPM = parseInt(this.getAttribute("wpm"), 10);
-    }
-    if (this.hasAttribute("effwpm")) {
-      this.EffWPM = parseInt(this.getAttribute("effwpm"), 10);
-    }
-    if (this.hasAttribute("ews")) {
-      this.EWS = parseInt(this.getAttribute("ews"), 10);
-    }
-    if (this.hasAttribute("tone")) {
-      this.Tone = parseInt(this.getAttribute("tone"), 10);
-    }
-    if (this.hasAttribute("predelay")) {
-      this.PreDelay = parseInt(this.getAttribute("predelay"), 10);
-    }
-
     if (!this.options.displayProgressBar) this.prgcont.style.display='none';
     if (this.options.displayClearZone) this.clearzone.style.display='block';
 
     if (this.innerHTML?.trim().length>0) {
       this.cwplayer.Text = this.innerHTML.trim();
-    } else if (this.hasAttribute("text")) {
-      this.cwplayer.Text = this.getAttribute("text");
-    } else {
-      this.cwplayer.Text = '';// déclenche les évenements
+    }
+  }
+  attributeChangedCallback(name, oldValue, newValue) {
+    let setter = this.setters?.find(p => p.toLowerCase() == name?.toLowerCase());
+    if (setter) {
+      this[setter] = newValue;
     }
   }
 
   get Player() { return this.cwplayer; }
-  
+
   get Playing() { return this.cwplayer.Playing; }
-  set Playing(value) { this.cwplayer.Playing = !!value; }
+  set Playing(value) { this.cwplayer.Playing = value; }
   get Paused() { return this.cwplayer.Paused; }
-  set Paused(value) { this.cwplayer.Paused = !!value; }
+  set Paused(value) { this.cwplayer.Paused = value; }
   get AutoPlay() { return this.cwplayer.AutoPlay; }
-  set AutoPlay(value) { this.cwplayer.AutoPlay = !!value; }
+  set AutoPlay(value) { this.cwplayer.AutoPlay = value; }
   get WPM() { return this.cwplayer.WPM; }
   set WPM(value) { this.cwplayer.WPM = value; }
   get EffWPM() { return this.cwplayer.EffWPM; }
@@ -1909,15 +1902,19 @@ class MorseAmp extends HTMLElement {
 
   get DisplayProgressBar() { return this.options.displayProgressBar; }
   set DisplayProgressBar(value) {
-    this.options.displayProgressBar = !!value;
-    this.prgcont.style.display = this.options.displayProgressBar ? 'block' : 'none';
-    this.cwplayer.fireEvent('parameterchanged', 'DisplayProgressBar');
+    this.options.displayProgressBar = CWPlayer.parsebool(value);
+    if (this.prgcont) {
+      this.prgcont.style.display = this.options.displayProgressBar ? 'block' : 'none';
+      this.cwplayer.fireEvent('parameterchanged', 'DisplayProgressBar');
+    }
   }
   get DisplayClearZone() { return this.options.displayClearZone; }
   set DisplayClearZone(value) {
-    this.options.displayClearZone = !!value;
-    this.clearzone.style.display = this.options.displayClearZone ? 'block' : 'none';
-    this.cwplayer.fireEvent('parameterchanged', 'DisplayClearZone');
+    this.options.displayClearZone = CWPlayer.parsebool(value);
+    if (this.clearzone) {
+      this.clearzone.style.display = this.options.displayClearZone ? 'block' : 'none';
+      this.cwplayer.fireEvent('parameterchanged', 'DisplayClearZone');
+    }
   }
 
   async playBoop() { await this.cwplayer.playBoop(); }
