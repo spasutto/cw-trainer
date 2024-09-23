@@ -12,6 +12,9 @@
         font-family: sans-serif;
         margin: 0;
       }
+      morse-amp {
+        margin-bottom: 5px;
+      }
       #zonetrainer {
         border-style: none dashed dashed none;
         border-width: 1px;
@@ -1703,8 +1706,13 @@ class MorseAmp extends HTMLElement {
     const wrapper = document.createElement("div");
     wrapper.id="player";
 
-    const clearzone = document.createElement("pre");
+    const czwrapper = document.createElement("div");
+    czwrapper.id="czwrapper";
+    const clearzone = document.createElement("table");
     clearzone.id="clearzone";
+    clearzone.insertRow();
+    clearzone.insertRow();
+    czwrapper.appendChild(clearzone);
 
     // Create some CSS to apply to the shadow dom
     const style = document.createElement("style");
@@ -1723,7 +1731,7 @@ class MorseAmp extends HTMLElement {
         width: 32px;
         height: 28px;
         vertical-align: top;
-        margin-bottom: 5px;
+        margin-bottom: 0px;
         padding: 2px 0 0 0;
         border-radius: 3px;
         border-width: 1px;
@@ -1774,18 +1782,32 @@ class MorseAmp extends HTMLElement {
         font-family: sans-serif;
         font-size: inherit;
       }
+      #czwrapper {
+        background-color: #ccc;
+        overflow: hidden;
+      }
       #clearzone {
         display: none;
-        background-color: #ddd;
-        white-space: pre-wrap;
-        margin: 0;
+        background-color: #ccc;
+        overflow: hidden;
+        margin: 0 0 0 auto;
+        font-size: 0.8em;
+        font-family: monospace;
+      }
+      #clearzone td {
+        background-color: #f8f8f8;
+        text-align: center;
+        min-width: 40px;
+      }
+      .lastchar {
+        background-color: yellow !important;
       }
     `;
 
     // Attach the created elements to the shadow dom
     shadow.appendChild(style);
     shadow.appendChild(wrapper);
-    shadow.appendChild(clearzone);
+    shadow.appendChild(czwrapper);
     wrapper.innerHTML = `
       <div>
         <button id="btnstop" title="stop playing" class="svg_inactif" disabled>
@@ -1818,18 +1840,22 @@ class MorseAmp extends HTMLElement {
     this.playtime = this.shadowRoot.getElementById('playtime');
     this.prgcont = this.shadowRoot.getElementById('prgcont');
     this.clearzone = clearzone;
+    this.czwrapper = czwrapper;
 
     this.cwplayer.addEventListener('play', () => {
       this.updateButtonsState(true);
       this.updateDisplayTime();
     });
     this.cwplayer.addEventListener('pause', this.updateButtonsState.bind(this));
-    this.cwplayer.addEventListener('stop', this.updateButtonsState.bind(this));
-    this.cwplayer.addEventListener('parameterchanged', (arg) => {
+    this.cwplayer.addEventListener('stop', () => {
+      this.updateButtonsState();
+      this.updateClearZone();
+    });
+    this.cwplayer.addEventListener('parameterchanged', () => {
       this.updateDisplayTime();
       this.updateButtonsState();
     });
-    
+
     this.cwplayer.addEventListener('indexchanged', () => {
       if (!this.cwplayer.Playing && !this.cwplayer.Paused) this.updateDisplayTime();
       this.updateButtonsState();
@@ -1864,11 +1890,17 @@ class MorseAmp extends HTMLElement {
     document.addEventListener("mousemove", this.mousemove.bind(this));
 
     if (!this.options.displayProgressBar) this.prgcont.style.display='none';
-    if (this.options.displayClearZone) this.clearzone.style.display='block';
+    if (this.options.displayClearZone) this.clearzone.style.display='table';
 
     if (this.innerHTML?.trim().length>0) {
       this.cwplayer.Text = this.innerHTML.trim();
     }
+    
+    this.updateDisplayTime();
+    this.updateButtonsState();
+    this.updateClearZone();
+    
+    new ResizeObserver(this.updateClearZone.bind(this)).observe(this);
   }
   attributeChangedCallback(name, oldValue, newValue) {
     let setter = this.setters?.find(p => p.toLowerCase() == name?.toLowerCase());
@@ -1912,7 +1944,7 @@ class MorseAmp extends HTMLElement {
   set DisplayClearZone(value) {
     this.options.displayClearZone = CWPlayer.parsebool(value);
     if (this.clearzone) {
-      this.clearzone.style.display = this.options.displayClearZone ? 'block' : 'none';
+      this.clearzone.style.display = this.options.displayClearZone ? 'table' : 'none';
       this.cwplayer.fireEvent('parameterchanged', 'DisplayClearZone');
     }
   }
@@ -1976,11 +2008,26 @@ class MorseAmp extends HTMLElement {
     applyClass(this.btnpause);
   }
   updateClearZone() {
-    let idx = this.cwplayer.Index;
-    if (idx<0) {
+    let playing = this.cwplayer.Playing;
+    let idx = this.cwplayer.Index+1;
+    if (idx<=0) {
       idx = this.cwplayer.Text.length;
     }
-    this.clearzone.innerHTML = "<u>Current text :</u> "+this.cwplayer.Text.substring(0, idx+1);
+    let trc = this.clearzone.rows[0];
+    let trm = this.clearzone.rows[1];
+    trc.innerHTML = trm.innerHTML = '';
+    let nbcells = Math.floor(this.czwrapper.offsetWidth/48);
+    if (nbcells <= 0) return;
+    let text = this.cwplayer.Text.substring(idx-nbcells-1, idx).split('');
+    text.forEach((c,i) => {
+      let lastcell = playing && i == text.length-1;
+      let cell = trc.insertCell();
+      if (lastcell) cell.classList.add('lastchar');
+      cell.innerHTML = c;
+      cell = trm.insertCell();
+      if (lastcell) cell.classList.add('lastchar');
+      cell.innerHTML = CWPlayer.translate(c);
+    });
   }
 }
 
