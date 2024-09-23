@@ -9,7 +9,7 @@ Just hit the "play" button and try to write the letters you copy. When the playe
 </p>
 
 ## Use
-You can use the tool [online](https://spasutto.github.io/cw-trainer/cw-trainer.html) or copy [cw-trainer.html](cw-trainer.html) on your disk or smartphone and you're free to practice anywhere without GSM coverage.
+You can use the tool [online](https://spasutto.github.io/cw-trainer/cw-trainer.html) or click on the floppy disk icon to save it on your disk or smartphone, then you're free to practice anywhere without GSM coverage.
 
 Start with lesson 1, adjust the tonality to your hearing preference, set the WPM to a value between 20 and 25 Words per minute and the Effective speed somewhere between 10 and the WPM speed. Relax, concentrate on your keyboard/paper and hit the "play" button. Try to write the letters you copy, don't try to decode already sent ones, just write the current symbol. When the player stops click "verify" ; If your score is > 90% you can go to the next lesson.
 
@@ -27,11 +27,12 @@ There are 40 lessons consisting in letters/symbols and 2 additional lessons :
 
 ## Reuse
 
-The `CWPlayer` and `MorseAmp` classes (defined at the bottom of [cw-trainer.html](cw-trainer.html)) can be reused :
+The `CWPlayer` and `MorseAmp` classes (defined in [morseplayer.js](morseplayer.js)) can be reused :
 
 ### CWPlayer
 
 ```HTML
+  <script src="morseplayer.js"></script>
   <textarea id="cwtext" rows="4" cols="43" spellcheck="false">CQ CQ CQ DE F8XYZ K</textarea><br>
   <input type="button" onclick="player.play(cwtext.value)" value="play">
   <input type="button" onclick="player.pause()" value="pause">
@@ -43,8 +44,6 @@ The `CWPlayer` and `MorseAmp` classes (defined at the bottom of [cw-trainer.html
   <input type="button" onclick="player.Tone = 700" value="700 Hz">
   <input type="button" onclick="player.Tone = 1500" value="1500 Hz">
   <script>
-    /* replace this comment by the CWPlayer class taken from cw-trainer.html */
-    /* or insert the script as external JS file */
     var player = new CWPlayer();
     //  or specify options
     //var player = new CWPlayer({'wpm': 25, 'effwpm': 12, 'tone': 1200});
@@ -64,6 +63,7 @@ The `CWPlayer` and `MorseAmp` classes (defined at the bottom of [cw-trainer.html
 ### MorseAmp
 
 ```HTML
+  <script src="morseplayer.js"></script>
   <morse-amp id="player1" text="cq cq cq de F8XYZ" displayprogressbar="false" predelay="2"></morse-amp>
   <morse-amp id="player2" displayclearzone="true">this text is played in morse</morse-amp>
   <morse-amp id="player3" wpm="25" effwpm="17" tone="1000">this also</morse-amp>
