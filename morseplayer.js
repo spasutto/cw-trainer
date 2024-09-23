@@ -515,6 +515,18 @@ class MorsePlayer extends HTMLElement {
   connectedCallback() {
     const shadow = this.attachShadow({ mode: "open" });
 
+    // https://stackoverflow.com/a/54355963
+    let slot = document.createElement('slot') ;
+    slot.style.display = 'none';
+    slot.addEventListener('slotchange', (function(e) {
+      let nodes = slot.assignedNodes();
+      let innertext = nodes[0].nodeValue;
+      if (innertext.trim().length>0) {
+        this.cwplayer.Text = innertext.trim();
+      }
+    }).bind(this));
+    shadow.appendChild(slot);   
+
     const wrapper = document.createElement("div");
     wrapper.id="player";
 
