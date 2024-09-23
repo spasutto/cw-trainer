@@ -12,7 +12,7 @@
         font-family: sans-serif;
         margin: 0;
       }
-      morse-amp {
+      morse-player {
         margin-bottom: 5px;
       }
       #zonetrainer {
@@ -29,6 +29,12 @@
         margin: 0px 4px;
         padding: 0px 4px;
         max-width: 380px;
+      }
+      .zonecontrols {
+        width: 100%;
+      }
+      .zonecontrols td {
+        text-align: right;
       }
       #zoneresult {
         display: inline-block;
@@ -257,7 +263,7 @@
         background-color: #fcff43;
       }
       #selfdl {
-        display: none;
+        visibility: hidden;
       }
     </style>
   </head>
@@ -322,7 +328,7 @@
         <label for="groupsnb">Groups : </label>
         <input type="number" id="groupsnb" min="1" max="250">
       </div>
-      <morse-amp id="cwplayer"></morse-amp>
+      <morse-player id="cwplayer"></morse-player>
       <textarea id="cwtext" rows="4" cols="43" spellcheck="false" autocorrect="off"></textarea><br>
       <input type="button" value="submit" id="cwsbm">
       <span id="zonedkb"><input type="checkbox" id="disablekb"><label for="disablekb">disable keyboard</label></span><br>
@@ -338,6 +344,7 @@
 <script>
 const SVG_INACTIF = 'svg_inactif';
 const HASHSEP = '_';
+const FREETEXT_URL = 'https://raw.githubusercontent.com/spasutto/cw-trainer/main/freetext/CharlesDickens-OliverTwist.txt';
 var cwchecking = false;
 var cw_options = {
   lesson : 1,
@@ -446,7 +453,7 @@ async function getUrl(url) {
 async function generateFreeText(minlength = 60, maxlength = 150) {
   // on peut appeler plusieurs fois les URL, normalement elles sont cachées
   loading();
-  let text = (await getUrl('https://raw.githubusercontent.com/spasutto/cw-trainer/main/freetext/CharlesDickens-OliverTwist.txt'))?.trim();
+  let text = window.freetext ?? (await getUrl(FREETEXT_URL));
   loading(false);
   let startoftext = 'CHAPTER I';
   let startidx = text?.indexOf(startoftext);
@@ -910,6 +917,12 @@ async function selfDownload() {
       text = text.replace(occ[i][0], '\u003cscript\u003e\n'+script.replaceAll('$', '$$$$')+'\u003c/script\u003e')
     }
   }
+  if (confirm('Include Oliver Twist (required for offline free text mode)?\nThis will add ~1MB to the final page.')) {
+    let ot = await getUrl(FREETEXT_URL);
+    if (ot) {
+      text = text.replace('\u003c/body\u003e', '\u003cscript\u003e\nvar freetext = `'+ot.replaceAll('$', '$$$$').replaceAll('`', '\\`')+'`;\n\u003c/script\u003e\n\u003c/body\u003e')
+    }
+  }
   var url = window.URL.createObjectURL(new Blob([text], {type: 'text/plain'}));
   var a = document.createElement('a');
   a.href = url;
@@ -1063,7 +1076,7 @@ window.onload = async () => {
     document.addEventListener("touchmove", document.onmousemove);
   }
   chkfree.onchange();//generateText();
-  selfdl.style.display = window.location.href.toLowerCase().startsWith('http') ? 'inline' : 'none';
+  selfdl.style.visibility = window.location.href.toLowerCase().startsWith('http') ? 'visible' : 'hidden';
 };
 window.addEventListener("error", (e) => {
   let err = e;
@@ -1086,7 +1099,7 @@ document.body.onkeydown = (e) => {
   let keyCode = e.keyCode || e.which,
       keys = {space: 32, left: 37, up: 38, right: 39, down: 40 };
   if (keyCode == 27) { // echap
-    document.onmouseup.call(this);
+    [...document.querySelectorAll(MorsePlayer.TAG)].forEach(m => m.mouseup());
   } else if (e.ctrlKey && keyCode != 17) { //17 == left ctrl
     switch (keyCode) {
       case keys.space:

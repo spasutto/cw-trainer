@@ -27,7 +27,7 @@ There are 40 lessons consisting in letters/symbols and 2 additional lessons :
 
 ## Reuse
 
-The `CWPlayer` and `MorseAmp` classes (defined in [morseplayer.js](morseplayer.js)) can be reused :
+The `CWPlayer` and `MorsePlayer` classes (defined in [morseplayer.js](morseplayer.js)) can be reused :
 
 ### CWPlayer
 
@@ -60,11 +60,16 @@ The `CWPlayer` and `MorseAmp` classes (defined in [morseplayer.js](morseplayer.j
   </script>
 ```
 
-### MorseAmp
+### MorsePlayer
 
 ```HTML
   <script src="morseplayer.js"></script>
-  <morse-amp id="player1" text="cq cq cq de F8XYZ" displayprogressbar="false" predelay="2"></morse-amp>
-  <morse-amp id="player2" displayclearzone="true">this text is played in morse</morse-amp>
-  <morse-amp id="player3" wpm="25" effwpm="17" tone="1000">this also</morse-amp>
+  <style>
+    #player2 {
+      width: 380px;
+    }
+  </style>
+  <morse-player id="player1" text="cq cq cq de F8XYZ" displayprogressbar="false" predelay="2"></morse-player>
+  <morse-player id="player2" displayclearzone="true">this text is played in morse</morse-player>
+  <morse-player id="player3" wpm="25" effwpm="17" tone="1000">this also</morse-player>
 ```

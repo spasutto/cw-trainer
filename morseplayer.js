@@ -461,8 +461,8 @@ class CWPlayer {
   }
 }
 
-class MorseAmp extends HTMLElement {
-  static get TAG() { return "morse-amp"; }
+class MorsePlayer extends HTMLElement {
+  static get TAG() { return "morse-player"; }
   static get SVG_INACTIF() { return 'svg_inactif'; }
   static observedAttributes = ['player', 'playing', 'paused', 'autoplay', 'wpm', 'effwpm', 'ews', 'tone', 'predelay', 'text', 'index', 'displayprogressbar', 'displayclearzone'];
   setters = [];
@@ -481,7 +481,7 @@ class MorseAmp extends HTMLElement {
         this.cwplayer = arg;
       } else if (typeof arg === 'object') {
         let aks = Object.keys(arg);
-        if (Object.keys(MorseAmp.DEFAULT_OPTIONS).some(k => aks.includes(k))) {
+        if (Object.keys(MorsePlayer.DEFAULT_OPTIONS).some(k => aks.includes(k))) {
           this.options = arg
         }
       }
@@ -489,8 +489,8 @@ class MorseAmp extends HTMLElement {
     this.init();
   }
   init(options) {
-    this.options = {...MorseAmp.DEFAULT_OPTIONS, ...options};
-    let defaultkeys = Object.keys(MorseAmp.DEFAULT_OPTIONS);
+    this.options = {...MorsePlayer.DEFAULT_OPTIONS, ...options};
+    let defaultkeys = Object.keys(MorsePlayer.DEFAULT_OPTIONS);
     // suppression des options invalides
     Object.keys(this.options).forEach(k => {
       if (!defaultkeys.includes(k)) delete this.options[k];
@@ -687,9 +687,7 @@ class MorseAmp extends HTMLElement {
         }
         return false;
     }
-    document.addEventListener("mouseup", (e) => {
-      this.progresschanging = false;
-    });
+    document.addEventListener("mouseup", this.mouseup.bind(this));
     this.prgcont.addEventListener("mousedown", (e) => {
       let elem = (e.target || e.srcElement);
       if (elem != this.prgcont && !this.prgcont.contains(elem)) return;
@@ -763,7 +761,7 @@ class MorseAmp extends HTMLElement {
 
   async playBoop() { await this.cwplayer.playBoop(); }
   play(text) {
-    [...document.querySelectorAll(MorseAmp.TAG)].forEach(ma => {
+    [...document.querySelectorAll(MorsePlayer.TAG)].forEach(ma => {
       if (ma.Player != this.cwplayer) ma.Player?.pause();
     });
     this.cwplayer.play(text);
@@ -778,7 +776,10 @@ class MorseAmp extends HTMLElement {
   addEventListener(evtname, cb) { this.cwplayer.addEventListener(evtname, cb); }
   on(evtname, cb) { this.cwplayer.addEventListener(evtname, cb); }
   removeEventListener(evtname, cb=null) { this.cwplayer.removeEventListener(evtname, cb); }
-  
+
+  mouseup() {
+    this.progresschanging = false;
+  }
   mousemove(e) {
     if (!this.progresschanging || !this.cwplayer || this.cwplayer.TotalTime <= 0) return;
     let clientX = e.clientX ?? (e?.touches?.length>0?e.touches[0].clientX:0);
@@ -810,9 +811,9 @@ class MorseAmp extends HTMLElement {
     
     let applyClass = (btn) => {
       if (btn.disabled) {
-        btn.classList.add(MorseAmp.SVG_INACTIF);
+        btn.classList.add(MorsePlayer.SVG_INACTIF);
       } else {
-        btn.classList.remove(MorseAmp.SVG_INACTIF);
+        btn.classList.remove(MorsePlayer.SVG_INACTIF);
       }
     }
     applyClass(this.btnstop);
@@ -843,4 +844,4 @@ class MorseAmp extends HTMLElement {
   }
 }
 
-customElements.define(MorseAmp.TAG, MorseAmp);
+customElements.define(MorsePlayer.TAG, MorsePlayer);
