@@ -201,7 +201,8 @@ class CWPlayer {
       this.fireEvent('parameterchanged', 'Text');
       this.fireEvent('indexchanged');
       if (this.playing) {
-        this.schedule();
+        //this.itime.findIndex(s => s >= this.context.currentTime + 0.100);
+        this.schedule(null, this.curti+2);
       } else if (this.options.autoplay) {
         this.play();
       }
@@ -363,20 +364,21 @@ class CWPlayer {
   }
   play(text) {
     if (this.playing || this.booping) return;
-    if (typeof text === 'string') this.Text = text;
-    if (this.text.length == 0) return;
     if (!this.context) {
       this.#initAudio();
     }
+    this.playing = true;
+    this.paused = false;
+    if (typeof text === 'string') this.Text = text;
+    if (this.text.length == 0) return;
     if (this.starttime==0) {
       this.totalpausetime = 0;
-      this.lastpausetime = this.starttime = this.context.currentTime+Number.EPSILON; // au premier coup -> après initaudio currentTime vaut 0
+      // au premier coup -> après initaudio currentTime vaut 0
+      this.lastpausetime = this.starttime = this.context.currentTime+Number.EPSILON;
     }
     this.gain.gain.value = 0;
     //this.gain.connect(this.context.destination);
 
-    this.playing = true;
-    this.paused = false;
     this.schedule(this.lastpausetime-this.starttime-this.totalpausetime);
     if (this.lastpausetime > 0) {
       this.totalpausetime += (this.context.currentTime-this.lastpausetime);
@@ -400,16 +402,23 @@ class CWPlayer {
       this.stop();
     }
   }
-  schedule(timefromstart) {
+  schedule(timefromstart, startindex) {
     if (!this.context || !this.playing) return;
     this.osc.frequency.value = this.options.tone;
+    if (typeof startindex !== 'number') {
+      startindex = 0;
+    } else if (startindex < 0) {
+      startindex = 0;
+    }
     let it = this.context.currentTime;
     if (typeof timefromstart !== 'number') {
       timefromstart = this.context.currentTime-this.starttime-this.totalpausetime;
     }
-    timefromstart-=this.stopSound();
+    if (startindex == 0) {
+      timefromstart-=this.stopSound();
+    }
     let t=0;
-    for (let i=0; i<this.stime.length; i++) {
+    for (let i=startindex; i<this.stime.length; i++) {
       t = this.stime[i];
       if (t<timefromstart) continue;
       t-=timefromstart;
@@ -422,7 +431,9 @@ class CWPlayer {
       }
     }
     this.endtime = it + this.stime[this.stime.length-1] - timefromstart;
-    this.startStopWaiter();
+    if (startindex == 0) {
+      this.startStopWaiter();
+    }
   }
   /*
     https://morsecode.world/international/timing.html
