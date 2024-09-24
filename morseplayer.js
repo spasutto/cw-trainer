@@ -208,7 +208,7 @@ class CWPlayer {
         let startindex = Math.min(this.curti+2, CWPlayer.sharedStart([oldtext, value]).length);
         //cwplayer.Text='aaaa';window.setTimeout(()=>{cwplayer.Text='aann';}, 1400);
         //console.log(`rescheduling @${startindex}, silence starting from ${this.itime[startindex-1]} (${(this.context.currentTime-this.starttime-this.totalpausetime)+this.itime[startindex-1]}) (${oldtext}/${value})`, this.itime);
-        this.gain.gain.cancelScheduledValues((this.context.currentTime-this.starttime-this.totalpausetime)+this.itime[startindex-1]);
+        //this.gain.gain.cancelScheduledValues((this.context.currentTime-this.starttime-this.totalpausetime)+this.itime[startindex-1]);
         this.schedule(null, startindex);
       } else if (this.options.autoplay) {
         this.play();
@@ -343,7 +343,6 @@ class CWPlayer {
     this.booping = false;
   }
   stopSound() {
-    this.gain.gain.cancelScheduledValues(this.context.currentTime);
     let curGain = this.gain.gain.value;
     if (curGain > 0) {
       let stopTime = this.context.currentTime + 0.005;
@@ -363,6 +362,7 @@ class CWPlayer {
     }
     if (this.playing) {
       this.playing = false;
+      this.gain.gain.cancelScheduledValues(this.context.currentTime);
       this.stopSound();
       /*try {
         this.gain.disconnect(this.context.destination);
@@ -427,7 +427,10 @@ class CWPlayer {
       timefromstart = this.context.currentTime-this.starttime-this.totalpausetime;
     }
     if (startindex == 0) {
+      this.gain.gain.cancelScheduledValues(it);
       timefromstart-=this.stopSound();
+    } else {
+      this.gain.gain.cancelScheduledValues(this.starttime+this.totalpausetime+this.itime[startindex?startindex-1:0]);
     }
     let t=0;
     for (let i=startindex; i<this.stime.length; i++) {
