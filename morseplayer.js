@@ -67,6 +67,7 @@ class CWPlayer {
   };
   elperiod = 0.06; // 20WPM.
   spperiod = 0.06;
+  rampperiod = 0.005;
   constructor(options) {
     this.text = '';
     this.curti = -1;
@@ -333,11 +334,11 @@ class CWPlayer {
     let t = initTime;
     this.osc.frequency.setValueAtTime(500, t);
     this.gain.gain.setValueAtTime(0, t);
-    this.gain.gain.linearRampToValueAtTime(1, t + 0.005);
+    this.gain.gain.linearRampToValueAtTime(1, t + this.rampperiod);
     t += 0.1;
     this.osc.frequency.setValueAtTime(250, t);
     t += 0.1;
-    this.gain.gain.setValueAtTime(1, t - 0.005);
+    this.gain.gain.setValueAtTime(1, t - this.rampperiod);
     this.gain.gain.linearRampToValueAtTime(0, t);
     await CWPlayer.delay(t-initTime);
     this.booping = false;
@@ -345,10 +346,10 @@ class CWPlayer {
   stopSound() {
     let curGain = this.gain.gain.value;
     if (curGain > 0) {
-      let stopTime = this.context.currentTime + 0.005;
+      let stopTime = this.context.currentTime + this.rampperiod;
       this.gain.gain.linearRampToValueAtTime(curGain, this.context.currentTime);
       this.gain.gain.linearRampToValueAtTime(0, stopTime);
-      return 0.005;
+      return this.rampperiod;
     }
     return 0;
   }
@@ -438,11 +439,11 @@ class CWPlayer {
       if (t<timefromstart || isNaN(t)) continue;
       t-=timefromstart;
       if (i%2) {
-        this.gain.gain.setValueAtTime(1, it+t - 0.005);
+        this.gain.gain.setValueAtTime(1, it+t - this.rampperiod);
         this.gain.gain.linearRampToValueAtTime(0, it+t);
       } else {
         this.gain.gain.setValueAtTime(0, it+t);
-        this.gain.gain.linearRampToValueAtTime(1, it+t + 0.005);
+        this.gain.gain.linearRampToValueAtTime(1, it+t + this.rampperiod);
       }
     }
     if (this.stime.length > 0) {
