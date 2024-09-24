@@ -1094,7 +1094,7 @@ window.addEventListener("error", (e) => {
   console.error(err)
   return false;
 });
-document.body.onkeydown = (e) => {
+document.body.onkeyup = (e) => {
   if (!cwplayer) return;
   e = e || window.event;
   let keyCode = e.keyCode || e.which,

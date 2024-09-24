@@ -364,21 +364,20 @@ class CWPlayer {
   }
   play(text) {
     if (this.playing || this.booping) return;
+    if (typeof text === 'string') this.Text = text;
+    if (this.text.length == 0) return;
     if (!this.context) {
       this.#initAudio();
     }
-    this.playing = true;
-    this.paused = false;
-    if (typeof text === 'string') this.Text = text;
-    if (this.text.length == 0) return;
     if (this.starttime==0) {
       this.totalpausetime = 0;
-      // au premier coup -> après initaudio currentTime vaut 0
-      this.lastpausetime = this.starttime = this.context.currentTime+Number.EPSILON;
+      this.lastpausetime = this.starttime = this.context.currentTime+Number.EPSILON; // au premier coup -> après initaudio currentTime vaut 0
     }
     this.gain.gain.value = 0;
     //this.gain.connect(this.context.destination);
 
+    this.playing = true;
+    this.paused = false;
     this.schedule(this.lastpausetime-this.starttime-this.totalpausetime);
     if (this.lastpausetime > 0) {
       this.totalpausetime += (this.context.currentTime-this.lastpausetime);
@@ -407,8 +406,8 @@ class CWPlayer {
     this.osc.frequency.value = this.options.tone;
     if (typeof startindex !== 'number') {
       startindex = 0;
-    } else if (startindex < 0) {
-      startindex = 0;
+    } else {
+      startindex = Math.min(this.text.length-1, Math.max(0, startindex));
     }
     let it = this.context.currentTime;
     if (typeof timefromstart !== 'number') {
@@ -420,7 +419,7 @@ class CWPlayer {
     let t=0;
     for (let i=startindex; i<this.stime.length; i++) {
       t = this.stime[i];
-      if (t<timefromstart) continue;
+      if (t<timefromstart || isNaN(t)) continue;
       t-=timefromstart;
       if (i%2) {
         this.gain.gain.setValueAtTime(1, it+t - 0.005);
@@ -430,9 +429,11 @@ class CWPlayer {
         this.gain.gain.linearRampToValueAtTime(1, it+t + 0.005);
       }
     }
-    this.endtime = it + this.stime[this.stime.length-1] - timefromstart;
-    if (startindex == 0) {
+    if (this.stime.length > 0) {
+      this.endtime = it + this.stime[this.stime.length-1] - timefromstart;
       this.startStopWaiter();
+    } else {
+      this.stop();
     }
   }
   /*
