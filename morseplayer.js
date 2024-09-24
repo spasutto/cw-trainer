@@ -640,6 +640,7 @@ class MorsePlayer extends HTMLElement {
       }
       #czwrapper {
         background-color: #ccc;
+        border-left: solid 2px #ccc;
         overflow: hidden;
         margin-left:auto;
         margin-right:auto;
