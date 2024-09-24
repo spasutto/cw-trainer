@@ -358,7 +358,8 @@ var cw_options = {
   predelay : 2,
   tone : 800
 };
-var kochcars = ['K', 'M', 'U', 'R', 'E', 'S', 'N', 'A', 'P', 'T', 'L', 'W', 'I', '.', 'J', 'Z', '=', 'F', 'O', 'Y', ',', 'V', 'G', '5', '/', 'Q', '9', '2', 'H', '3', '8', 'B', '?', '4', '7', 'C', '1', 'D', '6', '0', 'X'];
+const KOCHCARS = ['K', 'M', 'U', 'R', 'E', 'S', 'N', 'A', 'P', 'T', 'L', 'W', 'I', '.', 'J', 'Z', '=', 'F', 'O', 'Y', ',', 'V', 'G', '5', '/', 'Q', '9', '2', 'H', '3', '8', 'B', '?', '4', '7', 'C', '1', 'D', '6', '0', 'X'];
+const ALPHA = "ABCDEFGHIJKLMNPQRSTUVWXYZ";
 var QSOs = [
   //http://lidscw.org/resources/cq-qso-template
   'CQ CQ CQ DE %IND1% %IND1% %IND1% PSE K',
@@ -422,8 +423,7 @@ function generateRandomFirstname(excepted=null) {
   return fname;
 }
 function generateRandomCallsign(excepted=null) {
-  const alpha = "ABCDEFGHIJKLMNPQRSTUVWXYZ";
-  let rdnchar = () => alpha.charAt(irand(alpha.length));
+  let rdnchar = () => ALPHA.charAt(irand(ALPHA.length));
   let cs = null;
   do {
     cs = rdnchar()+(Math.random()>0.98 ?rdnchar():'')+irand(1, 9)+rdnchar()+rdnchar()+(Math.random()>0.2?rdnchar():'')+(Math.random()>0.95 ?'/'+(Math.random()>=0.5?'P':'M'):'');
@@ -506,13 +506,18 @@ async function generateText() {
     cwplayer.Text = '';
     if (chkfree.checked) {
       let maxlesson = Math.min(40, cw_options.lesson);
-      let letters = kochcars.slice(0, maxlesson+1);
-      if (chkweightlastletters.checked) {
-        // lettres "nouvelles"
-        let newletters = kochcars.slice(Math.max(0, maxlesson-2), maxlesson+1);
-        // plus de poids pour les lettres nouvelles
-        let nbi = Math.max(1, Math.round(maxlesson/8));
-        for(let i=0; i<nbi; i++) letters.push(...newletters);
+      let letters = null;
+      if (cw_options.lesson == 41) {
+        letters = ALPHA.split('');
+      } else {
+        letters = KOCHCARS.slice(0, maxlesson+1);
+        if (chkweightlastletters.checked) {
+          // lettres "nouvelles"
+          let newletters = KOCHCARS.slice(Math.max(0, maxlesson-2), maxlesson+1);
+          // plus de poids pour les lettres nouvelles
+          let nbi = Math.max(1, Math.round(maxlesson/8));
+          for(let i=0; i<nbi; i++) letters.push(...newletters);
+        }
       }
       cwgentext = generateRandomString(letters, 1);
       cwplayer.PreDelay = 0;
@@ -535,16 +540,17 @@ async function generateText() {
     } else if (cw_options.lesson==43) {
       cwgentext = await generateFreeText();
     } else {
+      let maxlesson = Math.min(40, cw_options.lesson);
       let letters = null;
       if (cw_options.lesson == 41) {
-        letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
+        letters = ALPHA.split('');
       } else {
-        letters = kochcars.slice(0, cw_options.lesson+1);
+        letters = KOCHCARS.slice(0, maxlesson+1);
         if (chkweightlastletters.checked) {
           // lettres "nouvelles"
-          let newletters = kochcars.slice(Math.max(0, cw_options.lesson-2), cw_options.lesson+1);
+          let newletters = KOCHCARS.slice(Math.max(0, maxlesson-2), maxlesson+1);
           // plus de poids pour les lettres nouvelles
-          let nbi = Math.max(1, Math.round(cw_options.lesson/8));
+          let nbi = Math.max(1, Math.round(maxlesson/8));
           for(let i=0; i<nbi; i++) letters.push(...newletters);
         }
       }
@@ -788,12 +794,12 @@ async function verifycw() {
     cwsbm.disabled = true;
     let extractfn = (t) => [CWPlayer.cleanText(t.trim()).replaceAll('\t', ' ')];
     // hormis pour les QSOs on travaille par mot => on recompare mot par mot
-    if (cw_options.lesson <= 40) {
+    if (cw_options.lesson <= 41) {
       extractfn = (t) => CWPlayer.cleanText(t.trim()).replaceAll('\t', ' ').split(' ').filter(e => e.length > 0);
     }
     let inpt = extractfn(cwtext.value);
     let verif = extractfn(cwplayer.Text);
-    let ignorewhitespaces = cw_options.lesson <= 40;
+    let ignorewhitespaces = cw_options.lesson <= 41;
     let results = verif.map((a, i) => compareStrings(a, inpt[i] ?? '', true, ignorewhitespaces));
     let nbchars = verif.reduce((acc, cur) => acc+cur.length, 0);
     let nberr = results.reduce((acc, cur) => acc+cur.errors, 0);
@@ -865,7 +871,7 @@ async function verifycw() {
     results.forEach(r => {
       r.str2bk = r.str2;
       // hormis pour les QSOs on travaille par mot
-      if (cw_options.lesson <= 40) {
+      if (cw_options.lesson <= 41) {
         r.str1 = r.str1.replaceAll(/\s/g, '\n');
         r.str2 = r.str2.replaceAll(/\s/g, '\n');
         r.str2 = formatTestString(r).replaceAll(/\s/g, '<BR>').replaceAll('<span<BR>class="', '<span class="');
