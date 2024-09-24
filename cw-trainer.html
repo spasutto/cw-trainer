@@ -284,8 +284,9 @@
           <label for="sellesson">Lesson : </label>
           <input type="button" id="prevlesson" value="&lt;"><select id="sellesson">
             <option value='1'>1 - K, M</option><option value='2'>2 - U</option><option value='3'>3 - R</option><option value='4'>4 - E</option><option value='5'>5 - S</option><option value='6'>6 - N</option><option value='7'>7 - A</option><option value='8'>8 - P</option><option value='9'>9 - T</option><option value='10'>10 - L</option><option value='11'>11 - W</option><option value='12'>12 - I</option><option value='13'>13 - .</option><option value='14'>14 - J</option><option value='15'>15 - Z</option><option value='16'>16 - =</option><option value='17'>17 - F</option><option value='18'>18 - O</option><option value='19'>19 - Y</option><option value='20'>20 - ,</option><option value='21'>21 - V</option><option value='22'>22 - G</option><option value='23'>23 - 5</option><option value='24'>24 - /</option><option value='25'>25 - Q</option><option value='26'>26 - 9</option><option value='27'>27 - 2</option><option value='28'>28 - H</option><option value='29'>29 - 3</option><option value='30'>30 - 8</option><option value='31'>31 - B</option><option value='32'>32 - ?</option><option value='33'>33 - 4</option><option value='34'>34 - 7</option><option value='35'>35 - C</option><option value='36'>36 - 1</option><option value='37'>37 - D</option><option value='38'>38 - 6</option><option value='39'>39 - 0</option><option value='40'>40 - X</option>
-            <option value='41'>QSO</option>
-            <option value='42'>Free Text</option>
+            <option value='41'>Letters</option>
+            <option value='42'>QSO</option>
+            <option value='43'>Free Text</option>
           </select><input type="button" id="nxtlesson" value="&gt;">
         </td>
       </tr>
@@ -515,7 +516,7 @@ async function generateText() {
       }
       cwgentext = generateRandomString(letters, 1);
       cwplayer.PreDelay = 0;
-    } else if (cw_options.lesson==41) {
+    } else if (cw_options.lesson==42) {
       let callsign1 = generateRandomCallsign();
       let callsign2 = generateRandomCallsign(callsign1);
       let name1 = generateRandomFirstname();
@@ -531,16 +532,21 @@ async function generateText() {
           .replaceAll('%RST2%', ''+irand(1, 5)+irand(1, 9)+irand(1, 9))
           .replaceAll('%PWR1%', ''+irand(1, 10)*10)
           .replaceAll('%PWR2%', ''+irand(1, 10)*10);
-    } else if (cw_options.lesson==42) {
+    } else if (cw_options.lesson==43) {
       cwgentext = await generateFreeText();
     } else {
-      let letters = kochcars.slice(0, cw_options.lesson+1);
-      if (chkweightlastletters.checked) {
-        // lettres "nouvelles"
-        let newletters = kochcars.slice(Math.max(0, cw_options.lesson-2), cw_options.lesson+1);
-        // plus de poids pour les lettres nouvelles
-        let nbi = Math.max(1, Math.round(cw_options.lesson/8));
-        for(let i=0; i<nbi; i++) letters.push(...newletters);
+      let letters = null;
+      if (cw_options.lesson == 41) {
+        letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
+      } else {
+        letters = kochcars.slice(0, cw_options.lesson+1);
+        if (chkweightlastletters.checked) {
+          // lettres "nouvelles"
+          let newletters = kochcars.slice(Math.max(0, cw_options.lesson-2), cw_options.lesson+1);
+          // plus de poids pour les lettres nouvelles
+          let nbi = Math.max(1, Math.round(cw_options.lesson/8));
+          for(let i=0; i<nbi; i++) letters.push(...newletters);
+        }
       }
       cwgentext = generateRandomText(letters, cw_options.grouplen, cw_options.groupsnb);
     }
@@ -975,7 +981,7 @@ function loadParams() {
     if (isNaN(val)) return;
     switch (i) {
       case 0:
-        cw_options.lesson = Math.max(1, Math.min(42, Math.trunc(val)));
+        cw_options.lesson = Math.max(1, Math.min(43, Math.trunc(val)));
         break;
       case 1:
         cw_options.wpm = Math.max(CWPlayer.MIN_WPM, Math.min(CWPlayer.MAX_WPM, Math.trunc(val)));
@@ -1190,7 +1196,7 @@ prevlesson.onclick = () => {
   chkfree.onchange.call(this);
 };
 nxtlesson.onclick = () => {
-  sellesson.value = Math.min(42, parseInt(sellesson.value, 10)+1);
+  sellesson.value = Math.min(43, parseInt(sellesson.value, 10)+1);
   chkfree.onchange.call(this);
 };
 chkfreelisten.onchange = chkfree.onchange;
