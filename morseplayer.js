@@ -189,6 +189,8 @@ class CWPlayer {
   }
   set Text(value) {
     value = CWPlayer.cleanText(value);
+    let oldtext = this.text;
+    if (value == oldtext) return;
     // si on modifie le texte qui a déjà été joué on remet la lecture à 0
     if (this.curti>=0 && (value.length<=this.curti || value.substring(0, this.curti) != this.text.substring(0, this.curti))) {
       this.text = value;
@@ -202,7 +204,12 @@ class CWPlayer {
       this.fireEvent('indexchanged');
       if (this.playing) {
         //this.itime.findIndex(s => s >= this.context.currentTime + 0.100);
-        this.schedule(null, this.curti+2);
+        //let startindex = this.curti+2;
+        let startindex = Math.min(this.curti+2, CWPlayer.sharedStart([oldtext, value]).length);
+        //cwplayer.Text='aaaa';window.setTimeout(()=>{cwplayer.Text='aann';}, 1400);
+        //console.log(`rescheduling @${startindex}, silence starting from ${this.itime[startindex-1]} (${(this.context.currentTime-this.starttime-this.totalpausetime)+this.itime[startindex-1]}) (${oldtext}/${value})`, this.itime);
+        this.gain.gain.cancelScheduledValues((this.context.currentTime-this.starttime-this.totalpausetime)+this.itime[startindex-1]);
+        this.schedule(null, startindex);
       } else if (this.options.autoplay) {
         this.play();
       }
@@ -292,6 +299,12 @@ class CWPlayer {
 
   static async delay(s) {
     return new Promise(res => setTimeout(res, s*1000));
+  }
+  static sharedStart(array){
+    var A= array.concat().sort(), 
+    a1= A[0], a2= A[A.length-1], L= a1.length, i= 0;
+    while(i<L && a1.charAt(i)=== a2.charAt(i)) i++;
+    return a1.substring(0, i);
   }
 
   #initAudio() {
