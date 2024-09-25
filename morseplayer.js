@@ -156,7 +156,7 @@ class CWPlayer {
     value = Math.min(CWPlayer.MAX_TONE, Math.max(CWPlayer.MIN_TONE, value));
     this.options.tone = value;
     if (this.context) {
-      this.osc.frequency.value = this.options.tone;
+      this.osc.frequency.setValueAtTime(this.options.tone, this.context.currentTime);
     }
     this.fireEvent('parameterchanged', 'Tone');
   }
@@ -286,10 +286,10 @@ class CWPlayer {
   }
   static translate(text) {
     text = CWPlayer.cleanText(text);
-    return CWPlayer.#internalTranslate(text);
+    return CWPlayer.internalTranslate(text);
   }
   static isSpace(c) { return c == ' ' || c == '\t'; }
-  static #internalTranslate(text) {
+  static internalTranslate(text) {
     let cwtext = '';
     for (let i=0; i<text.length; i++) {
       if (i>0 && !CWPlayer.isSpace(text[i-1]) && !CWPlayer.isSpace(text[i])) cwtext += ' '; // on rajoute un espace après tout caractère (sauf si le celui-ci ou le courant est un espace)
@@ -308,7 +308,7 @@ class CWPlayer {
     return a1.substring(0, i);
   }
 
-  #initAudio() {
+  initAudio() {
     if (this.context) {
       return;
     }
@@ -325,7 +325,7 @@ class CWPlayer {
     if (this.playing) {
       this.stop();
     } else if (!this.context) {
-      this.#initAudio();
+      this.initAudio();
     }
     this.gain.connect(this.context.destination);
     this.booping = true;
@@ -381,7 +381,7 @@ class CWPlayer {
     if (typeof text === 'string') this.Text = text;
     if (this.text.length == 0) return;
     if (!this.context) {
-      this.#initAudio();
+      this.initAudio();
     }
     if (this.starttime==0) {
       this.totalpausetime = 0;
@@ -417,13 +417,13 @@ class CWPlayer {
   }
   schedule(timefromstart, startindex) {
     if (!this.context || !this.playing) return;
-    this.osc.frequency.value = this.options.tone;
+    let it = this.context.currentTime;
+    this.osc.frequency.setValueAtTime(this.options.tone, it);
     if (typeof startindex !== 'number') {
       startindex = 0;
     } else {
       startindex = Math.min(this.text.length-1, Math.max(0, startindex));
     }
-    let it = this.context.currentTime;
     if (typeof timefromstart !== 'number') {
       timefromstart = this.context.currentTime-this.starttime-this.totalpausetime;
     }
@@ -463,7 +463,7 @@ class CWPlayer {
     let d = Math.max(0, this.options.predelay), k = 0, inchar = false;
     this.itime.push(d);
 
-    CWPlayer.#internalTranslate(this.text).split('').forEach(c => {
+    CWPlayer.internalTranslate(this.text).split('').forEach(c => {
       switch (c) {
         case ' ':
           d += this.spperiod*3;
