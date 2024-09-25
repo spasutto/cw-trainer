@@ -331,7 +331,7 @@ class CWPlayer {
     this.booping = true;
 
     let initTime = this.context.currentTime;
-    let t = initTime;
+    let t = initTime+0.05;
     this.osc.frequency.setValueAtTime(500, t);
     this.gain.gain.setValueAtTime(0, t);
     this.gain.gain.linearRampToValueAtTime(1, t + this.rampperiod);

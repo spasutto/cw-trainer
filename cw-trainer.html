@@ -917,7 +917,7 @@
     [...document.querySelectorAll('a[name="listen"]')].forEach(e => e.classList.remove('active'));
     if (elem) elem.classList.add('active');
     cwsbm.disabled = true;
-    cwplayer.PreDelay=0.1;
+    cwplayer.PreDelay=0.05;
     cwplayer.play(text);
   }
   async function selfDownload() {
@@ -1145,7 +1145,7 @@
     zonewords.style.display = sellesson.value < 42?'block':'none';
     chkweightlastletters.style.display = lblweightlastletters.style.display = sellesson.value < 41?'inline':'none';
     cwsbm.disabled = chkfreelisten.checked;
-    cwplayer.PreDelay = chkfree.checked || chkfreelisten.checked ? 0.1 : 2;
+    cwplayer.PreDelay = chkfree.checked || chkfreelisten.checked ? 0.05 : 2;
     if (chkfree.checked) {
       iptfree.focus();
     } else {
