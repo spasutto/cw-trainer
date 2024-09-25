@@ -225,6 +225,10 @@
         text-align: center;
         text-transform: uppercase;
       }
+      #iptfree.nocarret {
+        color: transparent;
+        text-shadow: 0 0 0 white;
+      }
       #keyboard {
         display: none;
         margin-top : 3px;
@@ -495,7 +499,7 @@
   }
   async function generateText() {
     if (!cwplayer) return;
-    if (cwplayer.Playing) await cwplayer.stop();
+    if (cwplayer.Playing) cwplayer.stop();
     cw_options.lesson = parseInt(sellesson.value, 10);
     cwplayer.WPM = cw_options.wpm = parseInt(selwpm.value, 10);
     cwplayer.EffWPM = cw_options.eff = parseInt(seleffwpm.value, 10);
@@ -770,27 +774,35 @@
         cwchecking = false;
         return;
       }
+      iptfree.classList.add('nocarret');
       if (iptfree.value.toUpperCase() != cwplayer.Text[0]) {
         iptfree.classList.add('error');
+        CWPlayer.delay(0.35).then(() => {
+          iptfree.classList.remove('error');
+          iptfree.classList.remove('nocarret');
+        });
         cwplayer.stop();
-        //play boop
         await cwplayer.playBoop();
-        iptfree.classList.remove('error');
         if (window.freefirsttry) {
           window.freefirsttry = false;
           window.freeerr++;
         }
+        iptfree.value = '';
       } else {
         iptfree.classList.add('ok');
-        CWPlayer.delay(0.15).then(() => iptfree.classList.remove('ok'));
-        await generateText();
+        CWPlayer.delay(0.35).then(() => {
+          iptfree.classList.remove('ok');
+          iptfree.classList.remove('nocarret');
+          iptfree.value = '';
+        });
+        generateText();
         cwplayer.play();
         window.freetotal++;
         window.freefirsttry = true;
       }
+      
       zoneresultfree.innerHTML = `Success rate : ${Math.round((100*(freetotal-freeerr)/freetotal)*10)/10}% (${window.freetotal-1} symbols)`;
-  
-      iptfree.value = '';
+
       iptfree.focus();
     } else {
       if (chkfreelisten.checked) {

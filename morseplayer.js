@@ -75,6 +75,7 @@ class CWPlayer {
     this.stime = [];
     this.booping = this.playing = this.paused = false;
     this.events = {};
+    this.onplayend = null;
     this.init(options);
   }
   init(options) {
@@ -365,6 +366,10 @@ class CWPlayer {
       this.playing = false;
       this.gain.gain.cancelScheduledValues(this.context.currentTime);
       this.stopSound();
+      if (this.onplayend) {
+        this.onplayend();
+        this.onplayend = null;
+      }
       /*try {
         this.gain.disconnect(this.context.destination);
       } catch(e) {}*/
@@ -376,28 +381,37 @@ class CWPlayer {
     this.lastpausetime = this.context.currentTime;
     return this.stop(true);
   }
-  play(text) {
-    if (this.playing || this.booping) return;
-    if (typeof text === 'string') this.Text = text;
-    if (this.text.length == 0) return;
-    if (!this.context) {
-      this.initAudio();
-    }
-    if (this.starttime==0) {
-      this.totalpausetime = 0;
-      this.lastpausetime = this.starttime = this.context.currentTime+Number.EPSILON; // au premier coup -> après initaudio currentTime vaut 0
-    }
-    this.gain.gain.value = 0;
-    //this.gain.connect(this.context.destination);
-
-    this.playing = true;
-    this.paused = false;
-    this.schedule(this.lastpausetime-this.starttime-this.totalpausetime);
-    if (this.lastpausetime > 0) {
-      this.totalpausetime += (this.context.currentTime-this.lastpausetime);
-      this.lastpausetime = 0;
-    }
-    this.fireEvent('play');
+  async play(text) {
+    return new Promise(res => {
+      if (this.playing || this.booping) {
+        res();
+        return;
+      }
+      if (typeof text === 'string') this.Text = text;
+      if (this.text.length == 0) {
+        res();
+        return;
+      }
+      this.onplayend = res;
+      if (!this.context) {
+        this.initAudio();
+      }
+      if (this.starttime==0) {
+        this.totalpausetime = 0;
+        this.lastpausetime = this.starttime = this.context.currentTime+Number.EPSILON; // au premier coup -> après initaudio currentTime vaut 0
+      }
+      this.gain.gain.value = 0;
+      //this.gain.connect(this.context.destination);
+  
+      this.playing = true;
+      this.paused = false;
+      this.schedule(this.lastpausetime-this.starttime-this.totalpausetime);
+      if (this.lastpausetime > 0) {
+        this.totalpausetime += (this.context.currentTime-this.lastpausetime);
+        this.lastpausetime = 0;
+      }
+      this.fireEvent('play');
+    });
   }
   async startStopWaiter() {
     let localTime = performance.now();
@@ -809,11 +823,11 @@ class MorsePlayer extends HTMLElement {
   }
 
   async playBoop() { await this.cwplayer.playBoop(); }
-  play(text) {
+  async play(text) {
     [...document.querySelectorAll(MorsePlayer.TAG)].forEach(ma => {
       if (ma.Player != this.cwplayer) ma.Player?.pause();
     });
-    this.cwplayer.play(text);
+    await this.cwplayer.play(text);
   }
   pause() {
     this.cwplayer.pause();
