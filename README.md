@@ -31,7 +31,7 @@ There are 40 lessons consisting in letters/symbols and 3 additional lessons :
 The `CWPlayer` and `MorsePlayer` classes (defined in [morseplayer.js](morseplayer.js)) can be reused :
 
 ### CWPlayer
-
+More infos & samples [here](cwplayer.md)
 ```HTML
   <script src="morseplayer.js"></script>
   <textarea id="cwtext" rows="4" cols="43" spellcheck="false">CQ CQ CQ DE F8XYZ K</textarea><br>
@@ -62,7 +62,7 @@ The `CWPlayer` and `MorsePlayer` classes (defined in [morseplayer.js](morseplaye
 ```
 
 ### MorsePlayer
-
+More infos & samples [here](morseplayer.md)
 ```HTML
   <script src="morseplayer.js"></script>
   <style>

@@ -1,0 +1,100 @@
+# MorsePlayer
+
+## Usage
+
+import `morseplayer.js` (in `head` or `body`)
+```HTML
+<script src="morseplayer.js"></script>
+```
+Insert the player
+```HTML
+<morse-player>cq cq cq de F8XYZ</morse-player>
+```
+**Or**, in JS :
+```Javascript
+window.addEventListener("load", (event) => {
+  let mp = new MorsePlayer({wpm:25});
+  document.body.appendChild(mp);
+  mp.play('Hello world !');
+});
+```
+### Styling
+By default `morse-player` stretches and use full width. However you can define a specific width :
+```HTML
+<style>
+morse-player {
+    width: 380px;
+}
+</style>
+```
+
+## Attributes
+The `morse-player` tag accept some attributes (case insensitive) :
+ - **text** : the text to play (can also be set inside the `morse-player` tags)
+ - **wpm** (_default to 20 wpm_) : the speed in word per minute
+ - **effwpm** (_default to 20 wpm_) : the effective speed in word per minute (see [Learning Methods](https://en.wikipedia.org/wiki/Morse_code#Learning_methods) and [Farnsworth speed](http://www.arrl.org/files/file/Technology/x9004008.pdf))
+ - **ews** (_default to 0 s_) : Extra Word Space, a space in seconds added to the normal space between words
+ - **tone** (_default to 800Hz_) : the tonality
+ - **predelay** (_default to 0 s_) : a time in seconds before playing the first symbol
+ - **autoplay** (_default to false_) : if set to "true", a change in the text automatically starts playing
+ - **displayprogessbar** (_default to true_) : if set to false the playing/progress bar is hidden
+ - **displayclearzone** (_default to false_) : if set to true, a zone under the player displays the currently playing symbols
+
+## MorsePlayer instance's properties
+ - **Playing** : the player is currently playing
+ - **Paused** : the player is currently paused
+ - **WPM** : get or set the WPM
+ - **EffWPM** : get or set the Effective WPM (see [Learning Methods](https://en.wikipedia.org/wiki/Morse_code#Learning_methods) and [Farnsworth speed](http://www.arrl.org/files/file/Technology/x9004008.pdf))
+ - **EWS** : get or set Extra Word Space
+ - **Tone** : get or set tone's frequency
+ - **PreDelay** : get or set the delay before playing firs symbol
+ - **Text** : get or set the text to play. Text is "cleaned" :
+```Javascript
+player.Text = "StrÀngé ïnpùt tèxt";
+console.log(player.Text);
+// 'STRANGE INPUT TEXT'
+```
+ - **Index** : get or set the playing's index (in the Text property)
+ - **DisplayProgressBar** : display/hide the progress bar
+ - **DisplayClearZone** : display/hide the clear text zone (currently playing)
+
+## Methods
+### _constructor(options)_
+`new MorsePlayer(options)` : options are the same as those used in the [attribute section](#attributes).
+
+### async play(text)
+`play` method start the morse playing of the text. The text can be passed in parameter otherwise it's come from `Text` property and is cleaned. The method returns a promise wich is fulfilled at the first pause or at the end of the playing.
+```Javascript
+await player.play('test');
+await player.play('this text is read after the first has finished');
+```
+_Note_ : `play()` automatically pauses others instances of MorsePlayer on the page
+
+### pause()
+stops the playing
+
+### stop()
+stops the playing and reset the current playing time
+
+### playBoop()
+play a 'boop' sound (used for wrong entry in simple mode)
+
+### addEventListener(event_name, func) / on(event_name, func)
+Register an event listener
+```Javascript
+player.addEventListener('play', () => {
+    console.log('CW Time !');
+});
+player.addEventListener('parameterchanged', (param) => {
+    console.log(`"${param}" changed to ${player[param]}`);
+});
+```
+#### Supported events
+ - `parameterchanged` : one of the properties of the player has changed. The parameter's name is passed as argument with the event.
+ - `indexchanged` : the current index in the input text changed. **Warning** the index reference the `Text` property, which is cleaned (and thus can be different from original provided text)
+ - `play` : playing has started or been resumed from pause
+ - `pause` : playing has been temporarily stopped
+ - `stop` : playing has been definitely stopped
+
+### removeEventListener(event_name, func?) / removeEventListener(func)
+Remove the event listener. If no `func` is provided, remove all the listeners. If only `func` is provided, remove this listener from all events.

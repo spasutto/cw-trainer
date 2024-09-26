@@ -523,17 +523,18 @@ class MorsePlayer extends HTMLElement {
   constructor(...args) {
     super();
     this.enumerateSetters();
+    let options = null;
     for (const arg of args) {
       if (arg instanceof CWPlayer) {
         this.cwplayer = arg;
       } else if (typeof arg === 'object') {
         let aks = Object.keys(arg);
         if (Object.keys(MorsePlayer.DEFAULT_OPTIONS).some(k => aks.includes(k))) {
-          this.options = arg
+          options = arg
         }
       }
     }
-    this.init();
+    this.init(options);
   }
   init(options) {
     this.options = {...MorsePlayer.DEFAULT_OPTIONS, ...options};
