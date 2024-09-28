@@ -66,6 +66,7 @@
       }
       .sample-section.sample {
         padding: 5px;
+        position: relative;
       }
       .sample-nav a.active {
         background-color: #999 !important;
@@ -132,7 +133,8 @@
         contsample.classList.add('sample-section', 'sample');
         const shadow = contsample.attachShadow({ mode: "open" });
         [...template.content.querySelectorAll('script')].forEach(s => {
-          s.innerHTML = s.innerHTML.replaceAll('document', `document.querySelector("[name='${"sample_" + counter}'].sample-section.sample").shadowRoot`);
+          s.innerHTML = s.innerHTML.replaceAll('document', `document.querySelector("[name='sample_${counter}'].sample-section.sample").shadowRoot`);
+          s.innerHTML = s.innerHTML.replaceAll('console.log', `logConsole.bind(document.querySelector("[name='sample_${counter}'].sample-section.sample").shadowRoot)`);
         })
         shadow.appendChild(template.content.cloneNode(true));
         sscont.appendChild(contsample);
@@ -202,6 +204,26 @@
         [...section.parentElement.parentElement.querySelectorAll(`[name="${section.getAttribute('name')}"]`)].forEach(s => s.style.visibility = 'hidden');
         section.style.visibility = 'visible';
         button.classList.add('active');
+      }
+      function logConsole(...args) {
+        console.log(...args);
+        let logcont = this.querySelector('pre#log');
+        if (!logcont) {
+          logcont = document.createElement("pre");
+          logcont.id='log';
+          logcont.style.backgroundColor = '#eee';
+          logcont.style.paddingLeft = '5px';
+          logcont.style.maxHeight = '150px';
+          logcont.style.overflow = 'auto';
+          logcont.style.position = 'absolute';
+          logcont.style.margin = '0';
+          logcont.style.bottom = '0';
+          logcont.style.left = '0';
+          logcont.style.right = '0';
+          this.appendChild(logcont);
+        }
+        logcont.innerHTML += args.join(' ') + '\n';
+        logcont.scrollTop = logcont.scrollHeight;
       }
     </script>
   </head>
@@ -292,6 +314,7 @@
         console.log(`"${param}" changed to ${player2[param]}`);
       });
       player2.on('play', () => {
+        player2.WPM = 25;
         window.setTimeout(() => {
           // EffWPM can't be higher than WPM. This cause the EffWPM to be subsequently set to 15 wpm
           player2.WPM = 15;
