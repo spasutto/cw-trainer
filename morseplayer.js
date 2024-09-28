@@ -805,6 +805,10 @@ class MorsePlayer extends HTMLElement {
   set Text(value) { this.cwplayer.Text = value; }
   get Index() { return this.cwplayer.Index; }
   set Index(value) { this.cwplayer.Index = value; }
+  get CurrentTime() { return this.cwplayer.CurrentTime; }
+  set CurrentTime(value) { this.cwplayer.CurrentTime = value; }
+  get TotalTime() { return this.cwplayer.TotalTime; }
+  set TotalTime(value) { this.cwplayer.TotalTime = value; }
 
   get DisplayProgressBar() { return this.options.displayProgressBar; }
   set DisplayProgressBar(value) {

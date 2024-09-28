@@ -1085,8 +1085,8 @@
     seltone.value = cw_options.tone;
     selews.value = cw_options.ews;
     cwplayer.addEventListener('play', () => {
-      // on ne focus le texte que si on est en mode normal et pas en train d'écouter un résultat
-      if (!chkfree.checked && !chkfreelisten.checked && !document.querySelectorAll('.active').length) {
+      // on ne focus le texte que si on vient de démarrer la lecture, qu'on est en mode normal et qu'on est pas en train d'écouter un résultat
+      if (!chkfree.checked && !chkfreelisten.checked && !document.querySelectorAll('.active').length && cwplayer.CurrentTime < 0.5) {
         cwtext.focus();
       }
     });
@@ -1135,7 +1135,9 @@
     e = e || window.event;
     let keyCode = e.keyCode || e.which,
         keys = {space: 32, left: 37, up: 38, right: 39, down: 40 };
-    if (e.ctrlKey && keyCode != 17) { //17 == left ctrl
+    // on pause via ctrl-space si on est en train de saisir sinon directement space
+    let ctrl = e.ctrlKey || !['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement.tagName);
+    if (ctrl && keyCode != 17) { //17 == left ctrl
       switch (keyCode) {
         case keys.space:
           keystates.playpause = true;
