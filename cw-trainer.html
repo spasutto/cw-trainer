@@ -408,6 +408,11 @@
     '%IND2% DE %IND1% FB DR %NAME2% IN %QTH2% HR RTX IS TS50 TS50 PWR IS %PWR1%W %PWR1%W ANT IS VERT VERT WX WX IS CLOUDY CLOUDY TEMP 15C = NW QRU QRU TNX FER NICE QSO = PSE QSL MY QSL SURE VIA BURO 73 73 ES CUAGN CIAO %IND2% DE %IND1% SK SK  I',
     '%IND1% DE %IND2% R R OK DR %NAME1% FB HR RTX IS YAESU FT920 FT920 ANT IS DIPOLE DIPOLE WX WX FINE TEMP 30C TNX FER FB QSO QSL OK OK 73 73 GL GB %IND1% DE %IND2% SK SK I'
     ];
+  var keystates = {
+    'playpause': false,
+    'indexdec': false,
+    'indexinc': false
+  };
   function irand(start, end) {
     if (arguments.length < 2) {
       end = start;
@@ -1125,26 +1130,44 @@
     console.error(err)
     return false;
   });
-  document.body.onkeyup = (e) => {
+  document.body.onkeydown = (e) => {
     if (!cwplayer) return;
     e = e || window.event;
     let keyCode = e.keyCode || e.which,
         keys = {space: 32, left: 37, up: 38, right: 39, down: 40 };
-    if (keyCode == 27) { // echap
-      [...document.querySelectorAll(MorsePlayer.TAG)].forEach(m => m.mouseup());
-    } else if (e.ctrlKey && keyCode != 17) { //17 == left ctrl
+    if (e.ctrlKey && keyCode != 17) { //17 == left ctrl
       switch (keyCode) {
         case keys.space:
-          if (cwplayer.Playing) cwplayer.pause();
-          else cwplayer.play();
+          keystates.playpause = true;
           break;
         case keys.left:
-          cwplayer.Index--;
+          keystates.indexdec = true;
           break;
         case keys.right:
-          cwplayer.Index++;
+          keystates.indexinc = true;
           break;
       }
+    }
+  }
+  document.body.onkeyup = (e) => {
+    if (!cwplayer) return;
+    e = e || window.event;
+    let keyCode = e.keyCode || e.which;
+    if (keyCode == 27) { // echap
+      [...document.querySelectorAll(MorsePlayer.TAG)].forEach(m => m.mouseup());
+    }
+    if (keystates.playpause) {
+      if (cwplayer.Playing) cwplayer.pause();
+      else cwplayer.play();
+      keystates.playpause = false;
+    }
+    if (keystates.indexdec) {
+      cwplayer.Index--;
+      keystates.indexdec = false;
+    }
+    if (keystates.indexinc) {
+      cwplayer.Index++;
+      keystates.indexinc = false;
     }
   }
   chkfree.onchange = async () => {
