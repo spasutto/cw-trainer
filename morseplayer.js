@@ -259,7 +259,7 @@ class CWPlayer {
     if (!this.events[evtname]) this.events[evtname] = [];
     this.events[evtname].push(cb);
   }
-  on(evtname, cb) { return addEventListener(evtname, cb); }
+  on(evtname, cb) { return this.addEventListener(evtname, cb); }
   removeEventListener(evtname, cb=null) {
     if (typeof evtname === 'function') {
       cb = evtname;

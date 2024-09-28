@@ -1,5 +1,7 @@
 # CWPlayer
 
+Demonstrations and samples [here](https://spasutto.github.io/cw-trainer/samples.html)
+
 ## Usage
 
 import `morseplayer.js` (in `head` or `body`)
@@ -31,8 +33,9 @@ console.log(player.Text);
 ## Methods
 ### _constructor(options)_
 The `CWPlayer` constructor accepts options as an `Object` in which keys can be :
- - **wpm** (_default to 20 wpm_) : the speed in word per minute
- - **effwpm** (_default to 20 wpm_) : the effective speed in word per minute (see [Learning Methods](https://en.wikipedia.org/wiki/Morse_code#Learning_methods) and [Farnsworth speed](http://www.arrl.org/files/file/Technology/x9004008.pdf))
+ - **wpm** (_default to 20 wpm_) : the speed in words per minute
+ - **effwpm** (_default to 20 wpm_) : the effective speed in words per minute (see [Learning Methods](https://en.wikipedia.org/wiki/Morse_code#Learning_methods) and [Farnsworth speed](http://www.arrl.org/files/file/Technology/x9004008.pdf))
+ > _Note: When WPM is lower than Effective WPM, the latest value is used for both_
  - **ews** (_default to 0 s_) : Extra Word Space, a space in seconds added to the normal space between words
  - **tone** (_default to 800Hz_) : the tonality
  - **predelay** (_default to 0 s_) : a time in seconds before playing the first symbol

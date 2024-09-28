@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1, interactive-widget=resizes-content"/>
+    <title>CW Player Samples</title>
+    <script src="morseplayer.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/default.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/monokai.min.css">
+
+    <style>
+      body {
+        font-family: sans-serif;
+      }
+      .doc {
+        max-width: 800px;
+      }
+      .sample-container {
+        padding: 0;
+        margin-bottom: 30px;
+      }
+      .sample-nav {
+        width: 100%;
+        overflow: hidden;
+        font-size: 0.8em;
+      }
+      .sample-nav a {
+        padding: 8px 16px;
+        float: left;
+        width: auto;
+        border: none;
+        display: block;
+        outline: 0;
+        user-select: none;
+        vertical-align: middle;
+        overflow: hidden;
+        text-decoration: none;
+        text-align: center;
+        cursor: pointer;
+        white-space: nowrap;
+        border-top: solid 1px grey;
+        border-left: solid 1px #e5e5e5;
+        background-color: #fff3d1;
+      }
+      .sample-nav a:first-child {
+        border-left: solid 1px grey;
+        border-top-left-radius: 5px;
+      }
+      .sample-nav a:last-child {
+        border-right: solid 1px grey;
+      }
+      .sample-nav a:hover {
+        color: #000 !important;
+        background-color: #ccc !important;
+      }
+      .sample-section-container {
+        display: grid;
+      }
+      .sample-section {
+        margin: 0;
+        border: solid 1px grey;
+        border-bottom-right-radius: 5px;
+        grid-column: 1;
+        grid-row: 1;
+      }
+      .sample-section.sample {
+        padding: 5px;
+      }
+      .sample-nav a.active {
+        background-color: #999 !important;
+        font-weight: bold;
+        color: white !important;
+        cursor: auto;
+      }
+      .language-html .hljs-name {
+        color: #f92672;
+      }
+      .language-html .hljs-attr {
+        color: #ddd2d2;
+      }
+      /*.language-css */.hljs-number {
+        color: #e72828;
+      }
+    </style>
+    <script>
+      var samplecounter = 0;
+      window.addEventListener('load', () => {
+        [...document.querySelectorAll('template[name="sample"]')].forEach(t => {
+          let sample = t.content.cloneNode(true);
+          let html = '';
+          let js = '', jsn = sample.querySelector("script");
+          let css = '', cssn = sample.querySelector("style");
+          if (cssn) {
+            css = indentCode(cssn.innerText);
+            sample.removeChild(cssn);
+          }
+          if (jsn) {
+            js = indentCode(jsn.innerText);
+            sample.removeChild(jsn);
+          }
+          //html = [...sample.children].map(e => e.outerHTML).join('').trim();//t.content.innerHTML;
+          html = indentCode([...sample.childNodes].map(e => {
+            if (e instanceof HTMLElement) return e.outerHTML;
+            else if (e instanceof Text) return e.nodeValue.trim();
+            else if (e instanceof Comment) return `<!-- ${e.nodeValue.trim()} -->`;
+          }).filter(e => e.length>0).join('\n'));//t.content.innerHTML;
+          let cont = createSample(t, samplecounter++, html, js, css);
+          t.parentElement.insertBefore(cont, t);
+          t.parentElement.removeChild(t);
+        });
+        hljs.highlightAll();
+      });
+      function createSample(template, counter, html, js, css) {
+        /*let morseplayerjs = document.createElement('script');
+        morseplayerjs.setAttribute('src','morseplayer.js');
+        template.content.appendChild(morseplayerjs);*/
+        let cont = document.createElement("div");
+        cont.id = "sample_" + counter;
+        cont.classList.add('sample-container');
+        let nav = document.createElement("div");
+        nav.classList.add('sample-nav');
+        cont.appendChild(nav);
+        
+        //sample-section-container
+        let sscont = document.createElement("div");
+        sscont.classList.add('sample-section-container');
+        cont.appendChild(sscont);
+
+        let contsample = document.createElement("div");
+        contsample.setAttribute('name', "sample_" + counter);
+        contsample.classList.add('sample-section', 'sample');
+        const shadow = contsample.attachShadow({ mode: "open" });
+        [...template.content.querySelectorAll('script')].forEach(s => {
+          s.innerHTML = s.innerHTML.replaceAll('document', `document.querySelector("[name='${"sample_" + counter}'].sample-section.sample").shadowRoot`);
+        })
+        shadow.appendChild(template.content.cloneNode(true));
+        sscont.appendChild(contsample);
+    
+        addNavButton(nav, 'Result', contsample, true);
+    
+        if (html) {
+          let section = addCodeBlock(sscont, html, 'html', counter);
+          addNavButton(nav, 'HTML', section);
+        }
+        if (js) {
+          let section = addCodeBlock(sscont, js, 'js', counter);
+          addNavButton(nav, 'JS', section);
+        }
+        if (css) {
+          let section = addCodeBlock(sscont, css, 'css', counter);
+          addNavButton(nav, 'CSS', section);
+        }
+    
+        return cont;
+      }
+      function addNavButton(nav, type, section, active) {
+        let btn = document.createElement("a");
+        btn.addEventListener("click", openSection.bind(btn, section));
+        btn.appendChild(document.createTextNode(type));
+        nav.appendChild(btn);
+        if (active) btn.classList.add('active');
+      }
+      function addCodeBlock(cont, portion, lang, counter) {
+        let code = document.createElement("code");
+        code.classList.add('language-'+lang);
+        let pre = document.createElement("pre");
+        pre.setAttribute('name', "sample_" + counter);
+        pre.classList.add('sample-section', 'hljs');
+        pre.style.visibility = 'hidden';
+        code.innerHTML = escapeHTML(portion);
+        pre.appendChild(code);
+        cont.appendChild(pre);
+        return pre;
+      }
+      function trimCR(code) {
+        return code.replaceAll(/^\s*\n+/g, '').replaceAll(/\n+\s*$/g, '');
+      }
+      function indentCode(code) {
+        code = trimCR(code.replaceAll('\t', '  '));//.trim();
+        let minindent = [...code.matchAll(/(^|\n) +/g)].map(r => r[0].replaceAll('\n', '')).sort((a,b) => a.length-b.length)[0];
+        if (minindent) {
+          code = code.replaceAll(new RegExp(`(^|\n)${' '.repeat(minindent.length)}`, 'g'), '\n');
+        }
+        return trimCR(code);
+      }
+      function escapeHTML(unsafe)
+      {
+        return unsafe
+         .replace(/&/g, "&amp;")
+         .replace(/</g, "&lt;")
+         .replace(/>/g, "&gt;")
+         .replace(/"/g, "&quot;")
+         .replace(/'/g, "&#039;");
+      }
+    
+      function openSection(section) {
+        const button = event.target || event.srcElement;
+        [...section.parentElement.parentElement.querySelectorAll('.sample-nav a')].forEach(btn => btn.classList.remove('active'));
+        //[...section.parentElement.parentElement.querySelectorAll(`[name="${section.getAttribute('name')}"]`)].forEach(s => {if (s != section) s.style.display = 'none';});
+        //section.style.display = 'block';
+        [...section.parentElement.parentElement.querySelectorAll(`[name="${section.getAttribute('name')}"]`)].forEach(s => s.style.visibility = 'hidden');
+        section.style.visibility = 'visible';
+        button.classList.add('active');
+      }
+    </script>
+  </head>
+<body>
+
+<div class="doc">
+  <h1>MorsePlayer/CWPlayer sample usage</h1>
+  <h2 id="morseplayer_class"><a href="#morseplayer_class">#</a> MorsePlayer custom element</h2>
+  <p>MorsePlayer is a HTML custom element, it can be used anywhere in web pages, popups...</p>
+  <h3>Basic usage</h3>
+  <p>(css isn't mandatory)</p>
+  <template name="sample">
+    <style>
+      morse-player {
+        width: 380px;
+      }
+    </style>
+    <morse-player>cq cq cq de F8XYZ</morse-player>
+    <!-- equivalent to
+    <morse-player text="cq cq cq de F8XYZ"></morse-player> -->
+  </template>
+
+  <h3>Standard attributes</h3>
+  <template name="sample">
+    <style>
+      morse-player {
+        width: 380px;
+      }
+    </style>
+    <morse-player wpm="25" effwpm="17" ews="1" tone="800" predelay="1" >cq cq cq de F8XYZ</morse-player>
+  </template>
+
+  <h3>Show only buttons</h3>
+  <template name="sample">
+    <style>
+      morse-player {
+        width: 380px;
+      }
+    </style>
+    <morse-player displayprogressbar="false" >cq cq cq de F8XYZ</morse-player>
+  </template>
+
+  <h3>Display clear zone</h3>
+  <template name="sample">
+    <style>
+      morse-player {
+        width: 380px;
+      }
+    </style>
+    <morse-player displayclearzone="true">cq cq cq de F8XYZ</morse-player>
+  </template>
+
+  <hr>
+
+  <h2 id="cwplayer_class"><a href="#cwplayer_class">#</a> CWPlayer class</h2>
+  <p><code>CWPlayer</code> is the CW engine of MorsePlayer and is useable without frontend. However the initialisation (first call to <code>play()</code> must be done by a user gesture on the page (more infos <a href="https://goo.gl/7K7WLu">here</a>)</p>
+  <h3>Basic usage</h3>
+  <template name="sample">
+    <textarea id="cwtext" rows="4" cols="43" spellcheck="false">CQ CQ CQ DE F8XYZ K</textarea><br>
+    <input type="button" onclick="player.play(cwtext.value)" value="play">
+    <input type="button" onclick="player.pause()" value="pause">
+    <input type="button" onclick="player.stop()" value="stop">
+    <input type="button" onclick="player.WPM = 15" value="15 WPM">
+    <input type="button" onclick="player.WPM = 25" value="25 WPM">
+    <input type="button" onclick="player.EffWPM = 15" value="Eff 15 WPM">
+    <input type="button" onclick="player.EffWPM = 25" value="Eff 25 WPM">
+    <input type="button" onclick="player.Tone = 700" value="700 Hz">
+    <input type="button" onclick="player.Tone = 1500" value="1500 Hz">
+    <script>
+      var player = new CWPlayer();
+      var cwtext = document.getElementById('cwtext');
+    </script>
+  </template>
+  
+  <h3>Events</h3>
+  <template name="sample">
+    <input type="button" onclick="player.play('morse')" value="play">
+    <input type="button" onclick="player.stop()" value="stop">
+
+    <script>
+      var player = new CWPlayer({wpm: 25, effwpm: 20});
+      player.on('indexchanged', () => {
+        if (player.Index>-1) {
+          console.log('playing ' + player.Text[player.Index]);
+        }
+      });
+      player.on('parameterchanged', (param) => {
+        console.log(`"${param}" changed to ${player[param]}`);
+      });
+      player.on('play', () => {
+        window.setTimeout(() => {
+          // EffWPM can't be higher than WPM. This cause the EffWPM to be subsequently set to 15 wpm
+          player.WPM = 15;
+        }, 1400);
+      });
+    </script>
+  </template>
+  
+</div>
+
+</body>
+</html>
