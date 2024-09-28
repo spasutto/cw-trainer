@@ -56,8 +56,12 @@
       }
       .sample-section-container {
         display: grid;
-        max-width: 780px;
         overflow-x: auto;
+      }
+      @media (max-width: 700px) {
+        .sample-section-container {
+          max-width: 780px;
+        }
       }
       .sample-section {
         margin: 0;
