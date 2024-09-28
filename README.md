@@ -21,8 +21,8 @@ There are 40 lessons consisting in letters/symbols and 3 additional lessons :
  - Free text : Randomly picked portions of Oliver Twist (Charles Dickens)
 
 ## Commands
- - <kbd>ctrl</kbd>-<kbd>space</kbd> : pause
- - <kbd>ctrl</kbd>-<kbd>left</kbd>/<kbd>right</kbd> : fast forward/rewind
+ - <kbd>space</kbd> : pause ( <kbd>ctrl</kbd>-<kbd>space</kbd> if input has focus)
+ - <kbd>left</kbd>/<kbd>right</kbd> : fast forward/rewind ( <kbd>ctrl</kbd>-<kbd>left</kbd>/<kbd>right</kbd> if input has focus)
  - **right click on  play** (long click on touch devices) to activate "Automatic start"
  - **double click on app's name** to display symbols currently being played
 
