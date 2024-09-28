@@ -261,40 +261,40 @@
   <h3>Basic usage</h3>
   <template name="sample">
     <textarea id="cwtext" rows="4" cols="43" spellcheck="false">CQ CQ CQ DE F8XYZ K</textarea><br>
-    <input type="button" onclick="player.play(cwtext.value)" value="play">
-    <input type="button" onclick="player.pause()" value="pause">
-    <input type="button" onclick="player.stop()" value="stop">
-    <input type="button" onclick="player.WPM = 15" value="15 WPM">
-    <input type="button" onclick="player.WPM = 25" value="25 WPM">
-    <input type="button" onclick="player.EffWPM = 15" value="Eff 15 WPM">
-    <input type="button" onclick="player.EffWPM = 25" value="Eff 25 WPM">
-    <input type="button" onclick="player.Tone = 700" value="700 Hz">
-    <input type="button" onclick="player.Tone = 1500" value="1500 Hz">
+    <input type="button" onclick="player1.play(cwtext.value)" value="play">
+    <input type="button" onclick="player1.pause()" value="pause">
+    <input type="button" onclick="player1.stop()" value="stop">
+    <input type="button" onclick="player1.WPM = 15" value="15 WPM">
+    <input type="button" onclick="player1.WPM = 25" value="25 WPM">
+    <input type="button" onclick="player1.EffWPM = 15" value="Eff 15 WPM">
+    <input type="button" onclick="player1.EffWPM = 25" value="Eff 25 WPM">
+    <input type="button" onclick="player1.Tone = 700" value="700 Hz">
+    <input type="button" onclick="player1.Tone = 1500" value="1500 Hz">
     <script>
-      var player = new CWPlayer();
+      var player1 = new CWPlayer();
       var cwtext = document.getElementById('cwtext');
     </script>
   </template>
   
   <h3>Events</h3>
   <template name="sample">
-    <input type="button" onclick="player.play('morse')" value="play">
-    <input type="button" onclick="player.stop()" value="stop">
+    <input type="button" onclick="player2.play('morse')" value="play">
+    <input type="button" onclick="player2.stop()" value="stop">
 
     <script>
-      var player = new CWPlayer({wpm: 25, effwpm: 20});
-      player.on('indexchanged', () => {
-        if (player.Index>-1) {
-          console.log('playing ' + player.Text[player.Index]);
+      var player2 = new CWPlayer({wpm: 25, effwpm: 20});
+      player2.on('indexchanged', () => {
+        if (player2.Index>-1) {
+          console.log('playing ' + player2.Text[player2.Index]);
         }
       });
-      player.on('parameterchanged', (param) => {
-        console.log(`"${param}" changed to ${player[param]}`);
+      player2.on('parameterchanged', (param) => {
+        console.log(`"${param}" changed to ${player2[param]}`);
       });
-      player.on('play', () => {
+      player2.on('play', () => {
         window.setTimeout(() => {
           // EffWPM can't be higher than WPM. This cause the EffWPM to be subsequently set to 15 wpm
-          player.WPM = 15;
+          player2.WPM = 15;
         }, 1400);
       });
     </script>
