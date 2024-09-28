@@ -18,7 +18,7 @@ If it's too hard you can decrease the "Eff. WPM" to whatever you want. You can a
 There are 40 lessons consisting in letters/symbols and 3 additional lessons :
  - Letters : only alphabet letters
  - QSO : chunks of sample QSO, with randomly generated callsigns, RST...
- - Free text : Randomly picked portions of Oliver Twist (Charles Dickens)
+ - Free text : Randomly picked portions of Oliver Twist (by Charles Dickens, thanks to [Projet Gutemberg](https://www.gutenberg.org/ebooks/730) !)
 
 ## Commands
  - <kbd>space</kbd> : pause ( <kbd>ctrl</kbd>-<kbd>space</kbd> if input has focus)
