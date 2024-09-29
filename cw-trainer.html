@@ -459,10 +459,10 @@
     else grouplen = irand(1, 8);
     return Array.apply(null, Array(groupsnb)).map(() => generateRandomString(chars, grouplen)).join(' ');
   }
-  async function getUrl(url) {
+  async function getUrl(url, bypass_cache=false) {
     let rep = null;
     try {
-      rep = await fetch(url, {'cache': 'force-cache'});
+      rep = await fetch(url, {'cache': bypass_cache?'reload':'force-cache'});
       if (rep.status < 200 || rep.status >= 300) throw new Error();
       rep = await rep.text();
     } catch(e) {
@@ -939,9 +939,9 @@
   }
   async function selfDownload() {
     loading();
-    let dlpromises = [getUrl(window.location.href)];
+    let dlpromises = [getUrl(window.location.href, true)];
     if (confirm('Include Oliver Twist (required for offline free text mode)?\nThis will add ~1MB to the final page.')) {
-      dlpromises.push(getUrl(FREETEXT_URL));
+      dlpromises.push(getUrl(FREETEXT_URL, true));
     }
     let [page, ot] = await Promise.all(dlpromises);
     if (!page) {
@@ -952,7 +952,7 @@
     const regscript = /<script\s+src\s*=\s*"([^"]+)"\s*>\s*<\/script>/g;
     let occ = [...page.matchAll(regscript)];
     for (let i=0; i<occ.length; i++) {
-      let script = await getUrl(occ[i][1]);
+      let script = await getUrl(occ[i][1], true);
       if (script) {
         page = page.replace(occ[i][0], '\u003cscript\u003e\n'+script.replaceAll('$', '$$$$')+'\u003c/script\u003e')
       }
