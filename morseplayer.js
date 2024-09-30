@@ -144,7 +144,7 @@ class CWPlayer {
   }
   get EWS() { return this.options.ews; }
   set EWS(value) {
-    value = CWPlayer.parseint(value);
+    value = CWPlayer.parsefloat(value);
     value = Math.min(CWPlayer.MAX_EWS, Math.max(CWPlayer.MIN_EWS, value));
     this.options.ews = value;
     this.totaltime = this.getDuration();

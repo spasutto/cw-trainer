@@ -362,10 +362,14 @@
   const HASHSEP = '_';
   const FREETEXT_URL = 'https://raw.githubusercontent.com/spasutto/cw-trainer/main/freetext/CharlesDickens-OliverTwist.txt';
   var cwchecking = false;
+  var maxlessons = -1;
   var cw_options = {
     lesson : 1,
     grouplen : 5,
     groupsnb : 10,
+    freemode: false,
+    freelisten: false,
+    weighlastletters: false,
     wpm : 25,
     eff : 17,
     ews : 0.5,
@@ -504,31 +508,17 @@
   }
   async function generateText() {
     if (!cwplayer) return;
-    if (cwplayer.Playing) cwplayer.stop();
-    cw_options.lesson = parseInt(sellesson.value, 10);
-    cwplayer.WPM = cw_options.wpm = parseInt(selwpm.value, 10);
-    cwplayer.EffWPM = cw_options.eff = parseInt(seleffwpm.value, 10);
-    cw_options.grouplen = parseInt(grplen.value, 10);
-    cw_options.groupsnb = parseInt(groupsnb.value, 10);
-    cwplayer.EWS = cw_options.ews = parseFloat(selews.value);
-    cwplayer.Tone = cw_options.tone = parseInt(seltone.value, 10);
-    // on remet à jour les contrôles si'il y'a eu des bornages
-    selwpm.value = cw_options.wpm = cwplayer.WPM;
-    seleffwpm.value = cw_options.eff = cwplayer.EffWPM;
-    selews.value = cw_options.ews = cwplayer.EWS;
-    seltone.value = cw_options.tone = cwplayer.Tone;
-    saveParams();
     let cwgentext = '';
-    if (!chkfreelisten.checked) {
+    if (!cw_options.freelisten) {
       cwplayer.Text = '';
-      if (chkfree.checked) {
+      if (cw_options.freemode) {
         let maxlesson = Math.min(40, cw_options.lesson);
         let letters = null;
         if (cw_options.lesson == 41) {
           letters = ALPHA.split('');
         } else {
           letters = KOCHCARS.slice(0, maxlesson+1);
-          if (chkweightlastletters.checked) {
+          if (cw_options.weighlastletters) {
             // lettres "nouvelles"
             let newletters = KOCHCARS.slice(Math.max(0, maxlesson-2), maxlesson+1);
             // plus de poids pour les lettres nouvelles
@@ -562,7 +552,7 @@
           letters = ALPHA.split('');
         } else {
           letters = KOCHCARS.slice(0, maxlesson+1);
-          if (chkweightlastletters.checked) {
+          if (cw_options.weighlastletters) {
             // lettres "nouvelles"
             let newletters = KOCHCARS.slice(Math.max(0, maxlesson-2), maxlesson+1);
             // plus de poids pour les lettres nouvelles
@@ -575,7 +565,7 @@
       cwplayer.Text = cwgentext;
       return cwgentext;
     } else {
-      cwplayer.Text = chkfree.checked ? iptfree.value : cwtext.value;
+      cwplayer.Text = cw_options.freemode ? iptfree.value : cwtext.value;
     }
   }
   function compareStrings(str1, str2, ignorecase=true, ignorewhitespaces=true){
@@ -992,7 +982,7 @@
     seltone.max = CWPlayer.MAX_TONE;
   }
   function saveParams() {
-    let params = encodeURIComponent(sellesson.value+HASHSEP+selwpm.value+HASHSEP+seleffwpm.value+HASHSEP+grplen.value+HASHSEP+groupsnb.value+HASHSEP+seltone.value+HASHSEP+selews.value+HASHSEP+(chkfree.checked?1:0)+HASHSEP+(chkweightlastletters.checked?1:0));
+    let params = encodeURIComponent(sellesson.value+HASHSEP+selwpm.value+HASHSEP+seleffwpm.value+HASHSEP+grplen.value+HASHSEP+groupsnb.value+HASHSEP+seltone.value+HASHSEP+selews.value+HASHSEP+(chkfree.checked?1:0)+HASHSEP+(chkfreelisten.checked?1:0)+HASHSEP+(chkweightlastletters.checked?1:0));
     try {
       localStorage.setItem("params", params);
     } catch(e) {}
@@ -1010,7 +1000,7 @@
       if (isNaN(val)) return;
       switch (i) {
         case 0:
-          cw_options.lesson = Math.max(1, Math.min(43, Math.trunc(val)));
+          cw_options.lesson = Math.max(1, Math.min(maxlessons, Math.trunc(val)));
           break;
         case 1:
           cw_options.wpm = Math.max(CWPlayer.MIN_WPM, Math.min(CWPlayer.MAX_WPM, Math.trunc(val)));
@@ -1035,6 +1025,9 @@
           chkfree.checked = val === 1;
           break;
         case 8:
+          chkfreelisten.checked = val === 1;
+          break;
+        case 9:
           chkweightlastletters.checked = val === 1;
           break;
       }
@@ -1076,6 +1069,7 @@
   }
   window.onload = async () => {
     setMinMax();
+    window.maxlessons = Math.max.apply(null, [...document.querySelectorAll('#sellesson>option')].map(o => parseInt(o.value, 10)));
     loadParams();
     sellesson.value = cw_options.lesson;
     selwpm.value = cw_options.wpm;
@@ -1112,7 +1106,7 @@
       document.addEventListener("touchcancel", document.onmouseup);
       document.addEventListener("touchmove", document.onmousemove);
     }
-    chkfree.onchange();//generateText();
+    updateValues();
     selfdl.style.visibility = window.location.href.toLowerCase().startsWith('http') ? 'visible' : 'hidden';
   };
   window.addEventListener("error", (e) => {
@@ -1172,9 +1166,17 @@
       keystates.indexinc = false;
     }
   }
-  chkfree.onchange = async () => {
+  async function updateValues() {
     if (!cwplayer) return;
-    cwplayer.stop();
+    if (cwplayer.Playing) cwplayer.stop();
+    [...document.querySelectorAll('#sellesson>option')].forEach(o => {
+      if (o.value < 42) return;
+      o.disabled = chkfree.checked;
+      o.title=chkfree.checked?'disabled in simple mode':'';
+    });
+    if (chkfree.checked && sellesson.value>41) {
+      sellesson.value = 41;
+    }
     zoneresult.style.display = 'none';
     zonerestext.innerHTML = '';
     zonefree.style.display = chkfree.checked?'block':'none';
@@ -1200,6 +1202,27 @@
         e.title = e.title + dtext;
       }
     });
+    cw_options.freemode = chkfree.checked;
+    cw_options.freelisten = chkfreelisten.checked;
+    cw_options.weighlastletters = chkweightlastletters.checked;
+    cw_options.lesson = Math.min(maxlessons, Math.max(1, parseInt(sellesson.value, 10)));
+    if (isNaN(cw_options.lesson)) cw_options.lesson = 1;
+    cwplayer.WPM = cw_options.wpm = parseInt(selwpm.value, 10);
+    cwplayer.EffWPM = cw_options.eff = parseInt(seleffwpm.value, 10);
+    cw_options.grouplen = parseInt(grplen.value, 10);
+    cw_options.groupsnb = parseInt(groupsnb.value, 10);
+    cwplayer.EWS = cw_options.ews = parseFloat(selews.value);
+    cwplayer.Tone = cw_options.tone = parseInt(seltone.value, 10);
+    // on remet à jour les contrôles si'il y'a eu des bornages
+    sellesson.value = cw_options.lesson;
+    selwpm.value = cw_options.wpm = cwplayer.WPM;
+    seleffwpm.value = cw_options.eff = cwplayer.EffWPM;
+    selews.value = cw_options.ews = cwplayer.EWS;
+    seltone.value = cw_options.tone = cwplayer.Tone;
+    prevlesson.disabled = cw_options.lesson <= 1;
+    nxtlesson.disabled = cw_options.lesson >= maxlessons;
+    saveParams();
+
     await generateText();
     if (chkfreelisten.checked) {
       zoneresultfree.innerHTML = '';
@@ -1209,10 +1232,11 @@
     window.freeerr = 0;
     window.freetotal = 1;
     window.freefirsttry = true;
-  };
-  sellesson.onchange = chkfree.onchange;
-  grplen.onchange = chkfree.onchange;
-  groupsnb.onchange = chkfree.onchange;
+  }
+  chkfree.onchange = updateValues;
+  sellesson.onchange = updateValues;
+  grplen.onchange = updateValues;
+  groupsnb.onchange = updateValues;
   selwpm.onchange = () => {
     if (!cwplayer) return;
     cwplayer.WPM = selwpm.value;
@@ -1240,16 +1264,16 @@
     saveParams();
   }
   cwsbm.onclick = verifycw;
-  retrybtn.onclick = chkfree.onchange;
+  retrybtn.onclick = updateValues;
   prevlesson.onclick = () => {
-    sellesson.value = Math.max(1, parseInt(sellesson.value, 10)-1);
-    chkfree.onchange.call(this);
+    sellesson.value = Math.min(maxlessons, Math.max(1, parseInt(sellesson.value, 10)-1));
+    updateValues();
   };
   nxtlesson.onclick = () => {
-    sellesson.value = Math.min(43, parseInt(sellesson.value, 10)+1);
-    chkfree.onchange.call(this);
+    sellesson.value = Math.min(maxlessons, Math.max(1, parseInt(sellesson.value, 10)+1));
+    updateValues();
   };
-  chkfreelisten.onchange = chkfree.onchange;
+  chkfreelisten.onchange = updateValues;
   cwtext.onkeyup = () => {
     if (!chkfreelisten.checked) return;
     cwplayer.Text = cwtext.value;
@@ -1266,10 +1290,7 @@
       hideKeyboard();
     }
   }
-  chkweightlastletters.onchange = () => {
-    generateText();
-    saveParams();
-  };
+  chkweightlastletters.onchange = updateValues;
   </script>  
 </body>
 </html>
