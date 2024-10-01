@@ -33,7 +33,6 @@
         display: block;
         outline: 0;
         user-select: none;
-        vertical-align: middle;
         overflow: hidden;
         text-decoration: none;
         text-align: center;
@@ -139,7 +138,10 @@
         contsample.classList.add('sample-section', 'sample');
         const shadow = contsample.attachShadow({ mode: "open" });
         [...template.content.querySelectorAll('script')].forEach(s => {
-          s.innerHTML = s.innerHTML.replaceAll('document', `document.querySelector("[name='sample_${counter}'].sample-section.sample").shadowRoot`);
+          if (s.innerHTML.indexOf('')>-1) {
+            s.innerHTML = s.innerHTML.replaceAll('document', `shadowdoc${counter}`);
+            s.innerHTML = `var shadowdoc${counter} = document.querySelector("[name='sample_${counter}'].sample-section.sample").shadowRoot;\n` + s.innerHTML;
+          }
           s.innerHTML = s.innerHTML.replaceAll('console.log', `logConsole.bind(document.querySelector("[name='sample_${counter}'].sample-section.sample").shadowRoot)`);
         })
         shadow.appendChild(template.content.cloneNode(true));

@@ -453,10 +453,10 @@ class CWPlayer {
       if (t<timefromstart || isNaN(t)) continue;
       t-=timefromstart;
       if (i%2) {
-        this.gain.gain.setValueAtTime(1, it+t - this.rampperiod);
+        this.gain.gain.linearRampToValueAtTime(1, it+t - this.rampperiod);
         this.gain.gain.linearRampToValueAtTime(0, it+t);
       } else {
-        this.gain.gain.setValueAtTime(0, it+t);
+        this.gain.gain.linearRampToValueAtTime(0, it+t);
         this.gain.gain.linearRampToValueAtTime(1, it+t + this.rampperiod);
       }
     }
