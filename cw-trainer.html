@@ -1134,13 +1134,6 @@
     if (chkfree.checked && sellesson.value>41) {
       sellesson.value = 41;
     }
-    zoneresult.style.display = 'none';
-    zonerestext.innerHTML = '';
-    zonefree.style.display = chkfree.checked?'block':'none';
-    zonekoch.style.display = !chkfree.checked?'block':'none';
-    zonewords.style.display = sellesson.value < 42?'block':'none';
-    chkweightlastletters.style.display = lblweightlastletters.style.display = sellesson.value < 41?'inline':'none';
-    cwsbm.disabled = chkfreelisten.checked;
     cwplayer.PreDelay = chkfree.checked || chkfreelisten.checked ? 0.05 : 2;
     if (chkfree.checked) {
       iptfree.focus();
@@ -1176,8 +1169,16 @@
     seleffwpm.value = cw_options.eff = cwplayer.EffWPM;
     selews.value = cw_options.ews = cwplayer.EWS;
     seltone.value = cw_options.tone = cwplayer.Tone;
-    prevlesson.disabled = cw_options.lesson <= 1;
-    nxtlesson.disabled = cw_options.lesson >= maxlessons;
+    sellesson.disabled = chkfreelisten.checked;
+    nxtlesson.disabled = cw_options.lesson >= maxlessons || chkfreelisten.checked;
+    prevlesson.disabled = cw_options.lesson <= 1 || chkfreelisten.checked;
+    zoneresult.style.display = 'none';
+    zonerestext.innerHTML = '';
+    zonefree.style.display = chkfree.checked?'block':'none';
+    zonekoch.style.display = !chkfree.checked?'block':'none';
+    zonewords.style.display = sellesson.value < 42?'block':'none';
+    chkweightlastletters.style.display = lblweightlastletters.style.display = !cw_options.freelisten && sellesson.value < 41?'inline':'none';
+    cwsbm.disabled = chkfreelisten.checked;
     saveParams();
 
     await generateText();
