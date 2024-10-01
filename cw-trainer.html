@@ -568,35 +568,12 @@
       cwplayer.Text = cw_options.freemode ? iptfree.value : cwtext.value;
     }
   }
-  function compareStrings(str1, str2, ignorecase=true, ignorewhitespaces=true){
+  function compareStrings(str1, str2, ignorecase=true){
     str1 = str1.replaceAll('\r', '').replaceAll(/\n+/g, ' ');
     str2 = str2.replaceAll('\r', '').replaceAll(/\n+/g, ' ');
     if (ignorecase) {
       str1 = str1.toUpperCase();
       str2 = str2.toUpperCase();
-    }
-    let idxs=null;
-    if (ignorewhitespaces) {
-      let extsplit = (str, cs=[' ', '\t', '\n']) => {
-        let retobj = {'str':str, idxs:[]};
-        cs.forEach(c => {
-          let idxs = [];
-          let idx = -1;
-          do {
-            idx = retobj.str.indexOf(c, idx+1);
-            if (idx>-1) idxs.push(idx);
-          } while (idx >= 0);
-          retobj.str = retobj.str.replaceAll(c, '');
-          retobj.idxs.push({c, idxs});
-        });
-        return retobj;
-      };
-      let t = extsplit(str1);
-      str1 = t.str;
-      idxs = t.idxs;
-      t = extsplit(str2);
-      str2 = t.str;
-      //idxs2 = t.idxs;
     }
   /*
    Ce qui suit est un algorithme de recherche des sous-chaines communes.
@@ -661,26 +638,6 @@
     }
     // suppression des overlaps : compareStrings("IVNVV", "IVVV")
     sequences = sequences.filter((s,i) => !sequences.some((s2,i2) => i2>i && (s.isrc==s2.isrc || s.idst==s2.idst)));
-    if (ignorewhitespaces) {
-      idxs.forEach(char => {
-        let previ = 0;
-        char.idxs.forEach(idx => {
-          str1 = str1.substring(0, idx) + char.c + str1.substring(idx);
-          let i = sequences.findIndex(s => s.isrc<=idx && s.isrc+s.text.length>=idx);
-          if (i>-1) {
-            let s = sequences[i];
-            let ip = idx-s.isrc;
-            //impacts str2
-            str2 = str2.substring(0, s.idst+ip) + char.c + str2.substring(s.idst+ip);
-            s.text = s.text.substring(0, ip) + char.c + s.text.substring(ip);
-            sequences.filter((s2,i2) => i2>i).forEach(s2 => {
-              s2.isrc++;
-              s2.idst++;
-            });
-          }
-        });
-      });
-    }
     return {'str1':str1, 'str2':str2, 'errors':str1.length-sequences.reduce((acc, cur) => acc+=cur.text.length, 0), 'sequences': sequences};
   }
   const emptyChar = '&nbsp;';//'_';
@@ -812,8 +769,7 @@
       }
       let inpt = extractfn(cwtext.value);
       let verif = extractfn(cwplayer.Text);
-      let ignorewhitespaces = cw_options.lesson <= 41;
-      let results = verif.map((a, i) => compareStrings(a, inpt[i] ?? '', true, ignorewhitespaces));
+      let results = verif.map((a, i) => compareStrings(a, inpt[i] ?? ''));
       let nbchars = verif.reduce((acc, cur) => acc+cur.length, 0);
       let nberr = results.reduce((acc, cur) => acc+cur.errors, 0);
       let maxerrs = nberr;
@@ -882,7 +838,7 @@
         }
       }
       results.forEach(r => {
-        r.str2bk = r.str2;
+        let str2bk = r.str2;
         // hormis pour les QSOs on travaille par mot
         if (cw_options.lesson <= 41) {
           r.str1 = r.str1.replaceAll(/\s/g, '\n');
@@ -892,6 +848,7 @@
         } else {
           r.str2 = formatTestString(r);
         }
+        r.str2bk = str2bk;
       });
       // bug : cwplayer.Text='T5TWR DE N8LRT R FB ROBERT NICE TO MEET YOU BT THE RIG HR IS A KNWD TS-570D AT QRP 5W TO AN ATTIC RANDOM WIRE BT THE WX LITE SNOW ES 33 DEGREES HW? AR T5TWR DE N8LRT KN', cwtext.value='T5TWR DE N8LRT R FB ROBERT NICE TO MEET YOU BT THE RIG HR IS A KNWD TS-570D AT QRP 5W TO AN ATTIC RANDOM WIRE BT THE WX LITE SNOW ES 33 DEGREES HW? AR T5TWR N8LRT KN'
       let perc = (nbchars-nberr)*100/nbchars;
