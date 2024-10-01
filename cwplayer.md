@@ -21,6 +21,7 @@ player.play('Hello world !');
  - **EffWPM** : get or set the Effective WPM (see [Learning Methods](https://en.wikipedia.org/wiki/Morse_code#Learning_methods) and [Farnsworth speed](http://www.arrl.org/files/file/Technology/x9004008.pdf))
  - **EWS** : get or set Extra Word Space
  - **Tone** : get or set tone's frequency
+ - **KeyingQuality** : get or set the keying quality (between 50% : bad and 100% : perfect)
  - **PreDelay** : get or set the delay before playing firs symbol
  - **Text** : get or set the text to play. Text is "cleaned" :
 ```Javascript
@@ -38,6 +39,7 @@ The `CWPlayer` constructor accepts options as an `Object` in which keys can be :
  > _Note: When WPM is lower than Effective WPM, the latest value is used for both_
  - **ews** (_default to 0 s_) : Extra Word Space, a space in seconds added to the normal space between words
  - **tone** (_default to 800Hz_) : the tonality
+ - **keyingquality** : get or set the keying quality (between 50% : bad and 100% : perfect)
  - **predelay** (_default to 0 s_) : a time in seconds before playing the first symbol
  - **autoplay** (_default to false_) : if set to "true", a change in the text automatically starts playing
 

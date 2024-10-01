@@ -34,8 +34,20 @@
       .zonecontrols {
         width: 100%;
       }
-      .zonecontrols td {
+      .zonecontrols td:first-child {
+        width: 70px;
         text-align: right;
+      }
+      .zonecontrols td {
+        width: 50px;
+      }
+      .zonecontrols td:last-child {
+        width: 50px;
+      }
+      td {
+        text-align: center;
+        width:1%;
+        white-space: nowrap;
       }
       .zonecontrols input[type="button"] {
         width: 21px;
@@ -170,7 +182,7 @@
         font-family: monospace;
         font-size: medium;
       }
-      table:not(.zonecontrols) {
+      #zoneresult table {
         width: fit-content;
         margin: auto;
         max-height: 500px;
@@ -182,17 +194,17 @@
         top: 0;
         background-color: white;
       }
-      th, table:not(.zonecontrols) td {
+      th, #zoneresult table td {
         padding:2px 15px;
         text-align : center;
         word-wrap: break-word;
         max-width: 100px;
       }
-      table:not(.zonecontrols) th {
+      #zoneresult table th {
         color: #000;
         background-color: #ddd;;
       }
-      table:not(.zonecontrols) td:not(:last-child), th:not(:last-child) {
+      #zoneresult table td:not(:last-child), th:not(:last-child) {
         border-right: solid 1px;
       }
       a {
@@ -213,7 +225,16 @@
         height: 21px;
       }
       input[type="number"] {
-        width: 60px;
+        width: 32px;
+      }
+      input[type="range"] {
+        width: 100px;
+      }
+      #seltone {
+        width: 50px;
+      }
+      #selews {
+        width: 32px;
       }
       #retrybtn, #retrynxt {
         width: 150px;
@@ -235,10 +256,10 @@
         width : 380px;
       }
       #keyboard input[type='button'] {
-        width: 45px;
+        width: 36px;
         height: 36px;
         margin: 1px;
-        font-size: 18pt;
+        font-size: 15pt;
       }
       #zonedkb {
         display: none;
@@ -280,6 +301,13 @@
       #selfdl {
         visibility: hidden;
       }
+      .small {
+        font-size: 0.85em;
+      }
+      input[type='checkbox'].small {
+        width:12px;
+        height:12px;
+      }
     </style>
   </head>
 <body>
@@ -289,7 +317,7 @@
       <div id="loadingzone">Loading...</div>
     </div>
     <div id="zonemain">
-      <table class="zonecontrols">
+      <table>
         <tr>
           <td colspan="2">
             <h2 id="cwtitle">CW Trainer</h2><a href="#" id="selfdl" onclick="selfDownload()" title="save CW Trainer for offline use">&#x0001f4be;</a>
@@ -304,27 +332,27 @@
             </select><input type="button" id="nxtlesson" value="&gt;">
           </td>
         </tr>
+      </table>
+      <table class="zonecontrols">
         <tr>
           <td>
-            <label for="selwpm" title="Word Per Minute">WPM : </label>
+            <label for="selwpm" title="Word Per Minute">WPM</label>
           </td>
           <td>
             <input type="number" id="selwpm" title="Word Per Minute">
           </td>
-          <td>
-            <input type="checkbox" id="chkweightlastletters" title="more likely to hear 3 last letters" checked><label id="lblweightlastletters" for="chkweightlastletters" title="more likely to hear 3 last letters">weigh more last letters</label><BR>
+          <td rowspan="2">
+            <input type="checkbox" id="chkweightlastletters" title="more likely to hear 3 last letters" class="small" checked><label id="lblweightlastletters" for="chkweightlastletters" title="more likely to hear 3 last letters" class="small">weigh more last letters</label><BR>
+            <label for="seltone" title="Tone" class="small">Tone : </label><input type="number" step="100" id="seltone" title="Tone" class="small"><small>&nbsp;(Hz)</small><BR>
+            <label for="selkeyqual" title="Keying quality" class="small">Keying quality : </label><input type="range" min="0.5" max="1" step="0.1" id="selkeyqual" title="Keying quality" class="small">
           </td>
         </tr>
         <tr>
           <td>
-            <label for="seleffwpm" title="Effective Word Per Minute (Farnsworth)">Eff. WPM : </label>
+            <label for="seleffwpm" title="Effective Word Per Minute (Farnsworth)">Eff. WPM</label>
           </td>
           <td>
-            <input type="number" id="seleffwpm" title="Effective Word Per Minute (Farnsworth)">
-          </td>
-          <td>
-            <label for="seltone" title="Tone">Tone : </label>
-            <input type="number" step="100" id="seltone" title="Tone"><small>&nbsp;(Hz)</small>
+            <input type="number" id="seleffwpm" title="Effective Word Per Minute (Farnsworth)" class="small">
           </td>
         </tr>
       </table>
@@ -334,8 +362,8 @@
         <div id="zoneresultfree"></div>
       </div>
       <div id="zonekoch">
-        <label for="selews" title="Extra space between words (seconds)">Extra word spacing : </label>
-        <input type="number" step="0.1" id="selews" title="Extra space between words (seconds)"><small>&nbsp;(seconds)</small>
+        <label for="selews" title="Extra space between words (seconds)">Extra word space : </label>
+        <input type="number" step="0.1" id="selews" title="Extra space between words (seconds)"><small>&nbsp;(s)</small>
         <div id="zonewords">
           <label for="grplen">Words length : </label>
           <select id="grplen">
@@ -373,7 +401,8 @@
     wpm : 25,
     eff : 17,
     ews : 0.5,
-    tone : 800
+    tone : 800,
+    keyqual: 1
   };
   const KOCHCARS = ['K', 'M', 'U', 'R', 'E', 'S', 'N', 'A', 'P', 'T', 'L', 'W', 'I', '.', 'J', 'Z', '=', 'F', 'O', 'Y', ',', 'V', 'G', '5', '/', 'Q', '9', '2', 'H', '3', '8', 'B', '?', '4', '7', 'C', '1', 'D', '6', '0', 'X'];
   const ALPHA = "ABCDEFGHIJKLMNPQRSTUVWXYZ";
@@ -937,9 +966,11 @@
     selews.max = CWPlayer.MAX_EWS;
     seltone.min = CWPlayer.MIN_TONE;
     seltone.max = CWPlayer.MAX_TONE;
+    selkeyqual.min = CWPlayer.MIN_KEYQUAL;
+    selkeyqual.max = CWPlayer.MAX_KEYQUAL;
   }
   function saveParams() {
-    let params = encodeURIComponent(sellesson.value+HASHSEP+selwpm.value+HASHSEP+seleffwpm.value+HASHSEP+grplen.value+HASHSEP+groupsnb.value+HASHSEP+seltone.value+HASHSEP+selews.value+HASHSEP+(chkfree.checked?1:0)+HASHSEP+(chkfreelisten.checked?1:0)+HASHSEP+(chkweightlastletters.checked?1:0));
+    let params = encodeURIComponent(sellesson.value+HASHSEP+selwpm.value+HASHSEP+seleffwpm.value+HASHSEP+grplen.value+HASHSEP+groupsnb.value+HASHSEP+seltone.value+HASHSEP+selews.value+HASHSEP+(chkfree.checked?1:0)+HASHSEP+(chkfreelisten.checked?1:0)+HASHSEP+(chkweightlastletters.checked?1:0)+HASHSEP+selkeyqual.value);
     try {
       localStorage.setItem("params", params);
     } catch(e) {}
@@ -986,6 +1017,9 @@
           break;
         case 9:
           chkweightlastletters.checked = val === 1;
+          break;
+        case 10:
+          cw_options.keyqual = Math.max(CWPlayer.MIN_KEYQUAL, Math.min(CWPlayer.MAX_KEYQUAL, val));
           break;
       }
     });
@@ -1034,6 +1068,7 @@
     grplen.value = cw_options.grouplen;
     groupsnb.value = cw_options.groupsnb;
     seltone.value = cw_options.tone;
+    selkeyqual.value = cw_options.keyqual;
     selews.value = cw_options.ews;
     cwplayer.addEventListener('play', () => {
       // on ne focus le texte que si on vient de démarrer la lecture, qu'on est en mode normal et qu'on est pas en train d'écouter un résultat
@@ -1163,12 +1198,14 @@
     cw_options.groupsnb = parseInt(groupsnb.value, 10);
     cwplayer.EWS = cw_options.ews = parseFloat(selews.value);
     cwplayer.Tone = cw_options.tone = parseInt(seltone.value, 10);
+    cwplayer.KeyingQuality = cw_options.keyqual = parseFloat(selkeyqual.value);
     // on remet à jour les contrôles si'il y'a eu des bornages
     sellesson.value = cw_options.lesson;
     selwpm.value = cw_options.wpm = cwplayer.WPM;
     seleffwpm.value = cw_options.eff = cwplayer.EffWPM;
     selews.value = cw_options.ews = cwplayer.EWS;
     seltone.value = cw_options.tone = cwplayer.Tone;
+    selkeyqual.value = cw_options.keyqual = cwplayer.KeyingQuality;
     sellesson.disabled = chkfreelisten.checked;
     nxtlesson.disabled = cw_options.lesson >= maxlessons || chkfreelisten.checked;
     prevlesson.disabled = cw_options.lesson <= 1 || chkfreelisten.checked;
@@ -1231,6 +1268,12 @@
     sellesson.value = Math.min(maxlessons, Math.max(1, parseInt(sellesson.value, 10)+1));
     updateValues();
   };
+  selkeyqual.onchange = () => {
+    if (!cwplayer) return;
+    cwplayer.KeyingQuality = selkeyqual.value;
+    selkeyqual.value = cwplayer.KeyingQuality;
+    saveParams();
+  }
   chkfreelisten.onchange = updateValues;
   cwtext.onkeyup = () => {
     if (!chkfreelisten.checked) return;

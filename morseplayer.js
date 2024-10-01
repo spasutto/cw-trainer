@@ -61,6 +61,7 @@ class CWPlayer {
     wpm : 20,
     effwpm : 20,
     tone : 800,
+    keyqual : 1,
     ews : 0,
     predelay : 0,
     autoplay : false
@@ -100,6 +101,8 @@ class CWPlayer {
   static get MAX_EWS() { return 10; };
   static get MIN_TONE() { return 100; };
   static get MAX_TONE() { return 5000; };
+  static get MIN_KEYQUAL() { return 0.5; };
+  static get MAX_KEYQUAL() { return 1; };
   /*FIN CONSTANTES*/
 
   get WPM() {
@@ -160,6 +163,15 @@ class CWPlayer {
       this.osc.frequency.setValueAtTime(this.options.tone, this.context.currentTime);
     }
     this.fireEvent('parameterchanged', 'Tone');
+  }
+  get KeyingQuality() { return this.options.keyqual; }
+  set KeyingQuality(value) {
+    value = CWPlayer.parsefloat(value);
+    value = Math.min(CWPlayer.MAX_KEYQUAL, Math.max(CWPlayer.MIN_KEYQUAL, value));
+    this.options.keyqual = value;
+    this.totaltime = this.getDuration();
+    this.schedule();
+    this.fireEvent('parameterchanged', 'KeyingQuality');
   }
   get PreDelay() { return this.options.predelay; }
   set PreDelay(value) {
@@ -474,19 +486,23 @@ class CWPlayer {
     this.stime = [];
     this.itime = [];
     if (this.text.length <= 0) return 0;
-    let d = Math.max(0, this.options.predelay), k = 0, inchar = false;
+    let d = Math.max(0, this.options.predelay), k = 0, inchar = false, qd = 0;
     this.itime.push(d);
 
     CWPlayer.internalTranslate(this.text).split('').forEach(c => {
+      if (this.options.keyqual<1) {
+        qd = 0.25*(1-this.options.keyqual)*Math.random(this.elperiod);
+        qd-=qd/2;
+      }
       switch (c) {
         case ' ':
-          d += this.spperiod*3;
+          d += this.spperiod*3 + qd;
           inchar=false;
           this.itime.push(d);
           break;
         case '\t':
-          this.itime.push(d);
-          d += (this.spperiod*7+this.options.ews);
+          this.itime.push(d); + qd
+          d += this.spperiod*7 + this.options.ews + qd;
           inchar=false;
           this.itime.push(d);
           break;
@@ -494,10 +510,10 @@ class CWPlayer {
         case '-':
           if (inchar) {
             //inter-element
-            d += this.elperiod;
+            d += this.elperiod + qd;
           }
           this.stime.push(d);
-          d += (c == '.' ? this.elperiod : 3*this.elperiod); // dit or dah
+          d += (c == '.' ? this.elperiod : 3*this.elperiod) + qd; // dit or dah
           this.stime.push(d);
           inchar=true;
           break;
@@ -511,7 +527,7 @@ class CWPlayer {
 class MorsePlayer extends HTMLElement {
   static get TAG() { return "morse-player"; }
   static get SVG_INACTIF() { return 'svg_inactif'; }
-  static observedAttributes = ['player', 'playing', 'paused', 'autoplay', 'wpm', 'effwpm', 'ews', 'tone', 'predelay', 'text', 'index', 'displayprogressbar', 'displayclearzone'];
+  static observedAttributes = ['player', 'playing', 'paused', 'autoplay', 'wpm', 'effwpm', 'ews', 'tone', 'keyingquality', 'predelay', 'text', 'index', 'displayprogressbar', 'displayclearzone'];
   setters = [];
 
   static DEFAULT_OPTIONS = {
@@ -799,6 +815,8 @@ class MorsePlayer extends HTMLElement {
   set EWS(value) { this.cwplayer.EWS = value; }
   get Tone() { return this.cwplayer.Tone; }
   set Tone(value) { this.cwplayer.Tone = value; }
+  get KeyingQuality() { return this.cwplayer.KeyingQuality; }
+  set KeyingQuality(value) { this.cwplayer.KeyingQuality = value; }
   get PreDelay() { return this.cwplayer.PreDelay; }
   set PreDelay(value) { this.cwplayer.PreDelay = value; }
   get Text() { return this.cwplayer.Text; }
