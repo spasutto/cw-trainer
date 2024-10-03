@@ -674,7 +674,9 @@
     }
     if (typeof text !== 'string' || text.length <= minlength) {
       alert('Unable to load free text (need internet connection !)');
+      return null;
     }
+    text = text.replaceAll('Mr.', 'Mr');
     let gentext = '';
     const uselength = text.lastIndexOf('.') - 1;
     let nbtry = 0;
@@ -684,12 +686,16 @@
       let prvptid = text.lastIndexOf('.', startind);
       let nxtptid = text.indexOf('.', startind);
       if (prvptid == -1 || nxtptid == -1) continue;
+      //console.log('--------------------------------------------------------------------------------------------');
+      //console.log(text.substring(prvptid+1, nxtptid+1));
       gentext = text.substring(prvptid+1, nxtptid+1)
           .replaceAll(/\r?\n/g, ' ')
-          .replaceAll(/\s+/g, ' ').trim();
+          .replaceAll(/\s+/g, ' ')
+          .replaceAll(/^["']+\s*(["'])+/g, '$1').trim();
       while (regclean.test(gentext)) {
         gentext = gentext.replaceAll(regclean, '\'');
       }
+      //console.log(gentext);
     } while ((gentext.length<minlength || gentext.length>maxlength) && ++nbtry<80);
     return gentext;
   }

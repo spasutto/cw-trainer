@@ -202,7 +202,7 @@ class CWPlayer {
     return this.text;
   }
   set Text(value) {
-    value = CWPlayer.cleanText(value);
+    value = CWPlayer.cleanText(value ?? '');
     let oldtext = this.text;
     if (value == oldtext) return;
     // si on modifie le texte qui a déjà été joué on remet la lecture à 0
