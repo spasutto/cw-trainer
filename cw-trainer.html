@@ -40,6 +40,7 @@
       }
       .zonecontrols td {
         width: 50px;
+        padding: 0;
       }
       .zonecontrols td:last-child {
         width: 50px;
@@ -216,9 +217,6 @@
       small {
         color: #a0a0a0;
       }
-      label[for='seltone'] {
-        margin-left: 15px;
-      }
       select, input[type="button"]:not(#cwsbm) {
         font-family: monospace;
         font-size: medium;
@@ -230,11 +228,14 @@
       input[type="range"] {
         width: 100px;
       }
+      #chkfreelisten {
+        margin-left: 10px;
+      }
       #seltone {
         width: 50px;
       }
       #selews {
-        width: 32px;
+        width: 38px;
       }
       #retrybtn, #retrynxt {
         width: 150px;
@@ -308,6 +309,9 @@
         width:12px;
         height:12px;
       }
+      .rightborder {
+        border-right: 1px solid black;
+      }
     </style>
   </head>
 <body>
@@ -333,26 +337,38 @@
           </td>
         </tr>
       </table>
-      <table class="zonecontrols">
+      <table class="zonecontrols" cellspacing="0">
         <tr>
           <td>
             <label for="selwpm" title="Word Per Minute">WPM</label>
           </td>
-          <td>
+          <td class="rightborder">
             <input type="number" id="selwpm" title="Word Per Minute">
           </td>
-          <td rowspan="2">
+          <td colspan="2">
             <input type="checkbox" id="chkweightlastletters" title="more likely to hear 3 last letters" class="small" checked><label id="lblweightlastletters" for="chkweightlastletters" title="more likely to hear 3 last letters" class="small">weigh more last letters</label><BR>
-            <label for="seltone" title="Tone" class="small">Tone : </label><input type="number" step="100" id="seltone" title="Tone" class="small"><small>&nbsp;(Hz)</small><BR>
-            <label for="selkeyqual" title="Keying quality" class="small">Keying quality : </label><input type="range" min="0.5" max="1" step="0.1" id="selkeyqual" title="Keying quality" class="small">
           </td>
         </tr>
         <tr>
-          <td>
+          <td rowspan="2">
             <label for="seleffwpm" title="Effective Word Per Minute (Farnsworth)">Eff. WPM</label>
           </td>
-          <td>
+          <td rowspan="2" class="rightborder">
             <input type="number" id="seleffwpm" title="Effective Word Per Minute (Farnsworth)" class="small">
+          </td>
+          <td class="rightborder">
+            <label for="seltone" title="Tone" class="small">Tone</label>
+          </td>
+          <td>
+            <label for="selkeyqual" title="Keying quality" class="small">Keying quality</label>
+          </td>
+        </tr>
+        <tr>
+          <td class="rightborder">
+            <input type="number" step="100" id="seltone" title="Tone" class="small"><small>&nbsp;(Hz)</small>
+          </td>
+          <td>
+            <input type="range" min="0.5" max="1" step="0.1" id="selkeyqual" title="Keying quality" class="small">
           </td>
         </tr>
       </table>
