@@ -313,14 +313,14 @@
       .rightborder {
         border-right: 1px solid black;
       }
-      .checkbox-wrapper-35 {
+      .checkbox-wrapper {
         display: inline;
       }
-      .checkbox-wrapper-35 .switch {
+      .checkbox-wrapper .switch {
         display: none;
       }
 
-      .checkbox-wrapper-35 .switch + label {
+      .checkbox-wrapper .switch + label {
         -webkit-box-align: center;
         -webkit-align-items: center;
         -ms-flex-align: center;
@@ -341,13 +341,13 @@
         user-select: none;
       }
 
-      .checkbox-wrapper-35 .switch + label::before,
-      .checkbox-wrapper-35 .switch + label::after {
+      .checkbox-wrapper .switch + label::before,
+      .checkbox-wrapper .switch + label::after {
         content: '';
         display: block;
       }
 
-      .checkbox-wrapper-35 .switch + label::before {
+      .checkbox-wrapper .switch + label::before {
         background-color: #cfcfcf;
         border-radius: 500px;
         height: 15px;
@@ -357,7 +357,7 @@
         width: 25px;
       }
 
-      .checkbox-wrapper-35 .switch + label::after {
+      .checkbox-wrapper .switch + label::after {
         background-color: #fff;
         border-radius: 13px;
         box-shadow: 0 3px 1px 0 rgba(37, 34, 71, 0.05), 0 2px 2px 0 rgba(37, 34, 71, 0.1), 0 3px 3px 0 rgba(37, 34, 71, 0.05);
@@ -372,17 +372,16 @@
         width: 13px;
       }
 
-      .checkbox-wrapper-35 .switch + label .switch-x-toggletext {
+      .checkbox-wrapper .switch + label .switch-x-toggletext {
         display: block;
-        font-weight: bold;
         height: 15px;
         overflow: hidden;
         position: relative;
-        font-size: 1.1em;
+        font-size: 1.4em;
       }
 
-      .checkbox-wrapper-35 .switch + label .switch-x-unchecked,
-      .checkbox-wrapper-35 .switch + label .switch-x-checked {
+      .checkbox-wrapper .switch + label .switch-x-unchecked,
+      .checkbox-wrapper .switch + label .switch-x-checked {
         left: 0;
         position: absolute;
         top: 0;
@@ -392,42 +391,43 @@
         transition: transform 0.125s ease-out, opacity 0.125s ease-out, -webkit-transform 0.125s ease-out;
       }
 
-      .checkbox-wrapper-35 .switch + label .switch-x-unchecked {
+      .checkbox-wrapper .switch + label .switch-x-unchecked {
         opacity: 1;
         -webkit-transform: none;
         transform: none;
       }
 
-      .checkbox-wrapper-35 .switch + label .switch-x-checked {
+      .checkbox-wrapper .switch + label .switch-x-checked {
         opacity: 0;
         -webkit-transform: translate3d(0, 100%, 0);
         transform: translate3d(0, 100%, 0);
       }
 
-      .checkbox-wrapper-35 .switch + label .switch-x-hiddenlabel {
+      .checkbox-wrapper .switch + label .switch-x-hiddenlabel {
         position: absolute;
         visibility: hidden;
       }
 
-      .checkbox-wrapper-35 .switch:checked + label::before {
+      .checkbox-wrapper .switch:checked + label::before {
         background-color: #ffb500;
       }
 
-      .checkbox-wrapper-35 .switch:checked + label::after {
+      .checkbox-wrapper .switch:checked + label::after {
         -webkit-transform: translate3d(10px, 0, 0);
         transform: translate3d(10px, 0, 0);
       }
 
-      .checkbox-wrapper-35 .switch:checked + label .switch-x-unchecked {
+      .checkbox-wrapper .switch:checked + label .switch-x-unchecked {
         opacity: 0;
         -webkit-transform: translate3d(0, -100%, 0);
         transform: translate3d(0, -100%, 0);
       }
 
-      .checkbox-wrapper-35 .switch:checked + label .switch-x-checked {
+      .checkbox-wrapper .switch:checked + label .switch-x-checked {
         opacity: 1;
         -webkit-transform: none;
         transform: none;
+        color: #ffb500;
       }
     </style>
   </head>
@@ -463,12 +463,12 @@
             <input type="number" id="selwpm" title="Word Per Minute">
           </td>
           <td colspan="2">
-            <div id="chkweightlastletterswrapper" class="checkbox-wrapper-35" title="more likely to hear 3 last letters">
+            <div id="chkweightlastletterswrapper" class="checkbox-wrapper" title="more likely to hear 3 last letters">
               <input class="switch" type="checkbox" id="chkweightlastletters">
               <label for="chkweightlastletters">
-                <span class="switch-x-toggletext" style="width: 150px;">
-                  <span class="switch-x-unchecked inactive"><span class="switch-x-hiddenlabel">Unchecked: </span>weigh more last letters</span>
-                  <span class="switch-x-checked"><span class="switch-x-hiddenlabel">Checked: </span>weigh more last letters</span>
+                <span class="switch-x-toggletext" style="width: 170px;">
+                  <span class="switch-x-unchecked"><span class="switch-x-hiddenlabel">Unchecked: </span>last letters emphasis</span>
+                  <span class="switch-x-checked"><span class="switch-x-hiddenlabel">Checked: </span>last letters emphasis</span>
                 </span>
               </label>
             </div>
@@ -497,7 +497,7 @@
           </td>
         </tr>
       </table>
-      <div class="checkbox-wrapper-35">
+      <div class="checkbox-wrapper">
         <input class="switch" type="checkbox" id="chkfree">
         <label for="chkfree">
           <span class="switch-x-toggletext" style="width: 110px;">
@@ -506,11 +506,11 @@
           </span>
         </label>
       </div>
-      <div id="chkfreelistenwrapper" class="checkbox-wrapper-35">
+      <div id="chkfreelistenwrapper" class="checkbox-wrapper">
         <input class="switch" type="checkbox" id="chkfreelisten">
         <label for="chkfreelisten">
           <span class="switch-x-toggletext" style="width: 130px;">
-            <span class="switch-x-unchecked inactive"><span class="switch-x-hiddenlabel">Unchecked: </span>free listen mode</span>
+            <span class="switch-x-unchecked"><span class="switch-x-hiddenlabel">Unchecked: </span>free listen mode</span>
             <span class="switch-x-checked"><span class="switch-x-hiddenlabel">Checked: </span>free listen mode</span>
           </span>
         </label>
