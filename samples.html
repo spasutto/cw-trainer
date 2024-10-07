@@ -139,6 +139,7 @@
         const shadow = contsample.attachShadow({ mode: "open" });
         [...template.content.querySelectorAll('script')].forEach(s => {
           if (s.innerHTML.indexOf('')>-1) {
+            s.innerHTML = s.innerHTML.replaceAll('document.body', `shadowdoc${counter}`);
             s.innerHTML = s.innerHTML.replaceAll('document', `shadowdoc${counter}`);
             s.innerHTML = `var shadowdoc${counter} = document.querySelector("[name='sample_${counter}'].sample-section.sample").shadowRoot;\n` + s.innerHTML;
           }
@@ -282,6 +283,20 @@
       }
     </style>
     <morse-player clearzone="true">cq cq cq de F8XYZ</morse-player>
+  </template>
+
+  <h3>Pure JS</h3>
+  <template name="sample">
+    <style>
+      morse-player {
+        width: 380px;
+      }
+    </style>
+    <script>
+      let player = new MorsePlayer({wpm: 30, effwpm: 30, ews: 0});
+      document.body.appendChild(player);
+      player.Text = "Hello World!!!";
+    </script>
   </template>
 
   <hr>

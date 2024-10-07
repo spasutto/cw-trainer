@@ -331,6 +331,16 @@ class CWPlayer {
     while(i<L && a1.charAt(i)=== a2.charAt(i)) i++;
     return a1.substring(0, i);
   }
+  static rand(...args) {
+    let min = 0, max = 1;
+    if (args.length >= 2) {
+      min = args[0];
+      max = args[1];
+    } else if (args.length >= 1) {
+      max = args[0];
+    }
+    return Math.random() * (max - min) + min;
+  }
 
   initAudio() {
     if (this.context) {
@@ -505,8 +515,8 @@ class CWPlayer {
 
     CWPlayer.internalTranslate(this.text).split('').forEach(c => {
       if (this.options.keyqual<1) {
-        qd = 0.25*(1-this.options.keyqual)*Math.random(this.elperiod);
-        qd-=qd/2;
+        qd = 2*(1-this.options.keyqual)*CWPlayer.rand(this.elperiod); //excursion entre 0 et 1 x elperiod
+        qd-=0.25*this.elperiod; //==> excursion entre -0.25 et +0.75 elperiod
       }
       switch (c) {
         case ' ':
