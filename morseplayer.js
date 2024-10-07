@@ -64,7 +64,8 @@ class CWPlayer {
     keyqual : 1,
     ews : 0,
     predelay : 0,
-    autoplay : false
+    autoplay : false,
+    volume : 1
   };
   elperiod = 0.06; // 20WPM.
   spperiod = 0.06;
@@ -160,9 +161,19 @@ class CWPlayer {
     value = Math.min(CWPlayer.MAX_TONE, Math.max(CWPlayer.MIN_TONE, value));
     this.options.tone = value;
     if (this.context) {
-      this.osc.frequency.setValueAtTime(this.options.tone, this.context.currentTime);
+      this.osc.frequency.setValueAtTime(value, this.context.currentTime);
     }
     this.fireEvent('parameterchanged', 'Tone');
+  }
+  get Volume() { return this.options.volume; }
+  set Volume(value) {
+    value = CWPlayer.parsefloat(value);
+    value = Math.min(1, Math.max(0, value));
+    this.options.volume = value;
+    if (this.context) {
+      this.master.gain.setValueAtTime(value, this.context.currentTime);
+    }
+    this.fireEvent('parameterchanged', 'Volume');
   }
   get KeyingQuality() { return this.options.keyqual; }
   set KeyingQuality(value) {
@@ -328,11 +339,14 @@ class CWPlayer {
     this.context = new (window.AudioContext || window.webkitAudioContext)();
     this.osc = this.context.createOscillator();
     this.gain = this.context.createGain();
+    this.master = this.context.createGain();
     this.osc.connect(this.gain);//.connect(this.context.destination);
     this.osc.frequency.value = this.options.tone;
     this.gain.gain.value = 0;
+    this.master.gain.value = this.options.volume;
     this.osc.start();
-    this.gain.connect(this.context.destination);
+    this.gain.connect(this.master);
+    this.master.connect(this.context.destination);
   }
   async playBoop() {
     if (this.playing) {
@@ -527,7 +541,7 @@ class CWPlayer {
 class MorsePlayer extends HTMLElement {
   static get TAG() { return "morse-player"; }
   static get SVG_INACTIF() { return 'svg_inactif'; }
-  static observedAttributes = ['player', 'playing', 'paused', 'autoplay', 'wpm', 'effwpm', 'ews', 'tone', 'keyingquality', 'predelay', 'text', 'index', 'progressbar', 'clearzone', 'configbutton'];
+  static observedAttributes = ['player', 'playing', 'paused', 'autoplay', 'wpm', 'effwpm', 'ews', 'tone', 'volume', 'keyingquality', 'predelay', 'text', 'index', 'progressbar', 'clearzone', 'configbutton'];
   setters = [];
 
   static DEFAULT_OPTIONS = {
@@ -610,8 +624,9 @@ class MorsePlayer extends HTMLElement {
     let cfghtml = `<span><label for="val_WPM" title="Speed (in words per minute)">WPM :</label><input id="val_WPM" type="number" min="${CWPlayer.MIN_WPM}" max="${CWPlayer.MAX_WPM}" step="1" title="Speed (in words per minute)"></span>`;
     cfghtml += `<span><label for="val_EffWPM" title="Effective (Farnsworth) speed (in words per minute)">Eff WPM :</label><input id="val_EffWPM" type="number" min="${CWPlayer.MIN_WPM}" max="${CWPlayer.MAX_WPM}" step="1" title="Effective (Farnsworth) speed (in words per minute)"></span>`;
     cfghtml += `<span><label for="val_EWS" title="Extra space between words (in seconds)">Extra Word Space :</label><input id="val_EWS" type="number" min="${CWPlayer.MIN_EWS}" max="${CWPlayer.MAX_EWS}" step="1" title="Extra space between words (in seconds)"></span>`;
-    cfghtml += `<span><label for="val_Tone" title="Tone">Tone :</label><input id="val_Tone" type="number" min="${CWPlayer.MIN_TONE}" max="${CWPlayer.MAX_TONE}" step="100" title="Tone"></span>`;
+    cfghtml += `<span><label for="val_Tone" title="Tone (in Hertz)">Tone :</label><input id="val_Tone" type="number" min="${CWPlayer.MIN_TONE}" max="${CWPlayer.MAX_TONE}" step="100" title="Tone (in Hertz)"></span>`;
     cfghtml += `<span><label for="val_KeyingQuality" title="Keying quality">Keying Quality :</label><input id="val_KeyingQuality" type="range" min="${CWPlayer.MIN_KEYQUAL}" max="${CWPlayer.MAX_KEYQUAL}" step="0.1" title="Keying quality"></span>`;
+    cfghtml += `<span><label for="val_Volume" title="Volume">Volume :</label><input id="val_Volume" type="range" min="0" max="1" step="0.01" title="Volume"></span>`;
     configzonecont.innerHTML = cfghtml;
 
     // Create some CSS to apply to the shadow dom
@@ -917,6 +932,8 @@ class MorsePlayer extends HTMLElement {
   set EWS(value) { this.cwplayer.EWS = value; }
   get Tone() { return this.cwplayer.Tone; }
   set Tone(value) { this.cwplayer.Tone = value; }
+  get Volume() { return this.cwplayer.Volume; }
+  set Volume(value) { this.cwplayer.Volume = value; }
   get KeyingQuality() { return this.cwplayer.KeyingQuality; }
   set KeyingQuality(value) { this.cwplayer.KeyingQuality = value; }
   get PreDelay() { return this.cwplayer.PreDelay; }
