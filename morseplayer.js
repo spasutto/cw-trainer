@@ -527,13 +527,14 @@ class CWPlayer {
 class MorsePlayer extends HTMLElement {
   static get TAG() { return "morse-player"; }
   static get SVG_INACTIF() { return 'svg_inactif'; }
-  static observedAttributes = ['player', 'playing', 'paused', 'autoplay', 'wpm', 'effwpm', 'ews', 'tone', 'keyingquality', 'predelay', 'text', 'index', 'displayprogressbar', 'displayclearzone'];
+  static observedAttributes = ['player', 'playing', 'paused', 'autoplay', 'wpm', 'effwpm', 'ews', 'tone', 'keyingquality', 'predelay', 'text', 'index', 'progressbar', 'clearzone', 'configbutton'];
   setters = [];
 
   static DEFAULT_OPTIONS = {
     ...CWPlayer.DEFAULT_OPTIONS,
-    displayProgressBar : true,
-    displayClearZone : false
+    progressBar : true,
+    clearZone : false,
+    configButton : true
   };
 
   constructor(...args) {
@@ -602,18 +603,31 @@ class MorsePlayer extends HTMLElement {
     clearzone.insertRow();
     czwrapper.appendChild(clearzone);
 
+    const configzone = document.createElement("div");
+    configzone.id="configzone";
+    const configzonecont = document.createElement("div");
+    configzone.appendChild(configzonecont);
+    let cfghtml = `<span><label for="val_WPM" title="Speed (in words per minute)">WPM :</label><input id="val_WPM" type="number" min="${CWPlayer.MIN_WPM}" max="${CWPlayer.MAX_WPM}" step="1" title="Speed (in words per minute)"></span>`;
+    cfghtml += `<span><label for="val_EffWPM" title="Effective (Farnsworth) speed (in words per minute)">Eff WPM :</label><input id="val_EffWPM" type="number" min="${CWPlayer.MIN_WPM}" max="${CWPlayer.MAX_WPM}" step="1" title="Effective (Farnsworth) speed (in words per minute)"></span>`;
+    cfghtml += `<span><label for="val_EWS" title="Extra space between words (in seconds)">Extra Word Space :</label><input id="val_EWS" type="number" min="${CWPlayer.MIN_EWS}" max="${CWPlayer.MAX_EWS}" step="1" title="Extra space between words (in seconds)"></span>`;
+    cfghtml += `<span><label for="val_Tone" title="Tone">Tone :</label><input id="val_Tone" type="number" min="${CWPlayer.MIN_TONE}" max="${CWPlayer.MAX_TONE}" step="100" title="Tone"></span>`;
+    cfghtml += `<span><label for="val_KeyingQuality" title="Keying quality">Keying Quality :</label><input id="val_KeyingQuality" type="range" min="${CWPlayer.MIN_KEYQUAL}" max="${CWPlayer.MAX_KEYQUAL}" step="0.1" title="Keying quality"></span>`;
+    configzonecont.innerHTML = cfghtml;
+
     // Create some CSS to apply to the shadow dom
     const style = document.createElement("style");
 
     style.textContent = `
       :host {
         display: block;
+        font-family: sans-serif;
       }
       :root {
         --btn-fill-color: #000;
       }
       #player {
         display: flex;
+        position: relative;
       }
       #player button {
         width: 32px;
@@ -641,6 +655,49 @@ class MorsePlayer extends HTMLElement {
         flex-grow: 1;
         user-select: none;
         margin-left: 5px;
+      }
+      #configzone {
+        display: none;
+        background-color: #ccc;
+        padding: 2px;
+      }
+      #configzone>div {
+        background-color: #f8f8f8;
+        width: 300px;
+        margin-left: auto;
+        margin-right: 0;
+      }
+      #configzone span, input {
+        margin-left: 5px;
+        white-space: nowrap;
+      }
+      #configzone input[type="number"] {
+        width: 38px;
+      }
+      #val_Tone {
+        width: 45px !important;
+      }
+      #btnconfig {
+        margin-left: 1px;
+        padding: 2px 4px 0 4px;
+        border-top-left-radius: 5px;
+        border-top-right-radius: 5px;
+        margin-top: 1px;
+      }
+      #btnconfig.opened {
+        background-color: #ccc;
+      }
+      #btnconfig:hover .cfggear {
+        fill: orange;
+      }
+      #btnconfig:hover .cfgpath {
+        filter: drop-shadow(0px 0px 5px rgb(0 0 0 / 0.4));
+      }
+      #btnconfig:active .cfggear {
+        fill: red;
+      }
+      #btnconfig:active .cfgpath {
+        filter: drop-shadow(0px 0px 5px rgb(0 0 0 / 1));
       }
       .progress-bar {
         height: 25px;
@@ -696,25 +753,29 @@ class MorsePlayer extends HTMLElement {
       .lastchar {
         background-color: yellow !important;
       }
+      .cfggear {
+        fill: #ddd;
+      }
     `;
 
     // Attach the created elements to the shadow dom
     shadow.appendChild(style);
     shadow.appendChild(wrapper);
+    shadow.appendChild(configzone);
     shadow.appendChild(czwrapper);
     wrapper.innerHTML = `
       <div>
-        <button id="btnstop" title="stop playing" class="svg_inactif" disabled>
+        <button id="btnstop" title="Stop playing" class="svg_inactif" disabled>
           <svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="20" height="20" viewBox="0 0 20 20">
             <rect width="16" height="16" x="2" y="2" rx="1" ry="1"/>
           </svg>
         </button>
-        <button id="btnplay" title="start playing">
+        <button id="btnplay" title="Start playing">
           <svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="20" height="20" viewBox="-10 -5 120 120">
             <path d="M 13.677242369053593 5.970459221108368 L 99.32275763094641 55.02954077889163 C 103.6613788154732 57.514770389445815 103.50196896806634 62.18351020967654 99.00393793613266 64.36702041935308 L 13.996062063867347 105.63297958064692 C 9.498031031933674 107.81648979032346 5 105 5 100 L 5 11 C 5 6 9.338621184526797 3.485229610554184 13.677242369053593 5.970459221108368 Z" />
           </svg>
         </button>
-        <button id="btnpause" title="pause playing" class="svg_inactif" disabled>
+        <button id="btnpause" title="Pause playing" class="svg_inactif" disabled>
           <svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="20" height="20" viewBox="0 0 20 20">
             <rect width="5" height="15" x="3" y="2" rx="1" ry="1"/>
             <rect width="5" height="15" x="12" y="2" rx="1" ry="1"/>
@@ -726,15 +787,46 @@ class MorsePlayer extends HTMLElement {
           <div id="playperc" class="progress"></div>
           <center><span id="playtime"></span></center>
         </div>
-      </div>`;
+      </div>
+      <a id="btnconfig" href="#" title="Open settings">
+        <svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="20" height="20" viewBox="-2 -2 58 58">
+          <defs>
+            <path id="ext" d="M51.22,21h-5.052c-0.812,0-1.481-0.447-1.792-1.197s-0.153-1.54,0.42-2.114l3.572-3.571
+        		c0.525-0.525,0.814-1.224,0.814-1.966c0-0.743-0.289-1.441-0.814-1.967l-4.553-4.553c-1.05-1.05-2.881-1.052-3.933,0l-3.571,3.571
+        		c-0.574,0.573-1.366,0.733-2.114,0.421C33.447,9.313,33,8.644,33,7.832V2.78C33,1.247,31.753,0,30.22,0H23.78
+        		C22.247,0,21,1.247,21,2.78v5.052c0,0.812-0.447,1.481-1.197,1.792c-0.748,0.313-1.54,0.152-2.114-0.421l-3.571-3.571
+        		c-1.052-1.052-2.883-1.05-3.933,0l-4.553,4.553c-0.525,0.525-0.814,1.224-0.814,1.967c0,0.742,0.289,1.44,0.814,1.966l3.572,3.571
+        		c0.573,0.574,0.73,1.364,0.42,2.114S8.644,21,7.832,21H2.78C1.247,21,0,22.247,0,23.78v6.439C0,31.753,1.247,33,2.78,33h5.052
+        		c0.812,0,1.481,0.447,1.792,1.197s0.153,1.54-0.42,2.114l-3.572,3.571c-0.525,0.525-0.814,1.224-0.814,1.966
+        		c0,0.743,0.289,1.441,0.814,1.967l4.553,4.553c1.051,1.051,2.881,1.053,3.933,0l3.571-3.572c0.574-0.573,1.363-0.731,2.114-0.42
+        		c0.75,0.311,1.197,0.98,1.197,1.792v5.052c0,1.533,1.247,2.78,2.78,2.78h6.439c1.533,0,2.78-1.247,2.78-2.78v-5.052
+        		c0-0.812,0.447-1.481,1.197-1.792c0.751-0.312,1.54-0.153,2.114,0.42l3.571,3.572c1.052,1.052,2.883,1.05,3.933,0l4.553-4.553
+        		c0.525-0.525,0.814-1.224,0.814-1.967c0-0.742-0.289-1.44-0.814-1.966l-3.572-3.571c-0.573-0.574-0.73-1.364-0.42-2.114
+        		S45.356,33,46.168,33h5.052c1.533,0,2.78-1.247,2.78-2.78V23.78C54,22.247,52.753,21,51.22,21z M52,30.22z"/>
+            <circle id="int" r="9" cy="27" cx="27"/>
+            <mask id="myMask">
+              <use xlink:href="#ext" fill="white"/>
+              <use xlink:href="#int" fill="black"/>
+            </mask>
+          </defs>
+          <g class="cfgpath">
+            <use xlink:href="#ext" mask="url(#myMask)" stroke-width="1" stroke="black" class="cfggear"/>
+            <use xlink:href="#int" stroke-width="1" stroke="black" fill="transparent"/>
+          </g>
+        </svg>
+      </a>`;
     this.btnstop = this.shadowRoot.getElementById('btnstop');
     this.btnplay = this.shadowRoot.getElementById('btnplay');
     this.btnpause = this.shadowRoot.getElementById('btnpause');
+    this.btnconfig = this.shadowRoot.getElementById('btnconfig');
     this.playperc = this.shadowRoot.getElementById('playperc');
     this.playtime = this.shadowRoot.getElementById('playtime');
     this.prgcont = this.shadowRoot.getElementById('prgcont');
     this.clearzone = clearzone;
     this.czwrapper = czwrapper;
+    this.configzone = configzone;
+    this.configfields = {};
+    [...configzone.querySelectorAll('input')].filter(f => f.id.startsWith('val_')).forEach(f => this.configfields[f.id.substring(4)] = f );
 
     this.cwplayer.addEventListener('play', () => {
       this.updateButtonsState(true);
@@ -745,11 +837,11 @@ class MorsePlayer extends HTMLElement {
       this.updateButtonsState();
       this.updateClearZone();
     });
-    this.cwplayer.addEventListener('parameterchanged', () => {
+    this.cwplayer.addEventListener('parameterchanged', (name) => {
+      this.updateFields(name);
       this.updateDisplayTime();
       this.updateButtonsState();
     });
-
     this.cwplayer.addEventListener('indexchanged', () => {
       if (!this.cwplayer.Playing && !this.cwplayer.Paused) this.updateDisplayTime();
       this.updateButtonsState();
@@ -759,16 +851,20 @@ class MorsePlayer extends HTMLElement {
     this.btnpause.onclick = this.pause.bind(this);
     this.btnstop.onclick = this.stop.bind(this);
     this.btnplay.oncontextmenu = () => {
-        this.cwplayer.AutoPlay = !this.cwplayer.AutoPlay;
-        if (this.cwplayer.AutoPlay) {
-          this.btnplay.classList.add('autoplay');
-          this.btnplay.title = 'automatically start playing when text change';
-        } else {
-          this.btnplay.classList.remove('autoplay');
-          this.btnplay.title = 'start playing';
-        }
-        return false;
+      this.cwplayer.AutoPlay = !this.cwplayer.AutoPlay;
+      if (this.cwplayer.AutoPlay) {
+        this.btnplay.classList.add('autoplay');
+        this.btnplay.title = 'automatically start playing when text change';
+      } else {
+        this.btnplay.classList.remove('autoplay');
+        this.btnplay.title = 'start playing';
+      }
+      return false;
     }
+    this.btnconfig.onclick = () => {
+      this.configzone.style.display = this.configzone.style.display == 'block' ? 'none' : 'block';
+      this.btnconfig.classList.toggle('opened');
+    };
     document.addEventListener("mouseup", this.mouseup.bind(this));
     this.prgcont.addEventListener("mousedown", (e) => {
       let elem = (e.target || e.srcElement);
@@ -780,17 +876,22 @@ class MorsePlayer extends HTMLElement {
       this.mousemove(e);
     });
     document.addEventListener("mousemove", this.mousemove.bind(this));
+    Object.keys(this.configfields).forEach(k => {
+      this.configfields[k].onchange = () => { this[k] = this.configfields[k].value; };
+    });
 
-    if (!this.options.displayProgressBar) this.prgcont.style.display='none';
-    if (this.options.displayClearZone) this.clearzone.style.display='table';
+    if (!this.options.progressBar) this.prgcont.style.display='none';
+    if (this.options.clearZone) this.clearzone.style.display='table';
+    if (!this.options.configButton) this.btnconfig.style.display='none';
 
     if (this.innerHTML?.trim().length>0) {
       this.cwplayer.Text = this.innerHTML.trim();
     }
-    
+
     this.updateDisplayTime();
     this.updateButtonsState();
     this.updateClearZone();
+    this.updateFields();
   }
   attributeChangedCallback(name, oldValue, newValue) {
     let setter = this.setters?.find(p => p.toLowerCase() == name?.toLowerCase());
@@ -828,21 +929,29 @@ class MorsePlayer extends HTMLElement {
   get TotalTime() { return this.cwplayer.TotalTime; }
   set TotalTime(value) { this.cwplayer.TotalTime = value; }
 
-  get DisplayProgressBar() { return this.options.displayProgressBar; }
-  set DisplayProgressBar(value) {
-    this.options.displayProgressBar = CWPlayer.parsebool(value);
+  get ProgressBar() { return this.options.progressBar; }
+  set ProgressBar(value) {
+    this.options.progressBar = CWPlayer.parsebool(value);
     if (this.prgcont) {
-      this.prgcont.style.display = this.options.displayProgressBar ? 'block' : 'none';
-      this.cwplayer.fireEvent('parameterchanged', 'DisplayProgressBar');
+      this.prgcont.style.display = this.options.progressBar ? 'block' : 'none';
+      this.cwplayer.fireEvent('parameterchanged', 'ProgressBar');
     }
   }
-  get DisplayClearZone() { return this.options.displayClearZone; }
-  set DisplayClearZone(value) {
-    this.options.displayClearZone = CWPlayer.parsebool(value);
+  get ClearZone() { return this.options.clearZone; }
+  set ClearZone(value) {
+    this.options.clearZone = CWPlayer.parsebool(value);
     if (this.clearzone) {
       this.updateClearZone();
-      this.clearzone.style.display = this.options.displayClearZone ? 'table' : 'none';
-      this.cwplayer.fireEvent('parameterchanged', 'DisplayClearZone');
+      this.clearzone.style.display = this.options.clearZone ? 'table' : 'none';
+      this.cwplayer.fireEvent('parameterchanged', 'ClearZone');
+    }
+  }
+  get ConfigButton() { return this.options.configButton; }
+  set ConfigButton(value) {
+    this.options.configButton = CWPlayer.parsebool(value);
+    if (this.btnconfig) {
+      this.btnconfig.style.display = this.options.configButton ? 'block' : 'none';
+      this.cwplayer.fireEvent('parameterchanged', 'ConfigButton');
     }
   }
 
@@ -887,6 +996,15 @@ class MorsePlayer extends HTMLElement {
     this.playtime.innerHTML = `${this.formatTime(this.cwplayer.CurrentTime)} / ${this.formatTime(this.cwplayer.TotalTime)}`;
     if (this.cwplayer.Playing || this.cwplayer.Paused) requestAnimationFrame(this.updateDisplayTime.bind(this));
   }
+  updateFields(name=null) {
+    if (!name) {
+      Object.keys(this.configfields).forEach(k => {
+        this.configfields[k].value = this[k];
+      });
+    } else if (this.configfields[name]) {
+      this.configfields[name].value = this[name];
+    }
+  }
   updateButtonsState(en_stop, en_play, en_pause) {
     let playing = this.cwplayer.Playing;
     let paused = this.cwplayer.Paused;
@@ -908,7 +1026,7 @@ class MorsePlayer extends HTMLElement {
     applyClass(this.btnpause);
   }
   updateClearZone() {
-    if (!this.options.displayClearZone) return;
+    if (!this.options.clearZone) return;
     let playing = this.cwplayer.Playing;
     let idx = this.cwplayer.Index+1;
     if (idx<=0) {

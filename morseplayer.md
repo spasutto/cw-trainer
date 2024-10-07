@@ -41,8 +41,9 @@ The `morse-player` tag accept some attributes (case insensitive) :
  - **keyingquality** : get or set the keying quality (between 50% : bad and 100% : perfect)
  - **predelay** (_default to 0 s_) : a time in seconds before playing the first symbol
  - **autoplay** (_default to false_) : if set to "true", a change in the text automatically starts playing
- - **displayprogessbar** (_default to true_) : if set to false the playing/progress bar is hidden
- - **displayclearzone** (_default to false_) : if set to true, a zone under the player displays the currently playing symbols
+ - **progessbar** (_default to true_) : if set to false the playing/progress bar is hidden
+ - **clearzone** (_default to false_) : if set to true, a zone under the player displays the currently playing symbols
+ - **configbutton** (_default to true_) : if set to true, add a settings zone
 
 ## MorsePlayer instance's properties
  - **Playing** : the player is currently playing
@@ -60,8 +61,9 @@ console.log(player.Text);
 // 'STRANGE INPUT TEXT'
 ```
  - **Index** : get or set the playing's index (in the Text property)
- - **DisplayProgressBar** : display/hide the progress bar
- - **DisplayClearZone** : display/hide the clear text zone (currently playing)
+ - **ProgressBar** : display/hide the progress bar
+ - **ClearZone** : display/hide the clear text zone (currently playing)
+ - **ConfigButton** : display/hide the settings button
 
 ## Methods
 ### _constructor(options)_

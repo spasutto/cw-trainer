@@ -70,7 +70,7 @@ More infos [here](morseplayer.md) & [samples here](https://spasutto.github.io/cw
       width: 380px;
     }
   </style>
-  <morse-player id="player1" text="cq cq cq de F8XYZ" displayprogressbar="false" predelay="2"></morse-player>
-  <morse-player id="player2" displayclearzone="true">this text is played in morse</morse-player>
-  <morse-player id="player3" wpm="25" effwpm="17" tone="1000">this also</morse-player>
+  <morse-player id="player1" text="cq cq cq de F8XYZ" progressbar="false" predelay="2"></morse-player>
+  <morse-player id="player2" clearzone="true">this text is played in morse</morse-player>
+  <morse-player id="player3" wpm="25" effwpm="17" tone="1000" configbutton="false">this also</morse-player>
 ```
