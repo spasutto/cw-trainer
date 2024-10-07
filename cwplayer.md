@@ -14,13 +14,14 @@ var player = new CWPlayer({wpm:25});
 player.play('Hello world !');
 ```
 
-## MorsePlayer instance's properties
+## CWPlayer instance's properties
  - **Playing** : the player is currently playing
  - **Paused** : the player is currently paused
  - **WPM** : get or set the WPM
  - **EffWPM** : get or set the Effective WPM (see [Learning Methods](https://en.wikipedia.org/wiki/Morse_code#Learning_methods) and [Farnsworth speed](http://www.arrl.org/files/file/Technology/x9004008.pdf))
  - **EWS** : get or set Extra Word Space
  - **Tone** : get or set tone's frequency
+ - **Volume** : get or set volume
  - **KeyingQuality** : get or set the keying quality (between 50% : bad and 100% : perfect)
  - **PreDelay** : get or set the delay before playing firs symbol
  - **Text** : get or set the text to play. Text is "cleaned" :
@@ -39,6 +40,7 @@ The `CWPlayer` constructor accepts options as an `Object` in which keys can be :
  > _Note: When WPM is lower than Effective WPM, the latest value is used for both_
  - **ews** (_default to 0 s_) : Extra Word Space, a space in seconds added to the normal space between words
  - **tone** (_default to 800Hz_) : the tonality
+ - **volume** (_default to 1_) : the volume (from 0 to 1)
  - **keyingquality** : get or set the keying quality (between 50% : bad and 100% : perfect)
  - **predelay** (_default to 0 s_) : a time in seconds before playing the first symbol
  - **autoplay** (_default to false_) : if set to "true", a change in the text automatically starts playing
