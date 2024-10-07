@@ -18,7 +18,7 @@ If it's too hard you can decrease the "Eff. WPM" to whatever you want. You can a
 There are 40 lessons consisting in letters/symbols and 3 additional lessons :
  - Letters : only alphabet letters
  - QSO : chunks of sample QSO, with randomly generated callsigns, RST...
- - Free text : Randomly picked portions of Oliver Twist (by Charles Dickens, thanks to [Projet Gutemberg](https://www.gutenberg.org/ebooks/730) !)
+ - Free text : Randomly picked portions of Oliver Twist (by Charles Dickens, thanks to [Projet Gutenberg](https://www.gutenberg.org/ebooks/730) !)
 
 ## Commands
  - <kbd>space</kbd> : pause ( <kbd>ctrl</kbd>-<kbd>space</kbd> if input has focus)
@@ -31,7 +31,7 @@ There are 40 lessons consisting in letters/symbols and 3 additional lessons :
 The `CWPlayer` and `MorsePlayer` classes (defined in [morseplayer.js](morseplayer.js)) can be reused :
 
 ### CWPlayer
-More infos [here](cwplayer.md) & samples [here](https://spasutto.github.io/cw-trainer/samples.html)
+More infos [here](cwplayer.md) & [samples here](https://spasutto.github.io/cw-trainer/samples.html)
 ```HTML
   <script src="morseplayer.js"></script>
   <textarea id="cwtext" rows="4" cols="43" spellcheck="false">CQ CQ CQ DE F8XYZ K</textarea><br>
@@ -62,7 +62,7 @@ More infos [here](cwplayer.md) & samples [here](https://spasutto.github.io/cw-tr
 ```
 
 ### MorsePlayer
-More infos [here](morseplayer.md) & samples [here](https://spasutto.github.io/cw-trainer/samples.html)
+More infos [here](morseplayer.md) & [samples here](https://spasutto.github.io/cw-trainer/samples.html)
 ```HTML
   <script src="morseplayer.js"></script>
   <style>

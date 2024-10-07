@@ -840,6 +840,7 @@ class MorsePlayer extends HTMLElement {
   set DisplayClearZone(value) {
     this.options.displayClearZone = CWPlayer.parsebool(value);
     if (this.clearzone) {
+      this.updateClearZone();
       this.clearzone.style.display = this.options.displayClearZone ? 'table' : 'none';
       this.cwplayer.fireEvent('parameterchanged', 'DisplayClearZone');
     }
@@ -907,6 +908,7 @@ class MorsePlayer extends HTMLElement {
     applyClass(this.btnpause);
   }
   updateClearZone() {
+    if (!this.options.displayClearZone) return;
     let playing = this.cwplayer.Playing;
     let idx = this.cwplayer.Index+1;
     if (idx<=0) {
