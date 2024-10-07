@@ -864,6 +864,7 @@ class MorsePlayer extends HTMLElement {
     this.btnconfig.onclick = () => {
       this.configzone.style.display = this.configzone.style.display == 'block' ? 'none' : 'block';
       this.btnconfig.classList.toggle('opened');
+      return false;
     };
     document.addEventListener("mouseup", this.mouseup.bind(this));
     this.prgcont.addEventListener("mousedown", (e) => {
