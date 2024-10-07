@@ -691,25 +691,25 @@
     do {
       startind = irand(uselength);
       prvptid = text.lastIndexOf('.', startind);
-      if (prvptid == -1) continue;
+      if (prvptid == -1 || text.length-prvptid<=minlength) continue;
       do {
         nxtptid = text.indexOf('.', startind);
         tmpnxtptid = text.indexOf('?', startind);
         if (tmpnxtptid > -1 && tmpnxtptid<nxtptid) nxtptid = tmpnxtptid;
         tmpnxtptid = text.indexOf('!', startind);
         if (tmpnxtptid > -1 && tmpnxtptid<nxtptid) nxtptid = tmpnxtptid;
-        if (nxtptid == -1) break;
+        if (nxtptid == -1) nxtptid = text.length;
         else if (nxtptid-prvptid < minlength) {
           startind = nxtptid + 1;
         }
       } while (nxtptid-prvptid < minlength);
-      if (nxtptid == -1) continue;
       //console.log('--------------------------------------------------------------------------------------------');
       //console.log(text.substring(prvptid+1, nxtptid+1));
       gentext = text.substring(prvptid+1, nxtptid+1)
           .replaceAll(/\r?\n/g, ' ')
           .replaceAll(/\s+/g, ' ')
           .replaceAll(/^["']+\s*(["'])*/g, '$1').trim();
+      if (text[nxtptid+1] == '"') gentext += '"';
       while (regclean.test(gentext)) {
         gentext = gentext.replaceAll(regclean, '\'');
       }
