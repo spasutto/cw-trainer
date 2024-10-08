@@ -104,12 +104,16 @@ function generateRandomText(chars, grouplen, groupsnb) {
   else grouplen = irand(1, 8);
   return Array.apply(null, Array(groupsnb)).map(() => generateRandomString(chars, grouplen)).join(' ');
 }
-async function getUrl(url, bypass_cache=false) {
+async function getUrl(url, bypass_cache=false, binary=false) {
   let rep = null;
   try {
     rep = await fetch(url, {'cache': bypass_cache?'reload':'force-cache'});
     if (rep.status < 200 || rep.status >= 300) throw new Error();
-    rep = await rep.text();
+    if (!binary) {
+      rep = await rep.text();
+    } else {
+      rep = await rep.arrayBuffer();
+    }
   } catch(e) {
     rep=null;
   }
@@ -570,11 +574,20 @@ async function selfDownload() {
   const regstyle = /<link\s+[^>]*href\s*=\s*"([^"]+)"[^>]*>/gi;
   occ = [...page.matchAll(regstyle)];
   for (let i=0; i<occ.length; i++) {
-    if (occ[i][0].indexOf('icon') > -1) continue;
-    let css = await getUrl(occ[i][1], true);
-    if (css) {
-      page = page.replace(occ[i][0], '\u003cstyle\u003e\n'+css.replaceAll('$', '$$$$')+'\u003c/style\u003e')
+    let binary = occ[i][0].indexOf('icon') > -1;
+    let data = await getUrl(occ[i][1], true, binary) ?? '';
+    if (binary) {
+      let bdata = '';
+      let bytes = new Uint8Array(data);
+      let len = bytes.byteLength;
+      for (let i = 0; i < len; i++) {
+        bdata += String.fromCharCode( bytes[ i ] );
+      }
+      data = `\u003clink rel="icon" type="image/x-icon" href="data:image/x-icon;base64, ${window.btoa(bdata)}">`;
+    } else if (data.trim().length > 0) {
+      data = '\u003cstyle\u003e\n'+data.replaceAll('$', '$$$$')+'\u003c/style\u003e';
     }
+    page = page.replace(occ[i][0], data)
   }
   if (ot) {
     page = page.replace('\u003c/body\u003e', '\u003cscript\u003e\nvar freetext = `'+ot.replaceAll('$', '$$$$').replaceAll('`', '\\`')+'`;\n\u003c/script\u003e\n\u003c/body\u003e')
