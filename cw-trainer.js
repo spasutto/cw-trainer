@@ -377,7 +377,7 @@ async function verifycw(e) {
   if (!cwplayer || cwchecking) return;
   cwchecking = true;
   if (chkfree.checked) {
-    if (e?.keyCode == 16 || e?.key.length>1) { // shift et autres touches non imprimables
+    if (e?.keyCode == 16 || (e?.key.length>1 && e?.key != 'Unidentified')) { // shift et autres touches non imprimables
       cwchecking = false;
       return;
     }
