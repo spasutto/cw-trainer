@@ -373,13 +373,13 @@ function combinaisons(array, length, action) {
     return ret;
   });
 }
-async function verifycw() {
+async function verifycw(e) {
   if (!cwplayer || cwchecking) return;
   cwchecking = true;
   if (chkfree.checked) {
-    if (iptfree.value?.length != 1) {
+    if (e?.keyCode == 16 || e?.key.length>1) { // shift et autres touches non imprimables
       cwchecking = false;
-      return; // controls keys
+      return;
     }
     iptfree.classList.add('nocarret');
     if (chkfreelisten.checked || iptfree.value==' ') {
@@ -396,6 +396,7 @@ async function verifycw() {
     }
     if (iptfree.value.toUpperCase() != cwplayer.Text[0]) {
       iptfree.classList.add('error');
+      iptfree.value = '\u274C';//'ERROR';
       CWPlayer.delay(0.35).then(() => {
         iptfree.classList.remove('error');
         iptfree.classList.remove('nocarret');
@@ -409,6 +410,7 @@ async function verifycw() {
       iptfree.value = '';
     } else {
       iptfree.classList.add('ok');
+      iptfree.value = '\u2714';//'GOOD !';
       CWPlayer.delay(0.35).then(() => {
         iptfree.classList.remove('ok');
         iptfree.classList.remove('nocarret');
