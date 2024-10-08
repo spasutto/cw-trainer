@@ -813,8 +813,8 @@ window.onload = async () => {
   }
   iptfree.onkeyup = verifycw;
   cwtitle.ondblclick = () => {
-    cwplayer.DisplayClearZone = !cwplayer.DisplayClearZone;
-    if (cwplayer.DisplayClearZone) {
+    cwplayer.ClearZone = !cwplayer.ClearZone;
+    if (cwplayer.ClearZone) {
       message(`Cheating mode activated!`);
     }
   }

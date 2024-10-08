@@ -509,23 +509,22 @@ class CWPlayer {
     this.stime = [];
     this.itime = [];
     if (this.text.length <= 0) return 0;
-    let d = Math.max(0, this.options.predelay), k = 0, inchar = false, qd = 0;
+    let d = Math.max(0, this.options.predelay), k = 0, inchar = false, qf = 1;
     this.itime.push(d);
 
     CWPlayer.internalTranslate(this.text).split('').forEach(c => {
       if (this.options.keyqual<1) {
-        qd = 2*(1-this.options.keyqual)*CWPlayer.rand(this.elperiod); //excursion entre 0 et 1 x elperiod
-        qd-=0.25*this.elperiod; //==> excursion entre -0.25 et +0.75 elperiod
+        qf = 1 + (1-this.options.keyqual) * CWPlayer.rand(-0.5, +0.5);
       }
       switch (c) {
         case ' ':
-          d += this.spperiod*3 + qd;
+          d += qf*this.spperiod*3;
           inchar=false;
           this.itime.push(d);
           break;
         case '\t':
-          this.itime.push(d); + qd
-          d += this.spperiod*7 + this.options.ews + qd;
+          this.itime.push(d);
+          d += qf*this.spperiod*7 + this.options.ews;
           inchar=false;
           this.itime.push(d);
           break;
@@ -533,10 +532,10 @@ class CWPlayer {
         case '-':
           if (inchar) {
             //inter-element
-            d += this.elperiod + qd;
+            d += qf*this.elperiod;
           }
           this.stime.push(d);
-          d += (c == '.' ? this.elperiod : 3*this.elperiod) + qd; // dit or dah
+          d += qf*(c == '.' ? this.elperiod : 3*this.elperiod); // dit or dah
           this.stime.push(d);
           inchar=true;
           break;
