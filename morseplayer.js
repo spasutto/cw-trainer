@@ -364,7 +364,6 @@ class CWPlayer {
     } else if (!this.context) {
       this.initAudio();
     }
-    this.gain.connect(this.context.destination);
     this.booping = true;
 
     let initTime = this.context.currentTime;
