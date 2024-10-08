@@ -545,7 +545,7 @@ async function verifycw(e) {
 }
 async function listen(text, elem) {
   if (cwplayer.Playing) {
-    return ;
+    cwplayer.stop();
   }
   [...document.querySelectorAll('a[name="listen"]')].forEach(e => e.classList.remove('active'));
   if (elem) elem.classList.add('active');
