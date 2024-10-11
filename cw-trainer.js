@@ -7,7 +7,7 @@ var cw_options = {
   lesson : 1,
   grouplen : 5,
   groupsnb : 10,
-  freemode: false,
+  simple_mode : false,
   freelisten: false,
   weighlastletters: false,
   wpm : 25,
@@ -174,7 +174,7 @@ async function generateText() {
   let cwgentext = '';
   if (!cw_options.freelisten) {
     cwplayer.Text = '';
-    if (cw_options.freemode) {
+    if (cw_options.simple_mode) {
       let maxlesson = Math.min(40, cw_options.lesson);
       let letters = null;
       if (cw_options.lesson == 41) {
@@ -228,7 +228,7 @@ async function generateText() {
     cwplayer.Text = cwgentext;
     return cwgentext;
   } else {
-    cwplayer.Text = cw_options.freemode ? iptfree.value : cwtext.value;
+    cwplayer.Text = cw_options.simple_mode ? iptfree.value : cwtext.value;
   }
 }
 function compareStrings(str1, str2, ignorecase=true){
@@ -346,7 +346,7 @@ function formatTestString(ret) {
 }
 function key(value) {
   if (overlayloading.style.display==='flex') return;
-  if (chkfree.checked) {
+  if (cw_options.simple_mode) {
     iptfree.value+=value;
     iptfree.focus();
     verifycw();
@@ -376,7 +376,7 @@ function combinaisons(array, length, action) {
 async function verifycw(e) {
   if (!cwplayer || cwchecking) return;
   cwchecking = true;
-  if (chkfree.checked) {
+  if (cw_options.simple_mode) {
     if (e?.keyCode == 16 || (e?.key.length>1 && e?.key != 'Unidentified')) { // shift et autres touches non imprimables
       cwchecking = false;
       return;
@@ -622,13 +622,9 @@ function setMinMax() {
   seleffwpm.max = CWPlayer.MAX_WPM;
   selews.min = CWPlayer.MIN_EWS;
   selews.max = CWPlayer.MAX_EWS;
-  seltone.min = CWPlayer.MIN_TONE;
-  seltone.max = CWPlayer.MAX_TONE;
-  selkeyqual.min = CWPlayer.MIN_KEYQUAL;
-  selkeyqual.max = CWPlayer.MAX_KEYQUAL;
 }
 function saveParams() {
-  let params = encodeURIComponent(sellesson.value+HASHSEP+selwpm.value+HASHSEP+seleffwpm.value+HASHSEP+grplen.value+HASHSEP+groupsnb.value+HASHSEP+seltone.value+HASHSEP+selews.value+HASHSEP+(chkfree.checked?1:0)+HASHSEP+(chkfreelisten.checked?1:0)+HASHSEP+(chkweightlastletters.checked?1:0)+HASHSEP+selkeyqual.value);
+  let params = encodeURIComponent(sellesson.value+HASHSEP+selwpm.value+HASHSEP+seleffwpm.value+HASHSEP+grplen.value+HASHSEP+groupsnb.value+HASHSEP+cw_options.tone+HASHSEP+selews.value+HASHSEP+(cw_options.simple_mode?1:0)+HASHSEP+(chkfreelisten.checked?1:0)+HASHSEP+(chkweightlastletters.checked?1:0)+HASHSEP+cw_options.keyqual);
   try {
     localStorage.setItem("params", params);
   } catch(e) {}
@@ -668,7 +664,7 @@ function loadParams() {
         cw_options.ews = Math.max(CWPlayer.MIN_EWS, Math.min(CWPlayer.MAX_EWS, val));
         break;
       case 7:
-        chkfree.checked = val === 1;
+        cw_options.simple_mode = val === 1;
         break;
       case 8:
         chkfreelisten.checked = val === 1;
@@ -719,11 +715,12 @@ function message(msg='', style=null) {
 window.addEventListener("load", async () => {
   // https://stackoverflow.com/a/25325330
   ['zonetrainer', 'toaster', 'overlayloading', 'loadingzone', 'zonemain', 'selfdl', 'sellesson', 'nxtlesson', 'selwpm', 'chkweightlastletterswrapper',
-  'chkweightlastletters', 'seleffwpm', 'seltone', 'selkeyqual', 'chkfree', 'chkfreelistenwrapper', 'chkfreelisten', 'zonefree', 'iptfree',
+  'chkweightlastletters', 'seleffwpm', 'chkfreelistenwrapper', 'chkfreelisten', 'zonefree', 'iptfree',
   'zoneresultfree', 'zonekoch', 'selews', 'zonewords', 'grplen', 'groupsnb', 'cwplayer', 'cwtext', 'cwsbm', 'disablekb', 'zoneresult',
   'zonerestext', 'retrybtn', 'retrynxt', 'keyboard'].forEach(e => {
     window[e] = document.getElementById(e);
   });
+  window.modelinks = [...document.querySelectorAll("a[name='modes']")];
   setMinMax();
   window.maxlessons = Math.max.apply(null, [...document.querySelectorAll('#sellesson>option')].map(o => parseInt(o.value, 10)));
   loadParams();
@@ -732,18 +729,22 @@ window.addEventListener("load", async () => {
   seleffwpm.value = cw_options.eff;
   grplen.value = cw_options.grouplen;
   groupsnb.value = cw_options.groupsnb;
-  seltone.value = cw_options.tone;
-  selkeyqual.value = cw_options.keyqual;
   selews.value = cw_options.ews;
   cwplayer.addEventListener('play', () => {
     // on ne focus le texte que si on vient de démarrer la lecture, qu'on est en mode normal et qu'on est pas en train d'écouter un résultat
-    if (!chkfree.checked && !chkfreelisten.checked && !document.querySelectorAll('.active').length && cwplayer.CurrentTime < 0.5) {
+    if (!cw_options.simple_mode && !chkfreelisten.checked && !document.querySelectorAll('.active').length && cwplayer.CurrentTime < 0.5) {
       cwtext.focus();
     }
   });
   cwplayer.addEventListener('parameterchanged', (arg) => {
     if (arg == 'AutoPlay') {
       message(`Autoplay ${cwplayer.AutoPlay?'':'de'}activated!`);
+    } else if (arg == 'Tone') {
+      cw_options.tone = cwplayer.Tone;
+      saveParams();
+    } else if (arg == 'KeyingQuality') {
+      cw_options.keyqual = cwplayer.KeyingQuality;
+      saveParams();
     }
   });
   // sur les périphériques à clavier virtuel on rajoute un autre clavier pour les touches spéciales
@@ -759,11 +760,18 @@ window.addEventListener("load", async () => {
     cwtext.addEventListener("focusout", hideKeyboard);
     iptfree.addEventListener("focusout", hideKeyboard);
   }
+  modelinks.forEach(a => {
+    a.addEventListener('click', (e) => {
+      e.preventDefault();
+      cw_options.simple_mode=e?.srcElement?.innerText?.toLowerCase().includes('simple');
+      updateValues();
+      return false;
+    })
+  });
   updateValues();
   selfdl.style.visibility = window.location.href.toLowerCase().startsWith('http') ? 'visible' : 'hidden';
   document.body.addEventListener("keydown",  onkeydown);
   document.body.addEventListener("keyup", onkeyup);
-  chkfree.addEventListener("change", updateValues);
   sellesson.addEventListener("change", updateValues);
   grplen.addEventListener("change", updateValues);
   groupsnb.addEventListener("change", updateValues);
@@ -787,12 +795,6 @@ window.addEventListener("load", async () => {
     selews.value = cwplayer.EWS;
     saveParams();
   });
-  seltone.addEventListener("change", () => {
-    if (!cwplayer) return;
-    cwplayer.Tone = seltone.value;
-    seltone.value = cwplayer.Tone;
-    saveParams();
-  });
   cwsbm.addEventListener("click", verifycw);
   retrybtn.addEventListener("click", updateValues);
   prevlesson.addEventListener("click", () => {
@@ -802,12 +804,6 @@ window.addEventListener("load", async () => {
   nxtlesson.addEventListener("click", () => {
     sellesson.value = Math.min(maxlessons, Math.max(1, parseInt(sellesson.value, 10)+1));
     updateValues();
-  });
-  selkeyqual.addEventListener("change", () => {
-    if (!cwplayer) return;
-    cwplayer.KeyingQuality = selkeyqual.value;
-    selkeyqual.value = cwplayer.KeyingQuality;
-    saveParams();
   });
   chkfreelisten.addEventListener("change", updateValues);
   cwtext.addEventListener("keyup", () => {
@@ -890,31 +886,30 @@ async function updateValues() {
   if (cwplayer.Playing) cwplayer.stop();
   [...document.querySelectorAll('#sellesson>option')].forEach(o => {
     if (o.value < 42) return;
-    o.disabled = chkfree.checked;
-    o.title=chkfree.checked?'disabled in simple mode':'';
+    o.disabled = cw_options.simple_mode;
+    o.title=cw_options.simple_mode?'disabled in simple mode':'';
   });
-  if (chkfree.checked && sellesson.value>41) {
+  if (cw_options.simple_mode && sellesson.value>41) {
     sellesson.value = 41;
   }
-  cwplayer.PreDelay = chkfree.checked || chkfreelisten.checked ? 0.05 : 2;
-  if (chkfree.checked) {
+  cwplayer.PreDelay = cw_options.simple_mode || chkfreelisten.checked ? 0.05 : 2;
+  if (cw_options.simple_mode) {
     iptfree.focus();
   } else {
     cwtext.focus();
   }
   iptfree.value = cwtext.value = '';
   [...document.querySelectorAll("label[for='seleffwpm'], #seleffwpm")].forEach(e => {
-    e.disabled = chkfree.checked;
+    e.disabled = cw_options.simple_mode;
     let title = e.title;
     let dtext = ' - ineffective in free mode';
     if (e.title.endsWith(dtext)) {
       e.title = e.title.substring(0, e.title.indexOf(dtext));
     }
-    if (chkfree.checked) {
+    if (cw_options.simple_mode) {
       e.title = e.title + dtext;
     }
   });
-  cw_options.freemode = chkfree.checked;
   cw_options.freelisten = chkfreelisten.checked;
   cw_options.weighlastletters = chkweightlastletters.checked;
   cw_options.lesson = Math.min(maxlessons, Math.max(1, parseInt(sellesson.value, 10)));
@@ -924,25 +919,29 @@ async function updateValues() {
   cw_options.grouplen = parseInt(grplen.value, 10);
   cw_options.groupsnb = parseInt(groupsnb.value, 10);
   cwplayer.EWS = cw_options.ews = parseFloat(selews.value);
-  cwplayer.Tone = cw_options.tone = parseInt(seltone.value, 10);
-  cwplayer.KeyingQuality = cw_options.keyqual = parseFloat(selkeyqual.value);
+  cwplayer.Tone = cw_options.tone;
+  cwplayer.KeyingQuality = cw_options.keyqual;
   // on remet à jour les contrôles si'il y'a eu des bornages
   sellesson.value = cw_options.lesson;
   selwpm.value = cw_options.wpm = cwplayer.WPM;
   seleffwpm.value = cw_options.eff = cwplayer.EffWPM;
   selews.value = cw_options.ews = cwplayer.EWS;
-  seltone.value = cw_options.tone = cwplayer.Tone;
-  selkeyqual.value = cw_options.keyqual = cwplayer.KeyingQuality;
+  cw_options.tone = cwplayer.Tone;
+  cw_options.keyqual = cwplayer.KeyingQuality;
   sellesson.disabled = chkfreelisten.checked;
   nxtlesson.disabled = cw_options.lesson >= maxlessons || chkfreelisten.checked;
   prevlesson.disabled = cw_options.lesson <= 1 || chkfreelisten.checked;
   zoneresult.style.display = 'none';
   zonerestext.innerHTML = '';
-  zonefree.style.display = chkfree.checked?'block':'none';
-  zonekoch.style.display = !chkfree.checked?'block':'none';
+  zonefree.style.display = cw_options.simple_mode?'block':'none';
+  zonekoch.style.display = !cw_options.simple_mode?'block':'none';
   zonewords.style.display = sellesson.value < 42?'block':'none';
   chkweightlastletterswrapper.style.visibility = !cw_options.freelisten && sellesson.value < 41?'visible':'hidden';
   cwsbm.disabled = chkfreelisten.checked;
+  modelinks.forEach(a => {
+    if ((a.dataset.mode == 'simple' && cw_options.simple_mode) || (a.dataset.mode == 'koch' && !cw_options.simple_mode)) a.classList.add('active');
+    else a.classList.remove('active');
+  });
   saveParams();
 
   await generateText();

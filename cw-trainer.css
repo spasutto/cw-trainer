@@ -42,12 +42,41 @@ td {
   width:1%;
   white-space: nowrap;
 }
+td:last-child {
+  text-align: left;
+  padding-left: 20px;
+}
 .zonecontrols input[type="button"] {
   width: 21px;
   padding: 0;
 }
 .zonecontrols select {
   width: 90px;
+}
+a[name="modes"] {
+  font-size: 1.1em;
+  color: black;
+  /*margin: 0 5px;*/
+  padding: 0 15px;
+  border: solid 1px #d7d7d7;
+  border-bottom: none;
+  border-radius: 5px;
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+}
+a[name="modes"]:visited {
+  color: black;
+}
+a[name="modes"].active {
+  background-color: #ffb500;
+  color: #fff;
+}
+#zonemodes {
+  text-align: right;
+}
+#zonekoch, #zonefree {
+  border: solid 1px #d7d7d7;
+  padding: 5px;
 }
 #zoneresult {
   display: inline-block;
@@ -206,7 +235,7 @@ a {
   text-decoration : none;
 }
 textarea {
-  width: 368px;
+  width: 360px;
 }
 small {
   color: #a0a0a0;
@@ -222,9 +251,6 @@ input[type="number"] {
 input[type="range"] {
   width: 100px;
 }
-#chkfreelistenwrapper {
-  margin-left: 10px;
-}
 #seltone {
   width: 50px;
 }
@@ -235,7 +261,7 @@ input[type="range"] {
   width: 150px;
 }
 #iptfree {
-  width: 368px;
+  width: 360px;
   height: 100px;
   font-size: 48pt;
   text-align: center;
@@ -392,6 +418,7 @@ input[type='checkbox'].small {
   transition: opacity 0.125s ease-out, -webkit-transform 0.125s ease-out;
   transition: transform 0.125s ease-out, opacity 0.125s ease-out;
   transition: transform 0.125s ease-out, opacity 0.125s ease-out, -webkit-transform 0.125s ease-out;
+  font-weight: normal;
 }
 
 .checkbox-wrapper .switch + label .switch-x-unchecked {
@@ -404,6 +431,7 @@ input[type='checkbox'].small {
   opacity: 0;
   -webkit-transform: translate3d(0, 100%, 0);
   transform: translate3d(0, 100%, 0);
+  font-weight: bold;
 }
 
 .checkbox-wrapper .switch + label .switch-x-hiddenlabel {

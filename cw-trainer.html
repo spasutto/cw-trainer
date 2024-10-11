@@ -40,7 +40,7 @@
           <td class="rightborder">
             <input type="number" id="selwpm" title="Word Per Minute">
           </td>
-          <td colspan="2">
+          <td>
             <div id="chkweightlastletterswrapper" class="checkbox-wrapper" title="more likely to hear 3 last letters">
               <input class="switch" type="checkbox" id="chkweightlastletters">
               <label for="chkweightlastletters">
@@ -53,45 +53,27 @@
           </td>
         </tr>
         <tr>
-          <td rowspan="2">
+          <td>
             <label for="seleffwpm" title="Effective Word Per Minute (Farnsworth)">Eff. WPM</label>
           </td>
-          <td rowspan="2" class="rightborder">
+          <td class="rightborder">
             <input type="number" id="seleffwpm" title="Effective Word Per Minute (Farnsworth)" class="small">
           </td>
-          <td class="rightborder">
-            <label for="seltone" title="Tone" class="small">Tone</label>
-          </td>
           <td>
-            <label for="selkeyqual" title="Keying quality" class="small">Keying quality</label>
-          </td>
-        </tr>
-        <tr>
-          <td class="rightborder center">
-            <input type="number" step="100" id="seltone" title="Tone" class="small"><small>&nbsp;(Hz)</small>
-          </td>
-          <td>
-            <input type="range" min="0.5" max="1" step="0.1" id="selkeyqual" title="Keying quality" class="small">
+            <div id="chkfreelistenwrapper" class="checkbox-wrapper">
+              <input class="switch" type="checkbox" id="chkfreelisten">
+              <label for="chkfreelisten">
+                <span class="switch-x-toggletext" style="width: 130px;">
+                  <span class="switch-x-unchecked"><span class="switch-x-hiddenlabel">Unchecked: </span>free listen mode</span>
+                  <span class="switch-x-checked"><span class="switch-x-hiddenlabel">Checked: </span>free listen mode</span>
+                </span>
+              </label>
+            </div>
           </td>
         </tr>
       </table>
-      <div class="checkbox-wrapper">
-        <input class="switch" type="checkbox" id="chkfree">
-        <label for="chkfree">
-          <span class="switch-x-toggletext" style="width: 110px;">
-            <span class="switch-x-unchecked"><span class="switch-x-hiddenlabel">Unchecked: </span>Koch mode</span>
-            <span class="switch-x-checked"><span class="switch-x-hiddenlabel">Checked: </span>simple mode</span>
-          </span>
-        </label>
-      </div>
-      <div id="chkfreelistenwrapper" class="checkbox-wrapper">
-        <input class="switch" type="checkbox" id="chkfreelisten">
-        <label for="chkfreelisten">
-          <span class="switch-x-toggletext" style="width: 130px;">
-            <span class="switch-x-unchecked"><span class="switch-x-hiddenlabel">Unchecked: </span>free listen mode</span>
-            <span class="switch-x-checked"><span class="switch-x-hiddenlabel">Checked: </span>free listen mode</span>
-          </span>
-        </label>
+      <div id="zonemodes">
+        <a href="#" name="modes" data-mode="koch" title="Koch mode : choose a length and a number of groups then try to write as many symbols as possible">Koch</a><a href="#" name="modes" data-mode="simple" title="simple mode : just type the symbol you heard">Simple</a>
       </div>
       <div id="zonefree" style="display:none">
         <input type="text" id="iptfree" maxlength="1">
@@ -108,7 +90,7 @@
           <label for="groupsnb">Groups : </label>
           <input type="number" id="groupsnb" min="1" max="250">
         </div>
-        <morse-player id="cwplayer" configbutton="false"></morse-player>
+        <morse-player id="cwplayer"></morse-player>
         <textarea id="cwtext" rows="4" cols="43" spellcheck="false" autocorrect="off"></textarea><br>
         <input type="button" value="submit" id="cwsbm">
         <span id="zonedkb"><input type="checkbox" id="disablekb"><label for="disablekb">disable keyboard</label></span><br>
