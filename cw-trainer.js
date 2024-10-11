@@ -716,7 +716,7 @@ function message(msg='', style=null) {
     }
   }, 1);
 }
-window.onload = async () => {
+window.addEventListener("load", async () => {
   setMinMax();
   window.maxlessons = Math.max.apply(null, [...document.querySelectorAll('#sellesson>option')].map(o => parseInt(o.value, 10)));
   loadParams();
@@ -751,80 +751,76 @@ window.onload = async () => {
     iptfree.addEventListener("focus", showKeyboard);
     cwtext.addEventListener("focusout", hideKeyboard);
     iptfree.addEventListener("focusout", hideKeyboard);
-    document.addEventListener("touchstart", document.onmousedown);
-    document.addEventListener("touchend", document.onmouseup);
-    document.addEventListener("touchcancel", document.onmouseup);
-    document.addEventListener("touchmove", document.onmousemove);
   }
   updateValues();
   selfdl.style.visibility = window.location.href.toLowerCase().startsWith('http') ? 'visible' : 'hidden';
-  document.body.onkeydown = onkeydown;
-  document.body.onkeyup = onkeyup;
-  chkfree.onchange = updateValues;
-  sellesson.onchange = updateValues;
-  grplen.onchange = updateValues;
-  groupsnb.onchange = updateValues;
-  selwpm.onchange = () => {
+  document.body.addEventListener("keydown",  onkeydown);
+  document.body.addEventListener("keyup", onkeyup);
+  chkfree.addEventListener("change", updateValues);
+  sellesson.addEventListener("change", updateValues);
+  grplen.addEventListener("change", updateValues);
+  groupsnb.addEventListener("change", updateValues);
+  selwpm.addEventListener("change", () => {
     if (!cwplayer) return;
     cwplayer.WPM = selwpm.value;
     selwpm.value = cwplayer.WPM;
     seleffwpm.value = cwplayer.EffWPM;
     saveParams();
-  };
-  seleffwpm.onchange = () => {
+  });
+  seleffwpm.addEventListener("change", () => {
     if (!cwplayer) return;
     cwplayer.EffWPM = seleffwpm.value;
     seleffwpm.value = cwplayer.EffWPM;
     selwpm.value = cwplayer.WPM;
     saveParams();
-  };
-  selews.onchange = () => {
+  });
+  selews.addEventListener("change",  () => {
     if (!cwplayer) return;
     cwplayer.EWS = selews.value;
     selews.value = cwplayer.EWS;
     saveParams();
-  };
-  seltone.onchange = () => {
+  });
+  seltone.addEventListener("change", () => {
     if (!cwplayer) return;
     cwplayer.Tone = seltone.value;
     seltone.value = cwplayer.Tone;
     saveParams();
-  }
-  cwsbm.onclick = verifycw;
-  retrybtn.onclick = updateValues;
-  prevlesson.onclick = () => {
+  });
+  cwsbm.addEventListener("click", verifycw);
+  retrybtn.addEventListener("click", updateValues);
+  prevlesson.addEventListener("click", () => {
     sellesson.value = Math.min(maxlessons, Math.max(1, parseInt(sellesson.value, 10)-1));
     updateValues();
-  };
-  nxtlesson.onclick = () => {
+  });
+  nxtlesson.addEventListener("click", () => {
     sellesson.value = Math.min(maxlessons, Math.max(1, parseInt(sellesson.value, 10)+1));
     updateValues();
-  };
-  selkeyqual.onchange = () => {
+  });
+  selkeyqual.addEventListener("change", () => {
     if (!cwplayer) return;
     cwplayer.KeyingQuality = selkeyqual.value;
     selkeyqual.value = cwplayer.KeyingQuality;
     saveParams();
-  }
-  chkfreelisten.onchange = updateValues;
-  cwtext.onkeyup = () => {
+  });
+  chkfreelisten.addEventListener("change", updateValues);
+  cwtext.addEventListener("keyup", () => {
     if (!chkfreelisten.checked) return;
     cwplayer.Text = cwtext.value;
-  }
-  iptfree.onkeyup = verifycw;
-  cwtitle.ondblclick = () => {
+  });
+  iptfree.addEventListener("keyup", verifycw);
+  cwtitle.addEventListener("dblclick", () => {
     cwplayer.ClearZone = !cwplayer.ClearZone;
     if (cwplayer.ClearZone) {
       message(`Cheating mode activated!`);
     }
-  }
-  disablekb.onchange = () => {
+  });
+  disablekb.addEventListener("change", () => {
     if (disablekb.checked) {
       hideKeyboard();
     }
-  }
-  chkweightlastletters.onchange = updateValues;
-};
+  });
+  chkweightlastletters.addEventListener("change", updateValues);
+});
 window.addEventListener("error", (e) => {
   let err = e;
   let msg = 'unknow error';

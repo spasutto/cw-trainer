@@ -890,16 +890,12 @@ class MorsePlayer extends HTMLElement {
       return false;
     };
     document.addEventListener("mouseup", this.mouseup.bind(this));
-    this.prgcont.addEventListener("mousedown", (e) => {
-      let elem = (e.target || e.srcElement);
-      if (elem != this.prgcont && !this.prgcont.contains(elem)) return;
-      if (!this.prgcontrect) {
-        this.prgcontrect = this.prgcont.getBoundingClientRect();
-      }
-      this.progresschanging = true;
-      this.mousemove(e);
-    });
+    this.prgcont.addEventListener("mousedown", this.mousedown.bind(this));
     document.addEventListener("mousemove", this.mousemove.bind(this));
+    this.prgcont.addEventListener("touchstart", this.mousedown.bind(this));
+    document.addEventListener("touchend", this.mouseup.bind(this));
+    document.addEventListener("touchcancel", this.mouseup.bind(this));
+    document.addEventListener("touchmove", this.mousemove.bind(this));
     Object.keys(this.configfields).forEach(k => {
       this.configfields[k].onchange = () => { this[k] = this.configfields[k].value; };
     });
@@ -1001,6 +997,15 @@ class MorsePlayer extends HTMLElement {
 
   mouseup() {
     this.progresschanging = false;
+  }
+  mousedown(e) {
+    let elem = (e.target || e.srcElement);
+    if (elem != this.prgcont && !this.prgcont.contains(elem)) return;
+    if (!this.prgcontrect) {
+      this.prgcontrect = this.prgcont.getBoundingClientRect();
+    }
+    this.progresschanging = true;
+    this.mousemove(e);
   }
   mousemove(e) {
     if (!this.progresschanging || !this.cwplayer || this.cwplayer.TotalTime <= 0) return;
