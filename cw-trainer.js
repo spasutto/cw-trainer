@@ -717,6 +717,13 @@ function message(msg='', style=null) {
   }, 1);
 }
 window.addEventListener("load", async () => {
+  // https://stackoverflow.com/a/25325330
+  ['zonetrainer', 'toaster', 'overlayloading', 'loadingzone', 'zonemain', 'selfdl', 'sellesson', 'nxtlesson', 'selwpm', 'chkweightlastletterswrapper',
+  'chkweightlastletters', 'seleffwpm', 'seltone', 'selkeyqual', 'chkfree', 'chkfreelistenwrapper', 'chkfreelisten', 'zonefree', 'iptfree',
+  'zoneresultfree', 'zonekoch', 'selews', 'zonewords', 'grplen', 'groupsnb', 'cwplayer', 'cwtext', 'cwsbm', 'disablekb', 'zoneresult',
+  'zonerestext', 'retrybtn', 'retrynxt', 'keyboard'].forEach(e => {
+    window[e] = document.getElementById(e);
+  });
   setMinMax();
   window.maxlessons = Math.max.apply(null, [...document.querySelectorAll('#sellesson>option')].map(o => parseInt(o.value, 10)));
   loadParams();
