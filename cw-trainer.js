@@ -559,7 +559,7 @@ async function selfDownload() {
   if (confirm('Include Oliver Twist (required for offline free text mode)?\nThis will add ~1MB to the final page.')) {
     dlpromises.push(getUrl(FREETEXT_URL, true));
   }
-  let [page, ot] = await Promise.all(dlpromises);
+  let [page, ot] = await Promise.all(dlpromises).catch(err => {console.error(err);});
   if (!page) {
     message('no connection !', 'error');
     loading(false);
@@ -567,18 +567,24 @@ async function selfDownload() {
   }
   const regscript = /<script\s+src\s*=\s*"([^"]+)"\s*>\s*<\/script>/gi;
   let occ = [...page.matchAll(regscript)];
+  let script = '';
   for (let i=0; i<occ.length; i++) {
-    let script = await getUrl(occ[i][1], true);
-    if (script) {
-      page = page.replace(occ[i][0], '\u003cscript\u003e\n'+script.replaceAll('$', '$$$$')+'\u003c/script\u003e')
+    let s = await getUrl(occ[i][1], true);
+    if (!s) continue;
+    script += s + '\n';
+    if (i>0) {
+      page = page.replace(occ[i][0], '');
     }
+  }
+  if (script) {
+    page = page.replace(occ[0][0], '\u003cscript\u003e\n'+script.replaceAll('$', '$$$$')+'\u003c/script\u003e');
   }
   const regstyle = /<link\s+[^>]*href\s*=\s*"([^"]+)"[^>]*>/gi;
   occ = [...page.matchAll(regstyle)];
   for (let i=0; i<occ.length; i++) {
-    let binary = occ[i][0].indexOf('icon') > -1;
-    let data = await getUrl(occ[i][1], true, binary) ?? '';
-    if (binary) {
+    let icon = occ[i][0].indexOf('icon') > -1;
+    let data = await getUrl(occ[i][1], true, icon) ?? '';
+    if (icon) {
       let bdata = '';
       let bytes = new Uint8Array(data);
       let len = bytes.byteLength;
@@ -592,7 +598,7 @@ async function selfDownload() {
     page = page.replace(occ[i][0], data)
   }
   if (ot) {
-    page = page.replace('\u003c/body\u003e', '\u003cscript\u003e\nvar freetext = `'+ot.replaceAll('$', '$$$$').replaceAll('`', '\\`')+'`;\n\u003c/script\u003e\n\u003c/body\u003e')
+    page = page.replace('\u003c/body\u003e', '\u003cscript\u003e\nvar freetext = `'+ot.replaceAll('$', '$$$$').replaceAll('`', '\\`')+'`;\n\u003c/script\u003e\n\u003c/body\u003e');
   }
   var url = window.URL.createObjectURL(new Blob([page], {type: 'text/plain'}));
   var a = document.createElement('a');
@@ -744,6 +750,15 @@ window.addEventListener("load", async () => {
       saveParams();
     } else if (arg == 'KeyingQuality') {
       cw_options.keyqual = cwplayer.KeyingQuality;
+      saveParams();
+    } else if (arg == 'WPM') {
+      selwpm.value = cw_options.wpm = cwplayer.WPM;
+      saveParams();
+    } else if (arg == 'EffWPM') {
+      seleffwpm.value = cw_options.eff = cwplayer.EffWPM;
+      saveParams();
+    } else if (arg == 'EWS') {
+      selews.value = cw_options.ews = cwplayer.EWS;
       saveParams();
     }
   });
