@@ -917,7 +917,7 @@ async function updateValues() {
   [...document.querySelectorAll("label[for='seleffwpm'], #seleffwpm")].forEach(e => {
     e.disabled = cw_options.simple_mode;
     let title = e.title;
-    let dtext = ' - ineffective in free mode';
+    let dtext = ' - ineffective in simple mode';
     if (e.title.endsWith(dtext)) {
       e.title = e.title.substring(0, e.title.indexOf(dtext));
     }
