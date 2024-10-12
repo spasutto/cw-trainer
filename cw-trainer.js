@@ -304,51 +304,45 @@ https://stackoverflow.com/a/34807141
   return {'str1':str1, 'str2':str2, 'errors':str1.length-sequences.reduce((acc, cur) => acc+=cur.text.length, 0), 'sequences': sequences};
 }
 const emptyChar = '&nbsp;';//'_';
-function formatTestString(obj) {
-  let html = '';
-  let index1 = 0;
-  let index2 = 0;
-
-  // Parcourir les séquences dans l'objet
-  obj.sequences.forEach(sequence => {
-    // Vérifier s'il y a un écart entre la position actuelle et la position de la séquence
-    if (sequence.isrc > index1 || sequence.idst > index2) {
-      // Ajouter les parties manquantes ou erronées
-      if (sequence.isrc > index1) {
-        // Partie existant dans str1 mais pas dans str2 (supprimée)
-        //const missingPart = obj.str1.substring(index1, sequence.isrc);
-        //html += `<span class="empty">${missingPart}</span>`;
-        html += `<span class="empty">${emptyChar.repeat(sequence.isrc-index1)}</span>`;
-      }
-      if (sequence.idst > index2) {
-        // Partie existant dans str2 mais pas dans str1 (ajoutée ou incorrecte)
-        const addedPart = obj.str2.substring(index2, sequence.idst);
-        html += `<span class="wrong">${addedPart}</span>`;
-      }
+function formatTestString(ret) {
+  let sret = '';
+  let sequences = ret.sequences, str1=ret.str1, str2=ret.str2;
+  if (!sequences.length && str2.length) {
+    // affichage de toute la chaine de test (fausse)
+    sret += `<span class="wrong">${str2}</span>`;
+    if (str2.length <= str1.length) {
+      sret += `<span class="empty">${emptyChar.repeat(str1.length-str2.length)}</span>`;
     }
-
-    // Ajouter la partie commune ou modifiée
-    html += `<span class="right">${sequence.text}</span>`;
-
-    // Mettre à jour les index pour la prochaine itération
-    index1 = sequence.isrc + sequence.text.length;
-    index2 = sequence.idst + sequence.text.length;
-  });
-
-  // Ajouter les parties restantes de str1 si elles existent
-  if (index1 < obj.str1.length) {
-    //const remainingPart = obj.str1.substring(index1);
-    //html += `<span class="empty">${remainingPart}</span>`;
-    html += `<span class="empty">${emptyChar.repeat(obj.str1.length-index1)}</span>`;
+  } else if (!sequences.length && str1.length && !str2.length) {
+    // affichage du bon nombre de caractères vide
+    sret += `<span class="empty">${emptyChar.repeat(str1.length)}</span>`;
+  } else {
+    let curl = 0;
+    sequences.forEach(s => {
+      if (s.idst > curl) {
+        // affichage de tous les caractères de la chaine de test qui ne sont pas en préambule dans la chaine d'entrée
+        sret += `<span class="wrong">${str2.substring(curl, s.idst)}</span>`;
+        curl+=(s.idst-curl);
+      }
+      if (s.isrc > curl) {
+        // affichage de tous les caractères de la chaine d'entrée qui ne sont pas en préambule dans la chaine de test
+        sret += `<span class="empty">${emptyChar.repeat(s.isrc-curl)}</span>`;
+        curl+=(s.isrc-curl);
+      }
+      sret += `<span class="right">${s.text}</span>`;
+      curl+=s.text.length;
+    });
+    let slast = sequences[sequences.length-1];
+    let suffix = 0;
+    if (slast.idst+slast.text.length < str2.length) {
+      sret += `<span class="wrong">${str2.substring(slast.idst+slast.text.length)}</span>`;
+      suffix += str2.length-(slast.idst+slast.text.length);
+    }
+    if (slast.isrc+slast.text.length+suffix < str1.length) {
+      sret += `<span class="empty">${emptyChar.repeat(str1.length-(slast.isrc+slast.text.length+suffix))}</span>`;
+    }
   }
-
-  // Ajouter les parties restantes de str2 si elles existent
-  if (index2 < obj.str2.length) {
-    const remainingPart = obj.str2.substring(index2);
-    html += `<span class="wrong">${remainingPart}</span>`;
-  }
-
-  return html;
+  return sret;
 }
 function key(value) {
   if (overlayloading.style.display==='flex') return;
