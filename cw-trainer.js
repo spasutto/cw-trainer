@@ -867,10 +867,12 @@ function onkeydown(e) {
         keystates.playpause = true;
         break;
       case keys.left:
-        keystates.indexdec = true;
+        if (cwplayer.Playing || document.activeElement !== cwtext) keystates.indexdec = true;
+        if (cwplayer.Playing && document.activeElement === cwtext) e.preventDefault();
         break;
       case keys.right:
-        keystates.indexinc = true;
+        if (cwplayer.Playing || document.activeElement !== cwtext) keystates.indexinc = true;
+        if (cwplayer.Playing && document.activeElement === cwtext) e.preventDefault();
         break;
     }
   }
