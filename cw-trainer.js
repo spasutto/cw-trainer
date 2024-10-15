@@ -400,6 +400,7 @@ async function verifycw(e) {
       CWPlayer.delay(0.35).then(() => {
         iptfree.classList.remove('error');
         iptfree.classList.remove('nocarret');
+        cwchecking = false;
       });
       cwplayer.stop();
       await cwplayer.playBoop();
@@ -415,6 +416,7 @@ async function verifycw(e) {
         iptfree.classList.remove('ok');
         iptfree.classList.remove('nocarret');
         iptfree.value = '';
+        cwchecking = false;
       });
       generateText();
       cwplayer.play();
@@ -427,6 +429,7 @@ async function verifycw(e) {
     iptfree.focus();
   } else {
     if (chkfreelisten.checked) {
+      cwchecking = false;
       return;
     }
     if (cwplayer.Playing) cwplayer.stop();
@@ -539,9 +542,9 @@ async function verifycw(e) {
     retrynxt.style.display = perc>=90?'inline-block':'none';
     zoneresult.style.display = 'inline-block';
     keyboard.style.display = 'none';
+    cwsbm.disabled = false;
+    cwchecking = false;
   }
-  cwsbm.disabled = false;
-  cwchecking = false;
 }
 async function listen(text, elem) {
   if (cwplayer.Playing) {
