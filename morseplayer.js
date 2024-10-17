@@ -774,6 +774,9 @@ class MorsePlayer extends HTMLElement {
         min-width: 30px;
         cursor: pointer;
       }
+      #clearzone td:hover {
+        background-color: #e8e8e8;
+      }
       .lastchar {
         background-color: yellow !important;
       }
