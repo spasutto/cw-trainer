@@ -772,6 +772,7 @@ class MorsePlayer extends HTMLElement {
         background-color: #f8f8f8;
         text-align: center;
         min-width: 30px;
+        cursor: pointer;
       }
       .lastchar {
         background-color: yellow !important;
@@ -1067,12 +1068,20 @@ class MorsePlayer extends HTMLElement {
     let trm = this.clearzone.rows[1];
     trc.innerHTML = trm.innerHTML = '';
     let text = this.cwplayer.Text.substring(0, idx).split('');
+    let title = 'Set the playing to this symbol';
     text.forEach((c,i) => {
+      let caction = (e) => {this.cwplayer.Index = e.srcElement?.dataset?.index;};
       let lastcell = playing && i == text.length-1;
       let cell = trc.insertCell();
+      cell.title = title;
+      cell.dataset.index = i;
+      cell.addEventListener('click', caction);
       if (lastcell) cell.classList.add('lastchar');
       cell.innerHTML = c;
       cell = trm.insertCell();
+      cell.title = title;
+      cell.dataset.index = i;
+      cell.addEventListener('click', caction);
       if (lastcell) cell.classList.add('lastchar');
       cell.innerHTML = CWPlayer.translate(c);
     });
