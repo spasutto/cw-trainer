@@ -55,6 +55,8 @@ var QSOs = [
   ];
 var keystates = {
   'playpause': false,
+  'backtostart': false,
+  'fwdtoend': false,
   'indexdec': false,
   'indexinc': false
 };
@@ -861,19 +863,29 @@ function onkeydown(e) {
   if (!cwplayer) return;
   e = e || window.event;
   let keyCode = e.keyCode || e.which,
-      keys = {space: 32, left: 37, up: 38, right: 39, down: 40 };
+      keycodes = {space: 32, scrollend: 35, scrolltop: 36, left: 37, up: 38, right: 39, down: 40 },
+      keynames = {'Space' : keycodes.space, 'End' : keycodes.scrollend, 'Home' : keycodes.scrolltop, 'ArrowLeft' : keycodes.left, 'ArrowUp' : keycodes.up, 'ArrowRight' : keycodes.right, 'ArrowDown' : keycodes.down };
   // on pause via ctrl-space si on est en train de saisir sinon directement space
   let ctrl = e.ctrlKey || !['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement.tagName);
   if (ctrl && keyCode != 17) { //17 == left ctrl
+    keyCode = keyCode || keynames[e.code];
     switch (keyCode) {
-      case keys.space:
+      case keycodes.space:
         keystates.playpause = true;
         break;
-      case keys.left:
+      case keycodes.scrolltop:
+        keystates.backtostart = true;
+        if (cwplayer.Playing && document.activeElement === cwtext) e.preventDefault();
+        break;
+      case keycodes.scrollend:
+        keystates.fwdtoend = true;
+        if (cwplayer.Playing && document.activeElement === cwtext) e.preventDefault();
+        break;
+      case keycodes.left:
         if (cwplayer.Playing || document.activeElement !== cwtext) keystates.indexdec = true;
         if (cwplayer.Playing && document.activeElement === cwtext) e.preventDefault();
         break;
-      case keys.right:
+      case keycodes.right:
         if (cwplayer.Playing || document.activeElement !== cwtext) keystates.indexinc = true;
         if (cwplayer.Playing && document.activeElement === cwtext) e.preventDefault();
         break;
@@ -882,15 +894,18 @@ function onkeydown(e) {
 }
 function onkeyup(e) {
   if (!cwplayer) return;
-  e = e || window.event;
-  let keyCode = e.keyCode || e.which;
-  if (keyCode == 27) { // echap
-    [...document.querySelectorAll(MorsePlayer.TAG)].forEach(m => m.mouseup());
-  }
   if (keystates.playpause) {
     if (cwplayer.Playing) cwplayer.pause();
     else cwplayer.play();
     keystates.playpause = false;
+  }
+  if (keystates.backtostart) {
+    cwplayer.Index = -1;
+    keystates.backtostart = false;
+  }
+  if (keystates.fwdtoend) {
+    cwplayer.Index = cwplayer.Text.length;
+    keystates.fwdtoend = false;
   }
   if (keystates.indexdec) {
     cwplayer.Index--;

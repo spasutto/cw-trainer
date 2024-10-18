@@ -243,7 +243,7 @@ class CWPlayer {
   get Index() { return this.curti; }
   set Index(value) {
     value = CWPlayer.parseint(value);
-    value = Math.max(-1, Math.min(this.text.length-1, value));
+    value = Math.max(-1, Math.min(this.text.length, value));
     if (value == this.curti) return;
     this.curti = value;
     this.totalpausetime = 0;
@@ -440,12 +440,12 @@ class CWPlayer {
   
       this.playing = true;
       this.paused = false;
+      this.fireEvent('play');
       this.schedule(this.lastpausetime-this.starttime-this.totalpausetime);
       if (this.lastpausetime > 0) {
         this.totalpausetime += (this.context.currentTime-this.lastpausetime);
         this.lastpausetime = 0;
       }
-      this.fireEvent('play');
     });
   }
   async startStopWaiter() {
@@ -484,11 +484,10 @@ class CWPlayer {
     }
     let t=0;
     for (let i=startindex; i<this.stime.length; i++) {
-      t = this.stime[i];
-      if (t<timefromstart || isNaN(t)) continue;
-      t-=timefromstart;
+      t = this.stime[i] - timefromstart;
+      if (t<0 || isNaN(t)) continue;
       if (i%2) {
-        this.gain.gain.linearRampToValueAtTime(1, it+t - this.rampperiod);
+        if (t>this.rampperiod) this.gain.gain.linearRampToValueAtTime(1, it+t - this.rampperiod);
         this.gain.gain.linearRampToValueAtTime(0, it+t);
       } else {
         this.gain.gain.linearRampToValueAtTime(0, it+t);
@@ -900,6 +899,9 @@ class MorsePlayer extends HTMLElement {
     document.addEventListener("touchend", this.mouseup.bind(this));
     document.addEventListener("touchcancel", this.mouseup.bind(this));
     document.addEventListener("touchmove", this.mousemove.bind(this));
+    document.addEventListener("keyup", (e) => {
+      if (e.key === 'Escape' || (e.keyCode || e.which) == 27) this.mouseup();
+    });
     Object.keys(this.configfields).forEach(k => {
       this.configfields[k].onchange = () => { this[k] = this.configfields[k].value; };
     });
@@ -1045,10 +1047,10 @@ class MorsePlayer extends HTMLElement {
     let paused = this.cwplayer.Paused;
     let havecontent = this.cwplayer.TotalTime > 0;
 
-    this.btnstop.disabled = typeof en_stop === 'boolean' ? !en_stop : !havecontent || this.cwplayer.CurrentTime <= 0;
+    this.btnstop.disabled = !(typeof en_stop === 'boolean' ? en_stop : havecontent && (playing || (paused && this.cwplayer.CurrentTime > 0)));
     this.btnplay.disabled = typeof en_play === 'boolean' ? !en_play : !havecontent || playing;
     this.btnpause.disabled = typeof en_pause === 'boolean' ? !en_pause : !havecontent || paused || !playing;
-    
+
     let applyClass = (btn) => {
       if (btn.disabled) {
         btn.classList.add(MorsePlayer.SVG_INACTIF);
