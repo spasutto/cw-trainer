@@ -97,6 +97,15 @@ function generateRandomCallsign(excepted=null) {
   while (cs == excepted);
   return cs;
 }
+function generateRandomRST() {
+  let r = irand(4, 5);
+  let s = irand(6, 9);
+  let t = 9;
+  if (s == 9 && Math.random()>0.6) s = t = 'N';
+  else t = Math.random()>0.8 ? 8 : 9;
+  if (s < 8) r = 4;
+  return ''+r+s+t;
+}
 function generateRandomString(chars, len) {
   return Array.apply(null, Array(len)).map(() => {
     return chars[irand(chars.length-1)];
@@ -205,8 +214,8 @@ async function generateText() {
           .replaceAll('%IND2%', callsign2)
           .replaceAll('%NAME1%', name1)
           .replaceAll('%NAME2%', name2)
-          .replaceAll('%RST1%', ''+irand(1, 5)+irand(1, 9)+irand(1, 9))
-          .replaceAll('%RST2%', ''+irand(1, 5)+irand(1, 9)+irand(1, 9))
+          .replaceAll('%RST1%', generateRandomRST())
+          .replaceAll('%RST2%', generateRandomRST())
           .replaceAll('%PWR1%', ''+irand(1, 10)*10)
           .replaceAll('%PWR2%', ''+irand(1, 10)*10);
     } else if (cw_options.lesson==43) {
