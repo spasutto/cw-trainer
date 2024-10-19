@@ -258,22 +258,22 @@ https://stackoverflow.com/questions/28321273/how-to-find-the-most-common-part-of
 https://en.wikibooks.org/wiki/Algorithm_Implementation/Strings/Longest_common_substring#JavaScript
 https://stackoverflow.com/a/34807141
 */
-  var sequences = {};
+  let sequences = {};
   if (str1 && str2) {
-    var str1Length = str1.length,
+    let str1Length = str1.length,
       str2Length = str2.length,
       num = new Array(str1Length),
       idx = null;
   
-    for (var i = 0; i < str1Length; i++) {
-      var subArray = new Array(str2Length);
-      for (var j = 0; j < str2Length; j++)
+    for (let i = 0; i < str1Length; i++) {
+      let subArray = new Array(str2Length);
+      for (let j = 0; j < str2Length; j++)
         subArray[j] = 0;
       num[i] = subArray;
     }
-    for (var i = 0; i < str1Length; i++)
+    for (let i = 0; i < str1Length; i++)
     {
-      for (var j = 0; j < str2Length; j++)
+      for (let j = 0; j < str2Length; j++)
       {
         if (str1[i] !== str2[j])
           num[i][j] = 0;
@@ -303,16 +303,18 @@ https://stackoverflow.com/a/34807141
   sequences = sequences.filter(s =>
     !sequences.some(s2 => s2.text.length > s.text.length && ((s2.isrc <= s.isrc && s2.isrc+s2.text.length>s.isrc) || (s2.idst <= s.idst && s2.idst+s2.text.length>s.idst)))
   );
-  // suppression des séquences qui apparaissent dans le désordre dans la chaine test par rapport à la chaine d'entrée (ainsi que les doublons, ex 'KMKMM/NNNK')
+  let j = -1;
   for (let i=0; i<sequences.length;i++) {
     let s = sequences[i];
-    if (sequences.some((s2, i2) => i2 < i && (s2.idst == s.idst || s2.isrc == s.isrc))) {
-      sequences.splice(i, 1);
-      i--;
+    // suppression des chaines dans le désordre ex: '/UQ/T', '/QT'
+    while ((j = sequences.findIndex((s2, i2) => i2 > i && (s2.idst <= s.idst || s2.isrc <= s.isrc))) > -1) {
+      sequences.splice(j, 1);
+    }
+    // suppression des chaines qui chevauchent d'autres chaines ex 'IVNVV', 'IVVV'
+    while ((j = sequences.findIndex((s2, i2) => i2 > i && (s.idst+s.text.length>s2.idst || s.isrc+s.text.length>s2.isrc))) > -1) {
+      sequences.splice(j, 1);
     }
   }
-  // suppression des overlaps : compareStrings("IVNVV", "IVVV")
-  sequences = sequences.filter((s,i) => !sequences.some((s2,i2) => i2>i && (s.isrc==s2.isrc || s.idst==s2.idst)));
   return {'str1':str1, 'str2':str2, 'errors':str1.length-sequences.reduce((acc, cur) => acc+=cur.text.length, 0), 'sequences': sequences};
 }
 const emptyChar = '&nbsp;';//'_';
