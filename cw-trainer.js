@@ -14,6 +14,7 @@ var cw_options = {
   eff : 17,
   ews : 0.5,
   tone : 800,
+  volume : 1,
   keyqual: 1
 };
 const KOCHCARS = ['K', 'M', 'U', 'R', 'E', 'S', 'N', 'A', 'P', 'T', 'L', 'W', 'I', '.', 'J', 'Z', '=', 'F', 'O', 'Y', ',', 'V', 'G', '5', '/', 'Q', '9', '2', 'H', '3', '8', 'B', '?', '4', '7', 'C', '1', 'D', '6', '0', 'X'];
@@ -309,6 +310,7 @@ const emptyChar = '&nbsp;';//'_';
 function formatTestString(ret) {
   let sret = '';
   let sequences = ret.sequences, str1=ret.str1, str2=ret.str2;
+  if (!str1.length && !str2.length) return sret;
   if (!sequences.length && str2.length) {
     // affichage de toute la chaine de test (fausse)
     sret += `<span class="wrong">${str2}</span>`;
@@ -319,29 +321,36 @@ function formatTestString(ret) {
     // affichage du bon nombre de caractères vide
     sret += `<span class="empty">${emptyChar.repeat(str1.length)}</span>`;
   } else {
-    let curl = 0;
-    sequences.forEach(s => {
-      if (s.idst > curl) {
-        // affichage de tous les caractères de la chaine de test qui ne sont pas en préambule dans la chaine d'entrée
-        sret += `<span class="wrong">${str2.substring(curl, s.idst)}</span>`;
-        curl+=(s.idst-curl);
+    let i1 = 0, i2 = 0;
+    sequences.forEach(seq => {
+      // il va falloir compléter avant la séquence
+      if (seq.isrc>i1 || seq.idst>i2) {
+        if (seq.isrc-i1 > seq.idst-i2) {
+          // cas 1
+          let lenempty = (seq.isrc-i1)-(seq.idst-i2);
+          let lenwrong = (seq.isrc-i1)-lenempty;
+          if (lenwrong > 0) sret += `<span class="wrong">${str2.substring(i2, i2+lenwrong)}</span>`;
+          if (lenempty > 0) sret += `<span class="empty">${emptyChar.repeat(lenempty)}</span>`;
+        } else if (seq.isrc-i1 < seq.idst-i2) {
+          // cas 2 ==> tous les caractères sont faux
+          let lenwrong = (seq.idst-i2)-(seq.isrc-i1);
+          if (lenwrong > 0) sret += `<span class="wrong">${str2.substring(i2, i2+lenwrong)}</span>`;
+        } else {
+          // cas 3 ==> il y'a n caractères faux entre les deux séquences
+          let lenwrong = seq.idst-i2;
+          if (lenwrong > 0) sret += `<span class="wrong">${str2.substring(i2, i2+lenwrong)}</span>`;
+        }
       }
-      if (s.isrc > curl) {
-        // affichage de tous les caractères de la chaine d'entrée qui ne sont pas en préambule dans la chaine de test
-        sret += `<span class="empty">${emptyChar.repeat(s.isrc-curl)}</span>`;
-        curl+=(s.isrc-curl);
-      }
-      sret += `<span class="right">${s.text}</span>`;
-      curl+=s.text.length;
+      sret += `<span class="right">${seq.text}</span>`;
+      i1 = seq.isrc + seq.text.length;
+      i2 = seq.idst + seq.text.length;
     });
-    let slast = sequences[sequences.length-1];
-    let suffix = 0;
-    if (slast.idst+slast.text.length < str2.length) {
-      sret += `<span class="wrong">${str2.substring(slast.idst+slast.text.length)}</span>`;
-      suffix += str2.length-(slast.idst+slast.text.length);
-    }
-    if (slast.isrc+slast.text.length+suffix < str1.length) {
-      sret += `<span class="empty">${emptyChar.repeat(str1.length-(slast.isrc+slast.text.length+suffix))}</span>`;
+    // il reste du texte en fin de str1 ou str 2 
+    if (i1 < str1.length || i2 < str2.length) {
+      let lenwrong = str2.length-(i2);
+      let lenempty = str1.length-(i1)-lenwrong;
+      if (lenwrong > 0) sret += `<span class="wrong">${str2.substring(i2, i2+lenwrong)}</span>`;
+      if (lenempty > 0) sret += `<span class="empty">${emptyChar.repeat(lenempty)}</span>`;
     }
   }
   return sret;
@@ -634,60 +643,72 @@ function setMinMax() {
   selews.min = CWPlayer.MIN_EWS;
   selews.max = CWPlayer.MAX_EWS;
 }
+function decodeParam(val, i) {
+  val = parseFloat(val);
+  if (isNaN(val)) return;
+  switch (i) {
+    case 0:
+      cw_options.lesson = Math.max(1, Math.min(maxlessons, Math.trunc(val)));
+      break;
+    case 1:
+      cw_options.wpm = Math.max(CWPlayer.MIN_WPM, Math.min(CWPlayer.MAX_WPM, Math.trunc(val)));
+      break;
+    case 2:
+      cw_options.eff = Math.max(CWPlayer.MIN_WPM, Math.min(CWPlayer.MAX_WPM, Math.trunc(val)));
+      break;
+    case 3:
+      cw_options.grouplen = Math.max(-1, Math.min(8, Math.trunc(val)));
+      if (cw_options.grouplen == 0) cw_options.grouplen = 1;
+      break;
+    case 4:
+      cw_options.groupsnb = Math.max(1, Math.min(250, Math.trunc(val)));
+      break;
+    case 5:
+      cw_options.tone = Math.max(CWPlayer.MIN_TONE, Math.min(CWPlayer.MAX_TONE, Math.trunc(val)));
+      break;
+    case 6:
+      cw_options.ews = Math.max(CWPlayer.MIN_EWS, Math.min(CWPlayer.MAX_EWS, val));
+      break;
+    case 7:
+      cw_options.simple_mode = val === 1;
+      break;
+    case 8:
+      chkfreelisten.checked = val === 1;
+      break;
+    case 9:
+      chkweightlastletters.checked = val === 1;
+      break;
+    case 10:
+      cw_options.keyqual = Math.max(CWPlayer.MIN_KEYQUAL, Math.min(CWPlayer.MAX_KEYQUAL, val));
+      break;
+    case 11:
+      cw_options.volume = Math.max(0, Math.min(1, val));
+      break;
+  }
+}
 function saveParams() {
-  let params = encodeURIComponent(sellesson.value+HASHSEP+selwpm.value+HASHSEP+seleffwpm.value+HASHSEP+grplen.value+HASHSEP+groupsnb.value+HASHSEP+cw_options.tone+HASHSEP+selews.value+HASHSEP+(cw_options.simple_mode?1:0)+HASHSEP+(chkfreelisten.checked?1:0)+HASHSEP+(chkweightlastletters.checked?1:0)+HASHSEP+cw_options.keyqual);
+  let params = encodeURIComponent(sellesson.value+HASHSEP+selwpm.value+HASHSEP+seleffwpm.value+HASHSEP+grplen.value+HASHSEP+groupsnb.value+HASHSEP+cw_options.tone+HASHSEP+selews.value+HASHSEP+(cw_options.simple_mode?1:0)+HASHSEP+(chkfreelisten.checked?1:0)+HASHSEP+(chkweightlastletters.checked?1:0)+HASHSEP+cw_options.keyqual+HASHSEP+cw_options.volume);
   try {
     localStorage.setItem("params", params);
   } catch(e) {}
   window.location.hash = params;
 }
 function loadParams() {
+  let extractParams = (p) => p.split(HASHSEP);
   let params = window.location.hash.substring(1);
-  if (params.trim().length <=0) {
-    try {
-      params = localStorage.getItem("params");
-    } catch(e) {}
+  if (params.trim().length > 0) {
+    extractParams(decodeURIComponent(params)).forEach(decodeParam);
   }
-  decodeURIComponent(params).split(HASHSEP).forEach((val, i) => {
-    val = parseFloat(val);
-    if (isNaN(val)) return;
-    switch (i) {
-      case 0:
-        cw_options.lesson = Math.max(1, Math.min(maxlessons, Math.trunc(val)));
-        break;
-      case 1:
-        cw_options.wpm = Math.max(CWPlayer.MIN_WPM, Math.min(CWPlayer.MAX_WPM, Math.trunc(val)));
-        break;
-      case 2:
-        cw_options.eff = Math.max(CWPlayer.MIN_WPM, Math.min(CWPlayer.MAX_WPM, Math.trunc(val)));
-        break;
-      case 3:
-        cw_options.grouplen = Math.max(-1, Math.min(8, Math.trunc(val)));
-        if (cw_options.grouplen == 0) cw_options.grouplen = 1;
-        break;
-      case 4:
-        cw_options.groupsnb = Math.max(1, Math.min(250, Math.trunc(val)));
-        break;
-      case 5:
-        cw_options.tone = Math.max(CWPlayer.MIN_TONE, Math.min(CWPlayer.MAX_TONE, Math.trunc(val)));
-        break;
-      case 6:
-        cw_options.ews = Math.max(CWPlayer.MIN_EWS, Math.min(CWPlayer.MAX_EWS, val));
-        break;
-      case 7:
-        cw_options.simple_mode = val === 1;
-        break;
-      case 8:
-        chkfreelisten.checked = val === 1;
-        break;
-      case 9:
-        chkweightlastletters.checked = val === 1;
-        break;
-      case 10:
-        cw_options.keyqual = Math.max(CWPlayer.MIN_KEYQUAL, Math.min(CWPlayer.MAX_KEYQUAL, val));
-        break;
+  try {
+    params = localStorage.getItem("params");
+  } catch(e) {}
+  // si dispo en localStorage, le volume est prioritaire sur sa valeur trouvée dans l'URL
+  if (params.trim().length > 0) {
+    let volume = extractParams(params)[11];
+    if (volume) {
+      decodeParam(volume, 11);
     }
-  });
+  }
 }
 function isTouchDevice() {
   return (('ontouchstart' in window) ||
@@ -752,6 +773,9 @@ window.addEventListener("load", async () => {
       message(`Autoplay ${cwplayer.AutoPlay?'':'de'}activated!`);
     } else if (arg == 'Tone') {
       cw_options.tone = cwplayer.Tone;
+      saveParams();
+    } else if (arg == 'Volume') {
+      cw_options.volume = cwplayer.Volume;
       saveParams();
     } else if (arg == 'KeyingQuality') {
       cw_options.keyqual = cwplayer.KeyingQuality;
@@ -955,6 +979,7 @@ async function updateValues() {
   cw_options.groupsnb = parseInt(groupsnb.value, 10);
   cwplayer.EWS = cw_options.ews = parseFloat(selews.value);
   cwplayer.Tone = cw_options.tone;
+  cwplayer.Volume = cw_options.volume;
   cwplayer.KeyingQuality = cw_options.keyqual;
   // on remet à jour les contrôles si'il y'a eu des bornages
   sellesson.value = cw_options.lesson;
@@ -962,6 +987,7 @@ async function updateValues() {
   seleffwpm.value = cw_options.eff = cwplayer.EffWPM;
   selews.value = cw_options.ews = cwplayer.EWS;
   cw_options.tone = cwplayer.Tone;
+  cw_options.volume = cwplayer.Volume;
   cw_options.keyqual = cwplayer.KeyingQuality;
   sellesson.disabled = chkfreelisten.checked;
   nxtlesson.disabled = cw_options.lesson >= maxlessons || chkfreelisten.checked;
