@@ -705,19 +705,25 @@ function saveParams() {
   window.location.hash = params;
 }
 function loadParams() {
+  let fromhash = false;
   let extractParams = (p) => p.split(HASHSEP);
   let params = window.location.hash.substring(1);
   if (params.trim().length > 0) {
+    fromhash = true;
     extractParams(decodeURIComponent(params)).forEach(decodeParam);
   }
   try {
     params = localStorage.getItem("params");
   } catch(e) {}
-  // si dispo en localStorage, le volume est prioritaire sur sa valeur trouvée dans l'URL
   if (params.trim().length > 0) {
-    let volume = extractParams(params)[11];
-    if (volume) {
-      decodeParam(volume, 11);
+    if (!fromhash) {
+      extractParams(params).forEach(decodeParam);
+    } else {
+      // si dispo en localStorage, le volume est prioritaire sur sa valeur trouvée dans l'URL
+      let volume = extractParams(params)[11];
+      if (volume) {
+        decodeParam(volume, 11);
+      }
     }
   }
 }
