@@ -404,10 +404,10 @@ async function verifycw(e) {
       return;
     }
     iptfree.classList.add('nocarret');
-    if (chkfreelisten.checked || iptfree.value==' ') {
+    if (cw_options.freelisten || iptfree.value==' ') {
       cwplayer.stop();
       iptfree.classList.add('blue');
-      cwplayer.play(chkfreelisten.checked?iptfree.value:null).then(() => {
+      cwplayer.play(cw_options.freelisten?iptfree.value:null).then(() => {
         iptfree.classList.remove('blue');
         iptfree.classList.remove('nocarret');
         iptfree.value = '';
@@ -450,7 +450,7 @@ async function verifycw(e) {
 
     iptfree.focus();
   } else {
-    if (chkfreelisten.checked) {
+    if (cw_options.freelisten) {
       cwchecking = false;
       return;
     }
@@ -684,10 +684,10 @@ function decodeParam(val, i) {
       cw_options.simple_mode = val === 1;
       break;
     case 8:
-      chkfreelisten.checked = val === 1;
+      cw_options.freelisten = val === 1;
       break;
     case 9:
-      chkweightlastletters.checked = val === 1;
+      cw_options.weighlastletters = val === 1;
       break;
     case 10:
       cw_options.keyqual = Math.max(CWPlayer.MIN_KEYQUAL, Math.min(CWPlayer.MAX_KEYQUAL, val));
@@ -698,7 +698,7 @@ function decodeParam(val, i) {
   }
 }
 function saveParams() {
-  let params = encodeURIComponent(sellesson.value+HASHSEP+selwpm.value+HASHSEP+seleffwpm.value+HASHSEP+grplen.value+HASHSEP+groupsnb.value+HASHSEP+cw_options.tone+HASHSEP+selews.value+HASHSEP+(cw_options.simple_mode?1:0)+HASHSEP+(chkfreelisten.checked?1:0)+HASHSEP+(chkweightlastletters.checked?1:0)+HASHSEP+cw_options.keyqual+HASHSEP+cw_options.volume);
+  let params = encodeURIComponent(sellesson.value+HASHSEP+selwpm.value+HASHSEP+seleffwpm.value+HASHSEP+grplen.value+HASHSEP+groupsnb.value+HASHSEP+cw_options.tone+HASHSEP+selews.value+HASHSEP+(cw_options.simple_mode?1:0)+HASHSEP+(cw_options.freelisten?1:0)+HASHSEP+(cw_options.weighlastletters?1:0)+HASHSEP+cw_options.keyqual+HASHSEP+cw_options.volume);
   try {
     localStorage.setItem("params", params);
   } catch(e) {}
@@ -781,7 +781,7 @@ window.addEventListener("load", async () => {
   selews.value = cw_options.ews;
   cwplayer.addEventListener('play', () => {
     // on ne focus le texte que si on vient de démarrer la lecture, qu'on est en mode normal et qu'on est pas en train d'écouter un résultat
-    if (!cw_options.simple_mode && !chkfreelisten.checked && !document.querySelectorAll('.active').length && cwplayer.CurrentTime < 0.5) {
+    if (!cw_options.simple_mode && !cw_options.freelisten && !document.querySelectorAll('.active').length && cwplayer.CurrentTime < 0.5) {
       cwtext.focus();
     }
   });
@@ -866,9 +866,12 @@ window.addEventListener("load", async () => {
     sellesson.value = Math.min(maxlessons, Math.max(1, parseInt(sellesson.value, 10)+1));
     updateValues();
   });
-  chkfreelisten.addEventListener("change", updateValues);
+  chkfreelisten.addEventListener("change", (e) => {
+    cw_options.freelisten = chkfreelisten.checked;
+    updateValues();
+  });
   cwtext.addEventListener("keyup", () => {
-    if (!chkfreelisten.checked) return;
+    if (!cw_options.freelisten) return;
     cwplayer.Text = cwtext.value;
   });
   iptfree.addEventListener("keyup", verifycw);
@@ -883,7 +886,10 @@ window.addEventListener("load", async () => {
       hideKeyboard();
     }
   });
-  chkweightlastletters.addEventListener("change", updateValues);
+  chkweightlastletters.addEventListener("change", (e) => {
+    cw_options.weighlastletters = chkweightlastletters.checked;
+    updateValues();
+  });
 });
 window.addEventListener("error", (e) => {
   let err = e;
@@ -968,7 +974,7 @@ async function updateValues() {
   if (cw_options.simple_mode && sellesson.value>41) {
     sellesson.value = 41;
   }
-  cwplayer.PreDelay = cw_options.simple_mode || chkfreelisten.checked ? 0.05 : 2;
+  cwplayer.PreDelay = cw_options.simple_mode || cw_options.freelisten ? 0.05 : 2;
   if (cw_options.simple_mode) {
     iptfree.focus();
   } else {
@@ -986,8 +992,6 @@ async function updateValues() {
       e.title = e.title + dtext;
     }
   });
-  cw_options.freelisten = chkfreelisten.checked;
-  cw_options.weighlastletters = chkweightlastletters.checked;
   cw_options.lesson = Math.min(maxlessons, Math.max(1, parseInt(sellesson.value, 10)));
   if (isNaN(cw_options.lesson)) cw_options.lesson = 1;
   cwplayer.WPM = cw_options.wpm = parseInt(selwpm.value, 10);
@@ -1006,16 +1010,18 @@ async function updateValues() {
   cw_options.tone = cwplayer.Tone;
   cw_options.volume = cwplayer.Volume;
   cw_options.keyqual = cwplayer.KeyingQuality;
-  sellesson.disabled = chkfreelisten.checked;
-  nxtlesson.disabled = cw_options.lesson >= maxlessons || chkfreelisten.checked;
-  prevlesson.disabled = cw_options.lesson <= 1 || chkfreelisten.checked;
+  chkfreelisten.checked = cw_options.freelisten;
+  chkweightlastletters.checked = cw_options.weighlastletters;
+  sellesson.disabled = cw_options.freelisten;
+  nxtlesson.disabled = cw_options.lesson >= maxlessons || cw_options.freelisten;
+  prevlesson.disabled = cw_options.lesson <= 1 || cw_options.freelisten;
   zoneresult.style.display = 'none';
   zonerestext.innerHTML = '';
   zonefree.style.display = cw_options.simple_mode?'block':'none';
   zonekoch.style.display = !cw_options.simple_mode?'block':'none';
   zonewords.style.display = sellesson.value < 42?'block':'none';
   chkweightlastletterswrapper.style.visibility = !cw_options.freelisten && sellesson.value < 41?'visible':'hidden';
-  cwsbm.disabled = chkfreelisten.checked;
+  cwsbm.disabled = cw_options.freelisten;
   modelinks.forEach(a => {
     if ((a.dataset.mode == 'simple' && cw_options.simple_mode) || (a.dataset.mode == 'koch' && !cw_options.simple_mode)) a.classList.add('active');
     else a.classList.remove('active');
@@ -1023,7 +1029,7 @@ async function updateValues() {
   saveParams();
 
   await generateText();
-  if (chkfreelisten.checked) {
+  if (cw_options.freelisten) {
     zoneresultfree.innerHTML = '';
     return;
   }
