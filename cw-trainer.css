@@ -20,7 +20,7 @@ morse-player {
   vertical-align: top;
   border-left: solid 2px #bbb;
   margin: 0px 4px;
-  padding: 0px 4px;
+  padding: 0px 0px 0px 4px;
   max-width: 380px;
 }
 .zonecontrols {
@@ -43,7 +43,7 @@ td {
   width:1%;
   white-space: nowrap;
 }
-td:last-child {
+.zonecontrols td:last-child {
   text-align: left;
   padding-left: 20px;
 }
@@ -57,7 +57,7 @@ td:last-child {
 a[name="modes"], a[name="modes"]:visited {
   font-size: 1.1em;
   background-color: #bfbfbf;
-  color: #fff;
+  color: #e7e7e7;
   padding: 0 15px;
   border: solid 1px #d7d7d7;
   border-bottom: none;
