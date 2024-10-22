@@ -12,7 +12,7 @@ var cw_options = {
   weighlastletters: false,
   wpm : 25,
   eff : 17,
-  ews : 0.5,
+  ews : 0,
   tone : 800,
   volume : 1,
   keyqual: 1
