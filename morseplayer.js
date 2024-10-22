@@ -906,7 +906,8 @@ class MorsePlayer extends HTMLElement {
       if (e.key === 'Escape' || (e.keyCode || e.which) == 27) this.mouseup();
     });
     Object.keys(this.configfields).forEach(k => {
-      this.configfields[k].onchange = () => { this[k] = this.configfields[k].value; };
+      let evttype = k=='Volume' ? 'input' : 'change';
+      this.configfields[k].addEventListener(evttype, () => { this[k] = this.configfields[k].value; });
     });
 
     if (!this.options.progressBar) this.prgcont.style.display='none';
