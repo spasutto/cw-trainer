@@ -682,12 +682,15 @@ class MorsePlayer extends HTMLElement {
         display: none;
         background-color: #ccc;
         padding: 2px;
+        height: 80px; /* à cause de l'élement enfant scale */
       }
       #configzone>div {
         background-color: #f8f8f8;
         width: 300px;
         margin-left: auto;
         margin-right: 0;
+        transform: scale(0.9);
+        transform-origin: top right;
       }
       #configzone span, input {
         margin-left: 5px;
@@ -716,7 +719,7 @@ class MorsePlayer extends HTMLElement {
         filter: drop-shadow(0px 0px 5px rgb(0 0 0 / 0.4));
       }
       #btnconfig:active .cfggear {
-        fill: red;
+        fill: yellow;
       }
       #btnconfig:active .cfgpath {
         filter: drop-shadow(0px 0px 5px rgb(0 0 0 / 1));
