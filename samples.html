@@ -338,6 +338,13 @@
           player2.WPM = 15;
         }, 1400);
       });
+      player2.on('stop', () => {
+        console.log('ended playing');
+      });
+      /*  In the same way, play() is async :
+        await player2.play('Hello morse code');
+        console.log('done!');
+      */
     </script>
   </template>
   
