@@ -708,14 +708,14 @@ function loadParams() {
   let fromhash = false;
   let extractParams = (p) => p.split(HASHSEP);
   let params = window.location.hash.substring(1);
-  if (params.trim().length > 0) {
+  if (params?.trim().length > 0) {
     fromhash = true;
     extractParams(decodeURIComponent(params)).forEach(decodeParam);
   }
   try {
     params = localStorage.getItem("params");
   } catch(e) {}
-  if (params.trim().length > 0) {
+  if (params?.trim().length > 0) {
     if (!fromhash) {
       extractParams(params).forEach(decodeParam);
     } else {
