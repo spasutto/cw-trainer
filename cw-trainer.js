@@ -601,6 +601,9 @@ async function selfDownload() {
       page = page.replace(occ[i][0], '');
     }
   }
+  if (ot) {
+    script += 'var freetext = `'+ot.replaceAll('`', '\\`')+'`;\n';
+  }
   if (script) {
     page = page.replace(occ[0][0], '\u003cscript\u003e\n'+script.replaceAll('$', '$$$$')+'\u003c/script\u003e');
   }
@@ -621,9 +624,6 @@ async function selfDownload() {
       data = '\u003cstyle\u003e\n'+data.replaceAll('$', '$$$$')+'\u003c/style\u003e';
     }
     page = page.replace(occ[i][0], data)
-  }
-  if (ot) {
-    page = page.replace('\u003c/body\u003e', '\u003cscript\u003e\nvar freetext = `'+ot.replaceAll('$', '$$$$').replaceAll('`', '\\`')+'`;\n\u003c/script\u003e\n\u003c/body\u003e');
   }
   var url = window.URL.createObjectURL(new Blob([page], {type: 'text/plain'}));
   var a = document.createElement('a');
@@ -701,6 +701,7 @@ function saveParams() {
   let params = encodeURIComponent(sellesson.value+HASHSEP+selwpm.value+HASHSEP+seleffwpm.value+HASHSEP+grplen.value+HASHSEP+groupsnb.value+HASHSEP+cw_options.tone+HASHSEP+selews.value+HASHSEP+(cw_options.simple_mode?1:0)+HASHSEP+(cw_options.freelisten?1:0)+HASHSEP+(cw_options.weighlastletters?1:0)+HASHSEP+cw_options.keyqual+HASHSEP+cw_options.volume);
   try {
     localStorage.setItem("params", params);
+    window.name = params;
   } catch(e) {}
   window.location.hash = params;
 }
@@ -713,7 +714,7 @@ function loadParams() {
     extractParams(decodeURIComponent(params)).forEach(decodeParam);
   }
   try {
-    params = localStorage.getItem("params");
+    params = localStorage.getItem("params") ?? window.name;
   } catch(e) {}
   if (params?.trim().length > 0) {
     if (!fromhash) {
