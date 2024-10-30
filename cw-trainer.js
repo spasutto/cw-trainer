@@ -136,6 +136,7 @@ async function generateFreeText(minlength = 60, maxlength = 150) {
   loading();
   let text = window.freetext ?? (await getUrl(FREETEXT_URL));
   loading(false);
+  window.freetext = text;
   let startoftext = 'CHAPTER I';
   let startidx = text?.indexOf(startoftext);
   if (startidx>=0) {
@@ -143,7 +144,8 @@ async function generateFreeText(minlength = 60, maxlength = 150) {
     text = text.substring(startidx).trim();
   }
   if (typeof text !== 'string' || text.length <= minlength) {
-    alert('Unable to load free text (need internet connection !)');
+    alert('Unable to load free text (no internet connection ?)');
+    window.freetext = null;
     return null;
   }
   text = text.replaceAll(/Mr(s)?\./g, 'Mr$1');
