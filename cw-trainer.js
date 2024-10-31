@@ -784,7 +784,7 @@ window.addEventListener("load", async () => {
   selews.value = cw_options.ews;
   cwplayer.addEventListener('play', () => {
     // on ne focus le texte que si on vient de démarrer la lecture, qu'on est en mode normal et qu'on est pas en train d'écouter un résultat
-    if (!cw_options.simple_mode && !cw_options.freelisten && !document.querySelectorAll('.active').length && cwplayer.CurrentTime < 0.5) {
+    if (!cw_options.simple_mode && !cw_options.freelisten && !document.querySelectorAll('a[name="listen"].active').length && cwplayer.CurrentTime < 0.5) {
       cwtext.focus();
     }
   });
