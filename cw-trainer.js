@@ -551,7 +551,7 @@ async function verifycw(e) {
     perc = Math.round(perc*10)/10;
     let stats = [`${nbchars-nberr}/${nbchars} characters sent`];
     let missing = results.reduce((a,c) => a+=(c.str2.match(new RegExp(emptyChar, 'g')) || []).length, 0);
-    if (missing > 0) stats.push(`${missing} missing${missing>1?'s':''}/error${missing>1?'s':''}`);
+    if (missing > 0) stats.push(`${missing} missing${missing>1?'s':''}`);
     if (nberr > missing) stats.push(`${nberr-missing} error${nberr-missing>1?'s':''}`);
     zonerestext.innerHTML = `<h5>${perc}% success rate</h5><small>(${stats.join(', ')})</small><BR>`;
     let restable = '<table><th>original</th><th>input</th><th>errors</th>'
