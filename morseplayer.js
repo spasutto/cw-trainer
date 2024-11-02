@@ -112,6 +112,7 @@ class CWPlayer {
   set WPM(value) {
     value = CWPlayer.parseint(value);
     value = Math.min(CWPlayer.MAX_WPM, Math.max(CWPlayer.MIN_WPM, value));
+    if (this.options.wpm == value) return;
     this.options.wpm = value;
     // "PARIS " ==> 50 unités. à 1 WPM il faut donc 60/50 secondes pour envoyer une unité (un 'dit')
     // Dit: 1 unit
@@ -127,7 +128,10 @@ class CWPlayer {
     } else {
       // ce traitement aurait déjà été fait dans le if dans le setter de EffWPM
       this.totaltime = this.getDuration();
-      this.schedule();
+      if (this.playing) {
+        // reschedule à partir du début du symbole courant
+        this.scheduleFromCurrentSymbol();
+      }
     }
     this.fireEvent('parameterchanged', 'WPM');
   }
@@ -137,22 +141,30 @@ class CWPlayer {
   set EffWPM(value) {
     value = CWPlayer.parseint(value);
     value = Math.min(CWPlayer.MAX_WPM, Math.max(CWPlayer.MIN_WPM, value));
+    if (this.options.effwpm == value) return;
     this.options.effwpm = value;
     if (this.WPM<value) {
       this.WPM = value;
     }
     this.spperiod = ((60/value)-31*this.elperiod)/19;
     this.totaltime = this.getDuration();
-    this.schedule();
+    if (this.playing) {
+      // reschedule à partir du début du symbole courant
+      this.scheduleFromCurrentSymbol();
+    }
     this.fireEvent('parameterchanged', 'EffWPM');
   }
   get EWS() { return this.options.ews; }
   set EWS(value) {
     value = CWPlayer.parsefloat(value);
     value = Math.min(CWPlayer.MAX_EWS, Math.max(CWPlayer.MIN_EWS, value));
+    if (this.options.ews == value) return;
     this.options.ews = value;
     this.totaltime = this.getDuration();
-    this.schedule();
+    if (this.playing) {
+      // reschedule à partir du début du symbole courant
+      this.scheduleFromCurrentSymbol();
+    }
     this.fireEvent('parameterchanged', 'EWS');
   }
   get Tone() { return this.options.tone; }
@@ -179,18 +191,26 @@ class CWPlayer {
   set KeyingQuality(value) {
     value = CWPlayer.parsefloat(value);
     value = Math.min(CWPlayer.MAX_KEYQUAL, Math.max(CWPlayer.MIN_KEYQUAL, value));
+    if (this.options.keyqual == value) return;
     this.options.keyqual = value;
     this.totaltime = this.getDuration();
-    this.schedule();
+    if (this.playing) {
+      // reschedule à partir du début du symbole courant
+      this.scheduleFromCurrentSymbol();
+    }
     this.fireEvent('parameterchanged', 'KeyingQuality');
   }
   get PreDelay() { return this.options.predelay; }
   set PreDelay(value) {
     value = CWPlayer.parseint(value);
     value = Math.max(0, value);
+    if (this.options.predelay == value) return;
     this.options.predelay = value;
     this.totaltime = this.getDuration();
-    this.schedule();
+    if (this.playing) {
+      // reschedule à partir du début du symbole courant
+      this.scheduleFromCurrentSymbol();
+    }
     this.fireEvent('parameterchanged', 'PreDelay');
   }
   get AutoPlay() { return this.options.autoplay; }
@@ -463,6 +483,15 @@ class CWPlayer {
     if (this.playing && this.localTime == localTime) {
       this.stop();
     }
+  }
+  scheduleFromCurrentSymbol() {
+    // reschedule à partir du début du symbole courant
+    this.totalpausetime = 0;
+    let now = this.context?.currentTime ?? 0;
+    let time = this.curti<0 ? 0 : this.itime[this.curti];
+    this.starttime = now-time;
+    this.lastpausetime = now;
+    this.schedule(time);
   }
   schedule(timefromstart, startindex) {
     if (!this.context || !this.playing) return;
