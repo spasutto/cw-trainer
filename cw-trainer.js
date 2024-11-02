@@ -198,9 +198,10 @@ async function generateText() {
         if (cw_options.weighlastletters) {
           // lettres "nouvelles"
           let newletters = KOCHCARS.slice(Math.max(0, maxlesson-2), maxlesson+1);
-          // plus de poids pour les lettres nouvelles
-          let nbi = Math.max(1, Math.round(maxlesson/8));
-          for(let i=0; i<nbi; i++) letters.push(...newletters);
+          // plus de poids pour les lettres nouvelles :
+          // 1/4 des lettres doivent être les 'récentes'
+          let nbtl = Math.floor(letters.length+letters.length/3);
+          while (letters.length < nbtl) letters.push(...newletters);
         }
       }
       cwgentext = generateRandomString(letters, 1);
@@ -232,9 +233,10 @@ async function generateText() {
         if (cw_options.weighlastletters) {
           // lettres "nouvelles"
           let newletters = KOCHCARS.slice(Math.max(0, maxlesson-2), maxlesson+1);
-          // plus de poids pour les lettres nouvelles
-          let nbi = Math.max(1, Math.round(maxlesson/8));
-          for(let i=0; i<nbi; i++) letters.push(...newletters);
+          // plus de poids pour les lettres nouvelles :
+          // 1/4 des lettres doivent être les 'récentes'
+          let nbtl = Math.floor(letters.length+letters.length/3);
+          while (letters.length < nbtl) letters.push(...newletters);
         }
       }
       cwgentext = generateRandomText(letters, cw_options.grouplen, cw_options.groupsnb);
@@ -702,23 +704,29 @@ function decodeParam(val, i) {
 function saveParams() {
   let params = encodeURIComponent(sellesson.value+HASHSEP+selwpm.value+HASHSEP+seleffwpm.value+HASHSEP+grplen.value+HASHSEP+groupsnb.value+HASHSEP+cw_options.tone+HASHSEP+selews.value+HASHSEP+(cw_options.simple_mode?1:0)+HASHSEP+(cw_options.freelisten?1:0)+HASHSEP+(cw_options.weighlastletters?1:0)+HASHSEP+cw_options.keyqual+HASHSEP+cw_options.volume);
   try {
-    localStorage.setItem("params", params);
     window.name = params;
+    localStorage.setItem("params", params);
   } catch(e) {}
   window.location.hash = params;
 }
 function loadParams() {
+  //'30_25_15_5_15_800_0.6_0_0_1_1_0.41'
+  const regparams = /\d{1,2}_\d{1,2}_\d{1,2}_-?\d_\d{1,3}_\d{1,4}_\d?\d.?\d*_(0|1)_(0|1)_(0|1)_\d.?\d*_\d.?\d*/i;
   let fromhash = false;
-  let extractParams = (p) => p.split(HASHSEP);
+  let extractParams = (p) => regparams.test(p)?p.split(HASHSEP):[];
   let params = window.location.hash.substring(1);
-  if (params?.trim().length > 0) {
+  if (typeof params === 'string' && params?.trim().length > 0) {
     fromhash = true;
     extractParams(decodeURIComponent(params)).forEach(decodeParam);
   }
   try {
-    params = localStorage.getItem("params") ?? window.name;
+    if (typeof window.localStorage === 'object' && typeof localStorage.getItem === 'function') {
+      params = localStorage.getItem("params");
+    }
   } catch(e) {}
-  if (params?.trim().length > 0) {
+  params = params ?? window.name;
+  if (typeof params === 'string' && params?.trim().length > 0) {
+    // les parametres du hash sont prioritaires sur ceux du localstorage (excepté le volume)
     if (!fromhash) {
       extractParams(params).forEach(decodeParam);
     } else {
