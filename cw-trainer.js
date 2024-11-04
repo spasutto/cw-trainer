@@ -629,8 +629,8 @@ async function selfDownload() {
     }
     page = page.replace(occ[i][0], data)
   }
-  var url = window.URL.createObjectURL(new Blob([page], {type: 'text/plain'}));
-  var a = document.createElement('a');
+  let url = window.URL.createObjectURL(new Blob([page], {type: 'text/plain'}));
+  let a = document.createElement('a');
   a.href = url;
   a.download = "cw_trainer.html";
   document.body.appendChild(a);

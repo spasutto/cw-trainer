@@ -363,9 +363,6 @@ class CWPlayer {
   }
 
   initAudio() {
-    if (this.context) {
-      return;
-    }
     this.context = new (window.AudioContext || window.webkitAudioContext)();
     this.osc = this.context.createOscillator();
     this.gain = this.context.createGain();
@@ -493,7 +490,7 @@ class CWPlayer {
     this.lastpausetime = now;
     this.schedule(time);
   }
-  schedule(timefromstart, startindex) {
+  async schedule(timefromstart, startindex) {
     if (!this.context || !this.playing) return;
     let it = this.context.currentTime;
     this.osc.frequency.setValueAtTime(this.options.tone, it);
@@ -525,7 +522,7 @@ class CWPlayer {
     }
     if (this.stime.length > 0) {
       this.endtime = it + this.stime[this.stime.length-1] - timefromstart;
-      this.startStopWaiter();
+      await this.startStopWaiter();
     } else {
       this.stop();
     }
