@@ -882,6 +882,12 @@ class MorsePlayer extends HTMLElement {
       #btndownload:hover path {
         fill: orange;
       }
+      #btndownload.svg_inactif {
+        cursor: default;
+      }
+      #btndownload.svg_inactif path {
+        fill: lightgrey !important;
+      }
       .progress-bar {
         height: 25px;
         background-color: #ddd;
@@ -1068,7 +1074,9 @@ class MorsePlayer extends HTMLElement {
       return false;
     };
     this.btndownload.onclick = () => {
-      this.cwplayer.renderToFile();
+      if (this.TotalTime > 0) {
+        this.cwplayer.renderToFile();
+      }
       return false;
     };
     document.addEventListener("mouseup", this.mouseup.bind(this));
@@ -1241,6 +1249,7 @@ class MorsePlayer extends HTMLElement {
     this.btnstop.disabled = recording || !(typeof en_stop === 'boolean' ? en_stop : havecontent && (playing || (paused && this.cwplayer.CurrentTime > 0)));
     this.btnplay.disabled = recording || (typeof en_play === 'boolean' ? !en_play : !havecontent || playing);
     this.btnpause.disabled = recording || (typeof en_pause === 'boolean' ? !en_pause : !havecontent || paused || !playing);
+    this.btndownload.disabled = recording || !havecontent;
 
     let applyClass = (btn) => {
       if (btn.disabled) {
@@ -1252,6 +1261,7 @@ class MorsePlayer extends HTMLElement {
     applyClass(this.btnstop);
     applyClass(this.btnplay);
     applyClass(this.btnpause);
+    applyClass(this.btndownload);
   }
   updateClearZone() {
     if (!this.options.clearZone) return;
