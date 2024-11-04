@@ -75,7 +75,7 @@ class CWPlayer {
     this.curti = -1;
     this.endtime = this.starttime = this.lastpausetime = this.totalpausetime = this.totaltime = 0;
     this.stime = [];
-    this.booping = this.playing = this.paused = false;
+    this.recording = this.booping = this.playing = this.paused = false;
     this.events = {};
     this.onplayend = null;
     this.init(options);
@@ -229,6 +229,7 @@ class CWPlayer {
       this.play();
     }
   }
+  get Recording() { return this.recording; }
   get Text() {
     return this.text;
   }
@@ -272,7 +273,9 @@ class CWPlayer {
     this.starttime = now-time;
     this.lastpausetime = now;
     this.fireEvent('indexchanged');
-    this.schedule(time);
+    if (this.playing) {
+      this.schedule(time);
+    }
   }
   get TotalTime() { return this.totaltime;  }
   get CurrentTime() {
@@ -291,7 +294,9 @@ class CWPlayer {
     this.starttime = now-value;
     this.lastpausetime = now;
     this.fireEvent('indexchanged');
-    this.schedule(value);
+    if (this.playing) {
+      this.schedule(value);
+    }
   }
 
   fireEvent(evtname, args) {
@@ -364,6 +369,7 @@ class CWPlayer {
 
   initAudio(offline = false) {
     if (!offline) {
+      if (this.recording) return;
       this.context = new (window.AudioContext || window.webkitAudioContext)();
     } else {
       this.context = new OfflineAudioContext(2, 44100 * (this.totaltime+0.5), 44100);
@@ -380,7 +386,8 @@ class CWPlayer {
     this.master.connect(this.context.destination);
   }
   async playBoop() {
-    if (this.playing) {
+    if (this.recording) return;
+    else if (this.playing) {
       this.stop();
     } else if (!this.context) {
       this.initAudio();
@@ -433,13 +440,13 @@ class CWPlayer {
     this.fireEvent(pause?'pause':'stop');
   }
   pause() {
-    if (!this.playing || this.booping) return;
+    if (!this.playing || this.booping || this.recording) return;
     this.lastpausetime = this.context.currentTime;
     return this.stop(true);
   }
   async play(text) {
     return new Promise(res => {
-      if (this.playing || this.booping) {
+      if (this.playing || this.booping || this.recording) {
         res();
         return;
       }
@@ -495,7 +502,7 @@ class CWPlayer {
     this.schedule(time);
   }
   async schedule(timefromstart, startindex) {
-    if (!this.context || !this.playing) return;
+    if (!this.context || (!this.playing && !this.recording)) return;
     let it = this.context.currentTime;
     this.osc.frequency.setValueAtTime(this.options.tone, it);
     if (typeof startindex !== 'number') {
@@ -573,12 +580,16 @@ class CWPlayer {
     this.itime.push(d);
     return d;
   }
-  async renderToFile() {
+  async renderToFile(text=null) {
+    if (this.playing) this.stop();
+    this.recording = true;
+    this.fireEvent('play'); // permet de déclencher les évenements
+    if (text) {
+      this.Text = text;
+    }
     try {
       this.initAudio(true);
-      this.playing = true;
       this.schedule();
-      this.playing = false;
       let audioBuffer = await this.context.startRendering();
       console.log(audioBuffer);
       
@@ -595,7 +606,7 @@ class CWPlayer {
       const wavBytes = WAV.getBytes(interleaved.buffer, {
         isFloat: true,       // floating point or 16-bit integer
         numChannels: 2,
-        sampleRate: 48000,
+        sampleRate: 44100,
       })
       const wav = new Blob([wavBytes], { type: 'audio/wav' });
 
@@ -613,7 +624,9 @@ class CWPlayer {
       alert('unable to save WAV file');
       console.error(e);
     } finally {
+      this.recording = false;
       this.initAudio();
+      this.fireEvent('stop'); // permet de déclencher les évenements
     }
   }
 }
@@ -1077,6 +1090,7 @@ class MorsePlayer extends HTMLElement {
 
   get Playing() { return this.cwplayer.Playing; }
   set Playing(value) { this.cwplayer.Playing = value; }
+  get Recording() { return this.cwplayer.Recording; }
   get Paused() { return this.cwplayer.Paused; }
   set Paused(value) { this.cwplayer.Paused = value; }
   get AutoPlay() { return this.cwplayer.AutoPlay; }
@@ -1191,12 +1205,13 @@ class MorsePlayer extends HTMLElement {
   }
   updateButtonsState(en_stop, en_play, en_pause) {
     let playing = this.cwplayer.Playing;
+    let recording = this.cwplayer.Recording;
     let paused = this.cwplayer.Paused;
     let havecontent = this.cwplayer.TotalTime > 0;
 
-    this.btnstop.disabled = !(typeof en_stop === 'boolean' ? en_stop : havecontent && (playing || (paused && this.cwplayer.CurrentTime > 0)));
-    this.btnplay.disabled = typeof en_play === 'boolean' ? !en_play : !havecontent || playing;
-    this.btnpause.disabled = typeof en_pause === 'boolean' ? !en_pause : !havecontent || paused || !playing;
+    this.btnstop.disabled = recording || !(typeof en_stop === 'boolean' ? en_stop : havecontent && (playing || (paused && this.cwplayer.CurrentTime > 0)));
+    this.btnplay.disabled = recording || (typeof en_play === 'boolean' ? !en_play : !havecontent || playing);
+    this.btnpause.disabled = recording || (typeof en_pause === 'boolean' ? !en_pause : !havecontent || paused || !playing);
 
     let applyClass = (btn) => {
       if (btn.disabled) {
