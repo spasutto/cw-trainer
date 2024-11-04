@@ -262,7 +262,7 @@
         width: 380px;
       }
     </style>
-    <morse-player wpm="25" effwpm="17" ews="1" tone="800" predelay="1" >cq cq cq de F8XYZ</morse-player>
+    <morse-player wpm="25" effwpm="17" ews="1" tone="800" predelay="1">cq cq cq de F8XYZ</morse-player>
   </template>
 
   <h3>Show only buttons</h3>
@@ -278,6 +278,16 @@
       }
     </style>
     <morse-player clearzone="true">cq cq cq de F8XYZ</morse-player>
+  </template>
+
+  <h3>Display download button</h3>
+  <template name="sample">
+    <style>
+      morse-player {
+        width: 380px;
+      }
+    </style>
+    <morse-player downloadbutton="true">cq cq cq de F8XYZ</morse-player>
   </template>
 
   <h3>Pure JS</h3>
@@ -309,7 +319,8 @@
     <input type="button" onclick="player1.EffWPM = 15" value="Eff 15 WPM">
     <input type="button" onclick="player1.EffWPM = 25" value="Eff 25 WPM">
     <input type="button" onclick="player1.Tone = 700" value="700 Hz">
-    <input type="button" onclick="player1.Tone = 1500" value="1500 Hz">
+    <input type="button" onclick="player1.Tone = 1500" value="1500 Hz"><BR>
+    <input type="button" onclick="player1.renderToFile(cwtext.value)" value="download .wav">
     <script>
       var player1 = new CWPlayer();
       var cwtext = document.getElementById('cwtext');

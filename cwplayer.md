@@ -46,10 +46,15 @@ The `CWPlayer` constructor accepts options as an `Object` in which keys can be :
  - **autoplay** (_default to false_) : if set to "true", a change in the text automatically starts playing
 
 ### async play(text)
-`play` method start the morse playing of the text. The text can be passed in parameter otherwise it's come from `Text` property and is cleaned. The method returns a promise wich is fulfilled at the first pause or at the end of the playing.
+`play` method start the morse playing of the text. The text can be passed as parameter otherwise `Text` property will be used. Text is cleaned. The method returns a promise wich is fulfilled at the first pause or at the end of the playing.
 ```Javascript
 await player.play('test');
 await player.play('this text is read after the first has finished');
+
+### async renderToFile(text)
+`renderToFile` method render the morse representation of the text and save it to a .wav file. The text can be passed as parameter otherwise `Text` property will be used. Text is cleaned. The method returns a promise wich is fulfilled at the end of the conversion to .wav file.
+```Javascript
+await player.renderToFile();
 ```
 
 ### pause()

@@ -45,6 +45,7 @@ The `morse-player` tag accept some attributes (case insensitive) :
  - **progessbar** (_default to true_) : if set to false the playing/progress bar is hidden
  - **clearzone** (_default to false_) : if set to true, a zone under the player displays the currently playing symbols
  - **configbutton** (_default to true_) : if set to true, add a settings zone
+ - **downloadbutton** (_default to false_) : if set to true, add a "download to .wav" button
 
 ## MorsePlayer instance's properties
  - **Playing** : the player is currently playing
@@ -66,6 +67,7 @@ console.log(player.Text);
  - **ProgressBar** : display/hide the progress bar
  - **ClearZone** : display/hide the clear text zone (currently playing)
  - **ConfigButton** : display/hide the settings button
+ - **DownloadButton** : display/hide the download button
 
 ## Methods
 ### _constructor(options)_
