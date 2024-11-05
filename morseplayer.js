@@ -376,14 +376,18 @@ class CWPlayer {
     }
     this.osc = this.context.createOscillator();
     this.gain = this.context.createGain();
-    this.master = this.context.createGain();
     this.osc.connect(this.gain);//.connect(this.context.destination);
     this.osc.frequency.value = this.options.tone;
     this.gain.gain.value = 0;
-    this.master.gain.value = this.options.volume;
+    if (!offline) {
+      this.master = this.context.createGain();
+      this.master.gain.value = this.options.volume;
+      this.gain.connect(this.master);
+      this.master.connect(this.context.destination);
+    } else {
+      this.gain.connect(this.context.destination);
+    }
     this.osc.start();
-    this.gain.connect(this.master);
-    this.master.connect(this.context.destination);
   }
   async playBoop() {
     if (this.recording) return;
