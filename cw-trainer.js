@@ -19,6 +19,8 @@ var cw_options = {
 };
 const KOCHCARS = ['K', 'M', 'U', 'R', 'E', 'S', 'N', 'A', 'P', 'T', 'L', 'W', 'I', '.', 'J', 'Z', '=', 'F', 'O', 'Y', ',', 'V', 'G', '5', '/', 'Q', '9', '2', 'H', '3', '8', 'B', '?', '4', '7', 'C', '1', 'D', '6', '0', 'X'];
 const ALPHA = "ABCDEFGHIJKLMNPQRSTUVWXYZ";
+const NUMBERS = "0123456789";
+const SYMBOLS = "/+=.,\"$\\()[]-:;@_!?";
 var QSOs = [
   //http://lidscw.org/resources/cq-qso-template
   'CQ CQ CQ DE %IND1% %IND1% %IND1% PSE K',
@@ -189,11 +191,15 @@ async function generateText() {
   if (!cw_options.freelisten) {
     cwplayer.Text = '';
     if (cw_options.simple_mode) {
-      let maxlesson = Math.min(40, cw_options.lesson);
       let letters = null;
       if (cw_options.lesson == 41) {
         letters = ALPHA.split('');
+      } else if (cw_options.lesson == 42) {
+        letters = NUMBERS.split('');
+      } else if (cw_options.lesson == 43) {
+        letters = SYMBOLS.split('');
       } else {
+        let maxlesson = Math.min(40, cw_options.lesson);
         letters = KOCHCARS.slice(0, maxlesson+1);
         if (cw_options.weighlastletters) {
           // lettres "nouvelles"
@@ -205,7 +211,7 @@ async function generateText() {
         }
       }
       cwgentext = generateRandomString(letters, 1);
-    } else if (cw_options.lesson==42) {
+    } else if (cw_options.lesson==44) {
       let callsign1 = generateRandomCallsign();
       let callsign2 = generateRandomCallsign(callsign1);
       let name1 = generateRandomFirstname();
@@ -221,14 +227,18 @@ async function generateText() {
           .replaceAll('%RST2%', generateRandomRST())
           .replaceAll('%PWR1%', ''+irand(1, 10)*10)
           .replaceAll('%PWR2%', ''+irand(1, 10)*10);
-    } else if (cw_options.lesson==43) {
+    } else if (cw_options.lesson==45) {
       cwgentext = await generateFreeText();
     } else {
-      let maxlesson = Math.min(40, cw_options.lesson);
       let letters = null;
       if (cw_options.lesson == 41) {
         letters = ALPHA.split('');
-      } else {
+      } else if (cw_options.lesson == 42) {
+        letters = NUMBERS.split('');
+      } else if (cw_options.lesson == 43) {
+        letters = SYMBOLS.split('');
+      }  else {
+        let maxlesson = Math.min(40, cw_options.lesson);
         letters = KOCHCARS.slice(0, maxlesson+1);
         if (cw_options.weighlastletters) {
           // lettres "nouvelles"
@@ -462,7 +472,7 @@ async function verifycw(e) {
     cwsbm.disabled = true;
     let extractfn = (t) => [CWPlayer.cleanText(t.trim()).replaceAll('\t', ' ')];
     // hormis pour les QSOs on travaille par mot => on recompare mot par mot
-    if (cw_options.lesson <= 41) {
+    if (cw_options.lesson <= 43) {
       extractfn = (t) => CWPlayer.cleanText(t.trim()).replaceAll('\t', ' ').split(' ').filter(e => e.length > 0);
     }
     let inpt = extractfn(cwtext.value);
@@ -538,7 +548,7 @@ async function verifycw(e) {
     results.forEach(r => {
       let str2bk = r.str2;
       // hormis pour les QSOs on travaille par mot
-      if (cw_options.lesson <= 41) {
+      if (cw_options.lesson <= 43) {
         r.str1 = r.str1.replaceAll(/\s/g, '\n');
         r.str2 = r.str2.replaceAll(/\s/g, '\n');
         r.str2 = formatTestString(r).replaceAll(/\s/g, '<BR>').replaceAll('<span<BR>class="', '<span class="');
@@ -978,12 +988,12 @@ async function updateValues() {
   if (!cwplayer) return;
   if (cwplayer.Playing) cwplayer.stop();
   [...document.querySelectorAll('#sellesson>option')].forEach(o => {
-    if (o.value < 42) return;
+    if (o.value < 44) return;
     o.disabled = cw_options.simple_mode;
     o.title=cw_options.simple_mode?'disabled in simple mode':'';
   });
-  if (cw_options.simple_mode && sellesson.value>41) {
-    sellesson.value = 41;
+  if (cw_options.simple_mode && sellesson.value>43) {
+    sellesson.value = 43;
   }
   cwplayer.PreDelay = cw_options.simple_mode || cw_options.freelisten ? 0.05 : 2;
   if (cw_options.simple_mode) {

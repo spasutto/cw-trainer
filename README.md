@@ -15,8 +15,10 @@ Start with lesson 1, adjust the tonality to your hearing preference, set the WPM
 
 If it's too hard you can decrease the "Eff. WPM" to whatever you want. You can also increase the "extra word spacing" : it's a time in seconds wich is added to the natural space between words
 
-There are 40 lessons consisting in letters/symbols and 3 additional lessons :
+There are 40 lessons consisting in letters/symbols and 5 additional lessons :
  - Letters : only alphabet letters
+ - Numbers : 0-9
+ - Symbols : 19 symbols (for the most part not included in Koch's lessons)
  - QSO : chunks of sample QSO, with randomly generated callsigns, RST...
  - Free text : Randomly picked portions of Oliver Twist (by Charles Dickens, thanks to [Projet Gutenberg](https://www.gutenberg.org/ebooks/730) !)
 
