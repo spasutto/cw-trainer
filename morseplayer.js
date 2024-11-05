@@ -783,12 +783,12 @@ class MorsePlayer extends HTMLElement {
     configzone.id="configzone";
     const configzonecont = document.createElement("div");
     configzone.appendChild(configzonecont);
-    let cfghtml = `<span><label for="val_WPM" title="Speed (in words per minute)">WPM :</label><input id="val_WPM" type="number" min="${CWPlayer.MIN_WPM}" max="${CWPlayer.MAX_WPM}" step="1" title="Speed (in words per minute)"></span>`;
-    cfghtml += `<span><label for="val_EffWPM" title="Effective (Farnsworth) speed (in words per minute)">Eff WPM :</label><input id="val_EffWPM" type="number" min="${CWPlayer.MIN_WPM}" max="${CWPlayer.MAX_WPM}" step="1" title="Effective (Farnsworth) speed (in words per minute)"></span>`;
-    cfghtml += `<span><label for="val_EWS" title="Extra space between words (in seconds)">Extra Word Space :</label><input id="val_EWS" type="number" min="${CWPlayer.MIN_EWS}" max="${CWPlayer.MAX_EWS}" step="0.1" title="Extra space between words (in seconds)"></span>`;
-    cfghtml += `<span><label for="val_Tone" title="Tone (in Hertz)">Tone :</label><input id="val_Tone" type="number" min="${CWPlayer.MIN_TONE}" max="${CWPlayer.MAX_TONE}" step="100" title="Tone (in Hertz)"></span>`;
-    cfghtml += `<span><label for="val_KeyingQuality" title="Keying quality">Keying Quality :</label><input id="val_KeyingQuality" type="range" min="${CWPlayer.MIN_KEYQUAL}" max="${CWPlayer.MAX_KEYQUAL}" step="0.1" title="Keying quality"></span>`;
-    cfghtml += `<span><label for="val_Volume" title="Volume">Volume :</label><input id="val_Volume" type="range" min="0" max="1" step="0.01" title="Volume"></span>`;
+    let cfghtml = `<span><label for="val_WPM" title="speed (in words per minute)">WPM :</label><input id="val_WPM" type="number" min="${CWPlayer.MIN_WPM}" max="${CWPlayer.MAX_WPM}" step="1" title="speed (in words per minute)"></span>`;
+    cfghtml += `<span><label for="val_EffWPM" title="effective (Farnsworth) speed (in words per minute)">Eff WPM :</label><input id="val_EffWPM" type="number" min="${CWPlayer.MIN_WPM}" max="${CWPlayer.MAX_WPM}" step="1" title="effective (Farnsworth) speed (in words per minute)"></span>`;
+    cfghtml += `<span><label for="val_EWS" title="extra space between words (in seconds)">Extra Word Space :</label><input id="val_EWS" type="number" min="${CWPlayer.MIN_EWS}" max="${CWPlayer.MAX_EWS}" step="0.1" title="extra space between words (in seconds)"></span>`;
+    cfghtml += `<span><label for="val_Tone" title="tone (in Hertz)">Tone :</label><input id="val_Tone" type="number" min="${CWPlayer.MIN_TONE}" max="${CWPlayer.MAX_TONE}" step="100" title="tone (in Hertz)"></span>`;
+    cfghtml += `<span><label for="val_KeyingQuality" title="keying quality">Keying Quality :</label><input id="val_KeyingQuality" type="range" min="${CWPlayer.MIN_KEYQUAL}" max="${CWPlayer.MAX_KEYQUAL}" step="0.1" title="keying quality"></span>`;
+    cfghtml += `<span><label for="val_Volume" title="volume">Volume :</label><input id="val_Volume" type="range" min="0" max="1" step="0.01" title="volume"></span>`;
     configzonecont.innerHTML = cfghtml;
 
     // Create some CSS to apply to the shadow dom
@@ -958,17 +958,17 @@ class MorsePlayer extends HTMLElement {
     shadow.appendChild(czwrapper);
     wrapper.innerHTML = `
       <div>
-        <button id="btnstop" title="Stop playing" class="svg_inactif" disabled>
+        <button id="btnstop" title="stop playing" class="svg_inactif" disabled>
           <svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="20" height="20" viewBox="0 0 20 20">
             <rect width="16" height="16" x="2" y="2" rx="1" ry="1"/>
           </svg>
         </button>
-        <button id="btnplay" title="Start playing">
+        <button id="btnplay" title="start playing">
           <svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="20" height="20" viewBox="-10 -5 120 120">
             <path d="M 13.677242369053593 5.970459221108368 L 99.32275763094641 55.02954077889163 C 103.6613788154732 57.514770389445815 103.50196896806634 62.18351020967654 99.00393793613266 64.36702041935308 L 13.996062063867347 105.63297958064692 C 9.498031031933674 107.81648979032346 5 105 5 100 L 5 11 C 5 6 9.338621184526797 3.485229610554184 13.677242369053593 5.970459221108368 Z" />
           </svg>
         </button>
-        <button id="btnpause" title="Pause playing" class="svg_inactif" disabled>
+        <button id="btnpause" title="pause playing" class="svg_inactif" disabled>
           <svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="20" height="20" viewBox="0 0 20 20">
             <rect width="5" height="15" x="3" y="2" rx="1" ry="1"/>
             <rect width="5" height="15" x="12" y="2" rx="1" ry="1"/>
@@ -981,7 +981,7 @@ class MorsePlayer extends HTMLElement {
           <center><span id="playtime"></span></center>
         </div>
       </div>
-      <a id="btndownload" href="#" title="Download current text as wav file">
+      <a id="btndownload" href="#" title="save current morse sequence as wave file">
         <svg fill="#000000" height="20" width="20" version="1.1" id="Capa_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" 
         	 viewBox="0 0 471.2 471.2" xml:space="preserve">
         	<g>
@@ -994,7 +994,7 @@ class MorsePlayer extends HTMLElement {
         	</g>
         </svg>
       </a>
-      <a id="btnconfig" href="#" title="Open settings">
+      <a id="btnconfig" href="#" title="open settings">
         <svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="20" height="20" viewBox="-2 -2 58 58">
           <defs>
             <path id="ext" d="M51.22,21h-5.052c-0.812,0-1.481-0.447-1.792-1.197s-0.153-1.54,0.42-2.114l3.572-3.571
@@ -1274,7 +1274,7 @@ class MorsePlayer extends HTMLElement {
     let trm = this.clearzone.rows[1];
     trc.innerHTML = trm.innerHTML = '';
     let text = this.cwplayer.Text.substring(0, idx).split('');
-    let title = 'Set the playing to this symbol';
+    let title = 'set the playing to this symbol';
     text.forEach((c,i) => {
       let caction = (e) => {this.cwplayer.Index = e.srcElement?.dataset?.index;};
       let lastcell = playing && i == text.length-1;
