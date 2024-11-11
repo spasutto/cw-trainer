@@ -931,7 +931,6 @@ async function playLetter(letter) {
   if (!window.player2) {
     window.player2 = new CWPlayer(cwplayer.Player.Options);
   } else {
-    if (player2.Playing) return;//await player2.stop();
     player2.init(cwplayer.Player.Options);
   }
   player2.PreDelay = 0;
@@ -956,6 +955,7 @@ function displayMorseCode(e) {
     [...morsecscnt.querySelectorAll('td:not(.mletter)')].forEach(td => {
       let elms = [td, td.nextElementSibling];
       let plcl = async e => {
+        if (window.player2?.Playing === true) return;//await player2.stop();
         elms.forEach(td => td.classList.add('active'));
         await playLetter(td.innerText);
         elms.forEach(td => td.classList.remove('active'));
