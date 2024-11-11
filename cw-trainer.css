@@ -107,6 +107,48 @@ a[name="modes"].active {
     border: 0px;
   }
 }
+#cheatsheet {
+  float: left;
+  font-size: 0.8em;
+}
+#csmorse {
+  font-size: 1em;
+}
+#csmorse table:not(:last-child) {
+  border-bottom: solid 1px black;
+  margin-bottom: 10px;
+}
+#morseclosebtn {
+  position: absolute;
+  top: 0;
+  right: 0;
+  margin: 5px;
+}
+.mletter {
+  width: 30px;
+  font-family: monospace;
+  background-color: lightyellow;
+}
+#csmorse td:not(.mletter) {
+  padding: 0px 3px;
+}
+.bulle {
+  font-size: 0.6em;
+  border: solid 1px gray;
+  border-radius: 5px;
+  width: 12px;
+  height: 12px;
+  display: inline-block;
+  text-align: center;
+  vertical-align: middle;
+  background-color: lightblue;
+  font-weight: bold;
+  cursor: pointer;
+  margin-right: 5px;
+}
+.bulle:hover {
+  background-color: #35bbe7;
+}
 .overlay {
   display: none;
   width: 100%;

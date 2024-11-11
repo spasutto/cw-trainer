@@ -784,11 +784,8 @@ function message(msg='', style=null) {
 }
 window.addEventListener("load", async () => {
   // https://stackoverflow.com/a/25325330
-  ['zonetrainer', 'toaster', 'overlayloading', 'loadingzone', 'zonemain', 'selfdl', 'sellesson', 'nxtlesson', 'selwpm', 'chkweightlastletterswrapper',
-  'chkweightlastletters', 'seleffwpm', 'chkfreelistenwrapper', 'chkfreelisten', 'zonefree', 'iptfree',
-  'zoneresultfree', 'zonekoch', 'selews', 'zonewords', 'grplen', 'groupsnb', 'cwplayer', 'cwtext', 'cwsbm', 'disablekb', 'zoneresult',
-  'zonerestext', 'retrybtn', 'retrynxt', 'keyboard'].forEach(e => {
-    window[e] = document.getElementById(e);
+  [...document.querySelectorAll('*[id]')].forEach(e => {
+    window[e.id] = e;
   });
   window.modelinks = [...document.querySelectorAll("a[name='modes']")];
   setMinMax();
@@ -851,6 +848,8 @@ window.addEventListener("load", async () => {
     })
   });
   updateValues();
+  cheatsheet.addEventListener("click", displayMorseCode);
+  morseclosebtn.addEventListener("click", displayMorseCode);
   selfdl.style.visibility = window.location.href.toLowerCase().startsWith('http') ? 'visible' : 'hidden';
   document.body.addEventListener("keydown",  onkeydown);
   document.body.addEventListener("keyup", onkeyup);
@@ -927,6 +926,25 @@ window.addEventListener("error", (e) => {
   console.error(err)
   return false;
 });
+function displayMorseCode(e) {
+  let display = csmorse.style.display != 'flex';
+  if (typeof e == 'boolean') display = e;
+  if (morsecscnt.innerText.trim().length <= 0) {
+    //ALPHA NUMBERS SYMBOLS
+    let cs = '';
+    [ALPHA, NUMBERS, SYMBOLS].forEach(cscl => {
+      cs += '<table><tbody><tr>';
+      cscl.split('').forEach((s, i) => {
+        if (i && i%6 == 0) cs += '</tr><tr>';
+        cs += `<td>${s}</td><td class="mletter">${CWPlayer.translate(s)}</td>`;
+      });
+      cs += '</tr></tbody></table>';
+    });
+    morsecscnt.innerHTML = cs;
+  }
+  csmorse.style.display = display?'flex':'none';
+  return false;
+}
 function onkeydown(e) {
   if (!cwplayer) return;
   e = e || window.event;
