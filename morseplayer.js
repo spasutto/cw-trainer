@@ -55,7 +55,8 @@ class CWPlayer {
     '@' : '.--.-.',
     '_' : '..--.-',
     '!' : '---.',
-    '?' : '..--..'
+    '?' : '..--..',
+    '\u00b6' : '.-.-..'
   };
   static DEFAULT_OPTIONS = {
     wpm : 20,
@@ -330,7 +331,7 @@ class CWPlayer {
     return text.normalize("NFD").replace(/[\u0300-\u036f]/g, "")
       .toUpperCase()
       .replaceAll(/(\r?\n)+/g, '  ') // retour à la ligne : deux espaces
-      .replaceAll(/[^A-Z0-9\/\+=\.,"\$'\(\)\[\]\-\:;@_!\? ]/g, '?')
+      .replaceAll(/[^A-Z0-9\/\+=\.,"\$'\(\)\[\]\-\:;@_!\?¶ ]/g, '?')
       /*.replaceAll(/\s+/g, ' ')*/;
   }
   static translate(text) {
