@@ -850,6 +850,7 @@ window.addEventListener("load", async () => {
   updateValues();
   cheatsheet.addEventListener("click", displayMorseCode);
   morseclosebtn.addEventListener("click", displayMorseCode);
+  document.addEventListener("mouseup",  onmouseup);
   selfdl.style.visibility = window.location.href.toLowerCase().startsWith('http') ? 'visible' : 'hidden';
   document.body.addEventListener("keydown",  onkeydown);
   document.body.addEventListener("keyup", onkeyup);
@@ -945,16 +946,25 @@ function displayMorseCode(e) {
   csmorse.style.display = display?'flex':'none';
   return false;
 }
+function onmouseup(e) {
+  if (cheatsheet.contains(e.target) || csmorse.contains(e.target)) return;
+  displayMorseCode(false);
+}
 function onkeydown(e) {
   if (!cwplayer) return;
   e = e || window.event;
   let keyCode = e.keyCode || e.which,
-      keycodes = {space: 32, scrollend: 35, scrolltop: 36, left: 37, up: 38, right: 39, down: 40 },
-      keynames = {'Space' : keycodes.space, 'End' : keycodes.scrollend, 'Home' : keycodes.scrolltop, 'ArrowLeft' : keycodes.left, 'ArrowUp' : keycodes.up, 'ArrowRight' : keycodes.right, 'ArrowDown' : keycodes.down };
+      keycodes = {control: 17, escape: 27, space: 32, scrollend: 35, scrolltop: 36, left: 37, up: 38, right: 39, down: 40 },
+      keynames = {'ControlLeft': keycodes.control, 'ControlRight': keycodes.control,
+      'Escape': keycodes.escape, 'Esc': keycodes.escape, 'Space' : keycodes.space,
+      'End' : keycodes.scrollend, 'Home' : keycodes.scrolltop,
+      'ArrowLeft' : keycodes.left, 'ArrowUp' : keycodes.up, 'ArrowRight' : keycodes.right, 'ArrowDown' : keycodes.down };
   // on pause via ctrl-space si on est en train de saisir sinon directement space
   let ctrl = e.ctrlKey || !['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement.tagName);
-  if (ctrl && keyCode != 17) { //17 == left ctrl
-    keyCode = keyCode || keynames[e.code];
+  keyCode = keyCode || keynames[e.code];
+  if (keyCode == keycodes.escape) {
+    displayMorseCode(false);
+  } else if (ctrl && keyCode != keycodes.control) {
     switch (keyCode) {
       case keycodes.space:
         keystates.playpause = true;

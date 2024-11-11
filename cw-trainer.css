@@ -113,6 +113,10 @@ a[name="modes"].active {
 }
 #csmorse {
   font-size: 1em;
+  min-height: 270px;
+  border: solid 1px lightgray;
+  border-radius: 5px;
+  margin: 2px;
 }
 #csmorse table:not(:last-child) {
   border-bottom: solid 1px black;
