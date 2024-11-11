@@ -927,6 +927,17 @@ window.addEventListener("error", (e) => {
   console.error(err)
   return false;
 });
+async function playLetter(letter) {
+  if (!window.player2) {
+    window.player2 = new CWPlayer(cwplayer.Player.Options);
+  } else {
+    if (player2.Playing) return;//await player2.stop();
+    player2.init(cwplayer.Player.Options);
+  }
+  player2.PreDelay = 0;
+  cwplayer.pause();
+  await player2.play(letter);
+}
 function displayMorseCode(e) {
   let display = csmorse.style.display != 'flex';
   if (typeof e == 'boolean') display = e;
@@ -942,6 +953,15 @@ function displayMorseCode(e) {
       cs += '</tr></tbody></table>';
     });
     morsecscnt.innerHTML = cs;
+    [...morsecscnt.querySelectorAll('td:not(.mletter)')].forEach(td => {
+      let elms = [td, td.nextElementSibling];
+      let plcl = async e => {
+        elms.forEach(td => td.classList.add('active'));
+        await playLetter(td.innerText);
+        elms.forEach(td => td.classList.remove('active'));
+      };
+      elms.forEach(td => td.addEventListener('click', plcl));
+    });
   }
   csmorse.style.display = display?'flex':'none';
   return false;

@@ -128,6 +128,9 @@ a[name="modes"].active {
   right: 0;
   margin: 5px;
 }
+#csmorse td {
+  cursor: pointer;
+}
 .mletter {
   width: 30px;
   font-family: monospace;
@@ -135,6 +138,9 @@ a[name="modes"].active {
 }
 #csmorse td:not(.mletter) {
   padding: 0px 3px;
+}
+#csmorse td.active {
+  text-decoration: underline;
 }
 .bulle {
   font-size: 0.6em;
@@ -367,7 +373,7 @@ input[type="range"] {
   background-color: #037bfc;
   color: white;
 }
-.active {
+#zoneresult .active {
   background-color: #fcff43;
 }
 .inactive {

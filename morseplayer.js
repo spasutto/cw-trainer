@@ -94,6 +94,8 @@ class CWPlayer {
     this.EWS = this.options.ews;
     this.PreDelay = this.options.predelay;
     this.AutoPlay = this.options.autoplay;
+    this.Volume = this.options.volume;
+    this.KeyingQuality = this.options.keyqual;
   }
 
   /*CONSTANTES*/
@@ -106,6 +108,9 @@ class CWPlayer {
   static get MIN_KEYQUAL() { return 0.5; };
   static get MAX_KEYQUAL() { return 1; };
   /*FIN CONSTANTES*/
+
+  get Options() { return {...this.options}; }
+  set Options(options) { this.init(options); }
 
   get WPM() {
     return Math.round(6 / (5 * this.elperiod));
@@ -752,6 +757,10 @@ class MorsePlayer extends HTMLElement {
     Object.keys(this.options).forEach(k => {
       if (defaultkeys.includes(k)) delete this.options[k];
     });
+    this.ProgressBar = this.options.progressBar;
+    this.ClearZone = this.options.clearZone;
+    this.ConfigButton = this.options.configButton;
+    this.DownloadButton = this.options.downloadButton;
   }
   enumerateSetters() {
     this.setters = Object.entries(Object.getOwnPropertyDescriptors(Reflect.getPrototypeOf(this)))
@@ -1121,6 +1130,8 @@ class MorsePlayer extends HTMLElement {
   }
 
   get Player() { return this.cwplayer; }
+  get Options() { return {...this.options, ...this.cwplayer.options}; }
+  set Options(options) { this.init(options); }
 
   get Playing() { return this.cwplayer.Playing; }
   set Playing(value) { this.cwplayer.Playing = value; }
