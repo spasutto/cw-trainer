@@ -964,6 +964,16 @@ function displayMorseCode(e) {
     });
   }
   csmorse.style.display = display?'flex':'none';
+  if (display) {
+    let scale = 1.05;
+    let csmw = 0;
+    do {
+      scale -= 0.05;
+      csmorse.style.transform = `scale(${scale})`;
+      morsecscnt.style.transform = `scale(${scale})`;
+      csmw = csmorse.getBoundingClientRect().width;
+    } while (csmw > window.screen.width)
+  }
   return false;
 }
 function onmouseup(e) {
