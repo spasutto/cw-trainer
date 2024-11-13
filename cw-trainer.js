@@ -714,12 +714,12 @@ function decodeParam(val, i) {
 function round2(val) {
   return Math.round(100*val)/100;
 }
-function saveParams() {
-  // permet d'éviter de freezer par exemple quand on bouge le curseur de volume. https://issues.chromium.org/issues/40113103
-  window.clearTimeout(window.deferredSaveParam);
-  window.deferredSaveParam = window.setTimeout(doSaveParams, 250);
+function deferredSaveParam() {
+  // permet d'éviter de freezer quand on bouge le curseur de volume. https://issues.chromium.org/issues/40113103
+  window.clearTimeout(window.timeoutSaveParams);
+  window.timeoutSaveParams = window.setTimeout(saveParams, 250);
 }
-function doSaveParams() {
+function saveParams() {
   let params = encodeURIComponent(sellesson.value+HASHSEP+selwpm.value+HASHSEP+seleffwpm.value+HASHSEP+grplen.value+HASHSEP+groupsnb.value+HASHSEP+cw_options.tone+HASHSEP+round2(selews.value)+HASHSEP+(cw_options.simple_mode?1:0)+HASHSEP+(cw_options.freelisten?1:0)+HASHSEP+(cw_options.weighlastletters?1:0)+HASHSEP+round2(cw_options.keyqual)+HASHSEP+round2(cw_options.volume));
   try {
     window.name = params;
@@ -819,7 +819,7 @@ window.addEventListener("load", async () => {
       saveParams();
     } else if (arg == 'Volume') {
       cw_options.volume = cwplayer.Volume;
-      saveParams();
+      deferredSaveParam();
     } else if (arg == 'KeyingQuality') {
       cw_options.keyqual = cwplayer.KeyingQuality;
       saveParams();
@@ -870,20 +870,17 @@ window.addEventListener("load", async () => {
     cwplayer.WPM = selwpm.value;
     selwpm.value = cwplayer.WPM;
     seleffwpm.value = cwplayer.EffWPM;
-    saveParams();
   });
   seleffwpm.addEventListener("change", () => {
     if (!cwplayer) return;
     cwplayer.EffWPM = seleffwpm.value;
     seleffwpm.value = cwplayer.EffWPM;
     selwpm.value = cwplayer.WPM;
-    saveParams();
   });
   selews.addEventListener("change",  () => {
     if (!cwplayer) return;
     cwplayer.EWS = selews.value;
     selews.value = cwplayer.EWS;
-    saveParams();
   });
   cwsbm.addEventListener("click", verifycw);
   retrybtn.addEventListener("click", updateValues);
