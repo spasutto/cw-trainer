@@ -711,8 +711,11 @@ function decodeParam(val, i) {
       break;
   }
 }
+function round2(val) {
+  return Math.round(100*val)/100;
+}
 function saveParams() {
-  let params = encodeURIComponent(sellesson.value+HASHSEP+selwpm.value+HASHSEP+seleffwpm.value+HASHSEP+grplen.value+HASHSEP+groupsnb.value+HASHSEP+cw_options.tone+HASHSEP+selews.value+HASHSEP+(cw_options.simple_mode?1:0)+HASHSEP+(cw_options.freelisten?1:0)+HASHSEP+(cw_options.weighlastletters?1:0)+HASHSEP+cw_options.keyqual+HASHSEP+cw_options.volume);
+  let params = encodeURIComponent(sellesson.value+HASHSEP+selwpm.value+HASHSEP+seleffwpm.value+HASHSEP+grplen.value+HASHSEP+groupsnb.value+HASHSEP+cw_options.tone+HASHSEP+round2(selews.value)+HASHSEP+(cw_options.simple_mode?1:0)+HASHSEP+(cw_options.freelisten?1:0)+HASHSEP+(cw_options.weighlastletters?1:0)+HASHSEP+round2(cw_options.keyqual)+HASHSEP+round2(cw_options.volume));
   try {
     window.name = params;
     localStorage.setItem("params", params);

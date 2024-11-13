@@ -185,7 +185,7 @@ class CWPlayer {
   }
   get Volume() { return this.options.volume; }
   set Volume(value) {
-    value = CWPlayer.parsefloat(value);
+    value = CWPlayer.exp2(CWPlayer.parsefloat(value));
     value = Math.min(1, Math.max(0, value));
     this.options.volume = value;
     if (this.context) {
@@ -371,6 +371,9 @@ class CWPlayer {
       max = args[0];
     }
     return Math.random() * (max - min) + min;
+  }
+  static exp2(val) {
+    return Math.pow(2, val)-1;
   }
 
   initAudio(offline = false) {
