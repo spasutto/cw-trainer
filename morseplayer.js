@@ -185,11 +185,11 @@ class CWPlayer {
   }
   get Volume() { return this.options.volume; }
   set Volume(value) {
-    value = CWPlayer.exp2(CWPlayer.parsefloat(value));
+    value = CWPlayer.parsefloat(value);
     value = Math.min(1, Math.max(0, value));
     this.options.volume = value;
     if (this.context) {
-      this.master.gain.setValueAtTime(value, this.context.currentTime);
+      this.setMasterVolume();
     }
     this.fireEvent('parameterchanged', 'Volume');
   }
@@ -372,8 +372,9 @@ class CWPlayer {
     }
     return Math.random() * (max - min) + min;
   }
-  static exp2(val) {
-    return Math.pow(2, val)-1;
+  setMasterVolume() {
+    // volume log
+    this.master.gain.setValueAtTime(Math.pow(this.options.volume*10, 2)/100, this.context.currentTime);
   }
 
   initAudio(offline = false) {
@@ -390,7 +391,7 @@ class CWPlayer {
     this.gain.gain.value = 0;
     if (!offline) {
       this.master = this.context.createGain();
-      this.master.gain.value = this.options.volume;
+      this.setMasterVolume();
       this.gain.connect(this.master);
       this.master.connect(this.context.destination);
     } else {
