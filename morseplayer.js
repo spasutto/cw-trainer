@@ -851,7 +851,7 @@ class MorsePlayer extends HTMLElement {
         display: none;
         background-color: #ccc;
         padding: 2px;
-        height: 80px; /* à cause de l'élement enfant scale */
+        height: 97px; /* à cause de l'élement enfant scale */
       }
       #configzone>div {
         background-color: #f8f8f8;
