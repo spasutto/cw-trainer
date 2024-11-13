@@ -715,6 +715,11 @@ function round2(val) {
   return Math.round(100*val)/100;
 }
 function saveParams() {
+  // permet d'éviter de freezer par exemple quand on bouge le curseur de volume. https://issues.chromium.org/issues/40113103
+  window.clearTimeout(window.deferredSaveParam);
+  window.deferredSaveParam = window.setTimeout(doSaveParams, 250);
+}
+function doSaveParams() {
   let params = encodeURIComponent(sellesson.value+HASHSEP+selwpm.value+HASHSEP+seleffwpm.value+HASHSEP+grplen.value+HASHSEP+groupsnb.value+HASHSEP+cw_options.tone+HASHSEP+round2(selews.value)+HASHSEP+(cw_options.simple_mode?1:0)+HASHSEP+(cw_options.freelisten?1:0)+HASHSEP+(cw_options.weighlastletters?1:0)+HASHSEP+round2(cw_options.keyqual)+HASHSEP+round2(cw_options.volume));
   try {
     window.name = params;
