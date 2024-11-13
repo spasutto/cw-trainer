@@ -117,6 +117,7 @@ a[name="modes"].active {
   border: solid 1px lightgray;
   border-radius: 5px;
   margin: 2px;
+  user-select: none;
 }
 #csmorse table:not(:last-child) {
   border-bottom: solid 1px black;
@@ -141,7 +142,7 @@ a[name="modes"].active {
   padding: 0px 3px;
 }
 #csmorse td.active {
-  text-decoration: underline;
+  color: orange;
 }
 .bulle {
   font-size: 0.6em;
