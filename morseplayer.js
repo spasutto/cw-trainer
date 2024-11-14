@@ -802,10 +802,10 @@ class MorsePlayer extends HTMLElement {
     const configzonecont = document.createElement("div");
     configzone.appendChild(configzonecont);
     let cfghtml = `<span><label for="val_WPM" title="speed (in words per minute)">WPM :</label><input id="val_WPM" type="number" min="${CWPlayer.MIN_WPM}" max="${CWPlayer.MAX_WPM}" step="1" title="speed (in words per minute)"></span>`;
-    cfghtml += `<span><label for="val_EffWPM" title="effective (Farnsworth) speed (in words per minute)">Eff WPM :</label><input id="val_EffWPM" type="number" min="${CWPlayer.MIN_WPM}" max="${CWPlayer.MAX_WPM}" step="1" title="effective (Farnsworth) speed (in words per minute)"></span>`;
-    cfghtml += `<span><label for="val_EWS" title="extra space between words (in seconds)">Extra Word Space :</label><input id="val_EWS" type="number" min="${CWPlayer.MIN_EWS}" max="${CWPlayer.MAX_EWS}" step="0.1" title="extra space between words (in seconds)"></span>`;
-    cfghtml += `<span><label for="val_Tone" title="tone (in Hertz)">Tone :</label><input id="val_Tone" type="number" min="${CWPlayer.MIN_TONE}" max="${CWPlayer.MAX_TONE}" step="100" title="tone (in Hertz)"></span>`;
-    cfghtml += `<span><label for="val_KeyingQuality" title="keying quality">Keying Quality :</label><input id="val_KeyingQuality" type="range" min="${CWPlayer.MIN_KEYQUAL}" max="${CWPlayer.MAX_KEYQUAL}" step="0.1" title="keying quality"></span>`;
+    cfghtml += `<span><label for="val_EffWPM" title="effective (Farnsworth) speed (in words per minute)">Eff WPM :</label><input id="val_EffWPM" type="number" min="${CWPlayer.MIN_WPM}" max="${CWPlayer.MAX_WPM}" step="1" title="effective (Farnsworth) speed (in words per minute)"></span><BR>`;
+    cfghtml += `<span><label for="val_EWS" title="extra space between words (in seconds)">Extra Word Space :</label><input id="val_EWS" type="number" min="${CWPlayer.MIN_EWS}" max="${CWPlayer.MAX_EWS}" step="0.1" title="extra space between words (in seconds)"></span><BR>`;
+    cfghtml += `<span><label for="val_Tone" title="tone (in Hertz)">Tone :</label><input id="val_Tone" type="number" min="${CWPlayer.MIN_TONE}" max="${CWPlayer.MAX_TONE}" step="100" title="tone (in Hertz)"></span><BR>`;
+    cfghtml += `<span><label for="val_KeyingQuality" title="keying quality">Keying Quality :</label><input id="val_KeyingQuality" type="range" min="${CWPlayer.MIN_KEYQUAL}" max="${CWPlayer.MAX_KEYQUAL}" step="0.1" title="keying quality"></span><BR>`;
     cfghtml += `<span><label for="val_Volume" title="volume">Volume :</label><input id="val_Volume" type="range" min="0" max="1" step="0.01" title="volume"></span>`;
     configzonecont.innerHTML = cfghtml;
 
@@ -866,7 +866,8 @@ class MorsePlayer extends HTMLElement {
         transform-origin: top right;
       }
       #configzone span, input {
-        margin-left: 5px;
+        margin: 0 0 0 5px;
+        padding: 0;
         white-space: nowrap;
       }
       #configzone input[type="number"] {

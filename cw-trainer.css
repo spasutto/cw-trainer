@@ -114,6 +114,7 @@ a[name="modes"].active {
 #csmorse {
   font-size: 1em;
   min-height: 270px;
+  max-width: 430px;
   border: solid 1px lightgray;
   border-radius: 5px;
   margin: 2px;
