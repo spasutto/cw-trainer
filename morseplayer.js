@@ -80,23 +80,24 @@ class CWPlayer {
     this.recording = this.booping = this.playing = this.paused = false;
     this.events = {};
     this.onplayend = null;
+    this.options = {...CWPlayer.DEFAULT_OPTIONS};
     this.init(options);
   }
   init(options) {
-    this.options = {...CWPlayer.DEFAULT_OPTIONS, ...options};
+    options = {...CWPlayer.DEFAULT_OPTIONS, ...options};
     let defaultkeys = Object.keys(CWPlayer.DEFAULT_OPTIONS);
     // suppression des options invalides
-    Object.keys(this.options).forEach(k => {
-      if (!defaultkeys.includes(k)) delete this.options[k];
+    Object.keys(options).forEach(k => {
+      if (!defaultkeys.includes(k)) delete options[k];
     });
-    this.WPM = this.options.wpm;
-    this.EffWPM = this.options.effwpm;
-    this.Tone = this.options.tone;
-    this.EWS = this.options.ews;
-    this.PreDelay = this.options.predelay;
-    this.AutoPlay = this.options.autoplay;
-    this.Volume = this.options.volume;
-    this.KeyingQuality = this.options.keyqual;
+    this.WPM = options.wpm;
+    this.EffWPM = options.effwpm;
+    this.Tone = options.tone;
+    this.EWS = options.ews;
+    this.PreDelay = options.predelay;
+    this.AutoPlay = options.autoplay;
+    this.Volume = options.volume;
+    this.KeyingQuality = options.keyqual;
   }
 
   /*CONSTANTES*/
@@ -721,7 +722,6 @@ class MorsePlayer extends HTMLElement {
   setters = [];
 
   static DEFAULT_OPTIONS = {
-    ...CWPlayer.DEFAULT_OPTIONS,
     progressBar : true,
     clearZone : false,
     configButton : true,
@@ -737,35 +737,36 @@ class MorsePlayer extends HTMLElement {
         this.cwplayer = arg;
       } else if (typeof arg === 'object') {
         let aks = Object.keys(arg);
-        if (Object.keys(MorsePlayer.DEFAULT_OPTIONS).some(k => aks.includes(k))) {
-          options = arg
+        if (Object.keys({...CWPlayer.DEFAULT_OPTIONS, ...MorsePlayer.DEFAULT_OPTIONS}).some(k => aks.includes(k))) {
+          options = arg;
         }
       }
     }
+    this.options = {...MorsePlayer.DEFAULT_OPTIONS};
     this.init(options);
   }
   init(options) {
-    this.options = {...MorsePlayer.DEFAULT_OPTIONS, ...options};
-    let defaultkeys = Object.keys(MorsePlayer.DEFAULT_OPTIONS);
+    options = {...CWPlayer.DEFAULT_OPTIONS, ...MorsePlayer.DEFAULT_OPTIONS, ...options};
+    let defaultkeys = Object.keys({...CWPlayer.DEFAULT_OPTIONS, ...MorsePlayer.DEFAULT_OPTIONS});
     // suppression des options invalides
-    Object.keys(this.options).forEach(k => {
-      if (!defaultkeys.includes(k)) delete this.options[k];
+    Object.keys(options).forEach(k => {
+      if (!defaultkeys.includes(k)) delete options[k];
     });
     if (!this.cwplayer) {
-      this.cwplayer = new CWPlayer(this.options);
+      this.cwplayer = new CWPlayer(options);
     } else {
-      this.cwplayer.init(this.options);
+      this.cwplayer.init(options);
     }
     // suppression des options propres à CWPlayer
-    this.options = {...this.options};
+    options = {...options};
     defaultkeys = Object.keys(CWPlayer.DEFAULT_OPTIONS);
-    Object.keys(this.options).forEach(k => {
-      if (defaultkeys.includes(k)) delete this.options[k];
+    Object.keys(options).forEach(k => {
+      if (defaultkeys.includes(k)) delete options[k];
     });
-    this.ProgressBar = this.options.progressBar;
-    this.ClearZone = this.options.clearZone;
-    this.ConfigButton = this.options.configButton;
-    this.DownloadButton = this.options.downloadButton;
+    this.ProgressBar = options.progressBar;
+    this.ClearZone = options.clearZone;
+    this.ConfigButton = options.configButton;
+    this.DownloadButton = options.downloadButton;
   }
   enumerateSetters() {
     this.setters = Object.entries(Object.getOwnPropertyDescriptors(Reflect.getPrototypeOf(this)))
