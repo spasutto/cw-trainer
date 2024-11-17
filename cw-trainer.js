@@ -948,10 +948,10 @@ function displayMorseCode(e) {
   if (morsecscnt.innerText.trim().length <= 0) {
     //ALPHA NUMBERS SYMBOLS
     let cs = '';
-    [ALPHA, NUMBERS, SYMBOLS].forEach(cscl => {
+    [[ALPHA,6], [NUMBERS,5], [SYMBOLS,6]].forEach(([cscl,nbrows]) => {
       cs += '<table><tbody><tr>';
       cscl.split('').forEach((s, i) => {
-        if (i && i%6 == 0) cs += '</tr><tr>';
+        if (i && i%nbrows == 0) cs += '</tr><tr>';
         cs += `<td>${s}</td><td class="mletter">${CWPlayer.translate(s)}</td>`;
       });
       cs += '</tr></tbody></table>';
@@ -970,13 +970,12 @@ function displayMorseCode(e) {
   }
   csmorse.style.display = display?'flex':'none';
   if (display) {
-    let scale = 1.05;
+    let scale = 1.02;
     let csmw = 0;
     do {
-      scale -= 0.05;
-      csmorse.style.transform = `scale(${scale})`;
+      scale -= 0.02;
       morsecscnt.style.transform = `scale(${scale})`;
-      csmw = csmorse.getBoundingClientRect().width;
+      csmw = morsecscnt.getBoundingClientRect().width;
     } while (csmw > window.screen.width)
   }
   return false;
