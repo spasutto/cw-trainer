@@ -836,7 +836,7 @@ window.addEventListener("load", async () => {
   });
   // sur les périphériques à clavier virtuel on rajoute un autre clavier pour les touches spéciales
   // difficilement accessibles sur les claviers virtuels (soft keyboards)
-  if (isTouchDevice()) {
+  if (window.mobile = isTouchDevice()) {
     generateKeyboard();
     zonedkb.style.display = 'initial';
     if (document.activeElement === cwtext || document.activeElement === iptfree) {
@@ -970,13 +970,16 @@ function displayMorseCode(e) {
   }
   csmorse.style.display = display?'flex':'none';
   if (display) {
-    let scale = 1.02;
-    let csmw = 0;
+    let scale = 1.0101010101010102; // *0.99 ~= 1
+    let csmwcnt = 0, csmw=0;
+    morsecscnt.style.transform = '';
+    csmw = csmorse.getBoundingClientRect().width;
     do {
-      scale -= 0.02;
+      scale *= 0.99;
       morsecscnt.style.transform = `scale(${scale})`;
-      csmw = morsecscnt.getBoundingClientRect().width;
-    } while (csmw > window.screen.width)
+      csmwcnt = morsecscnt.getBoundingClientRect().width;
+      if (mobile) csmwcnt+=5;
+    } while (csmwcnt > csmw);
   }
   return false;
 }
