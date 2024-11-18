@@ -417,11 +417,14 @@ async function verifycw(e) {
       cwchecking = false;
       return;
     }
+    let cwcar = iptfree.value;
+    iptfree.value = '';
     iptfree.classList.add('nocarret');
-    if (cw_options.freelisten || iptfree.value==' ') {
+    if (cw_options.freelisten || cwcar==' ') {
       cwplayer.stop();
       iptfree.classList.add('blue');
-      cwplayer.play(cw_options.freelisten?iptfree.value:null).then(() => {
+      iptfree.value = '\u266A';
+      cwplayer.play(cw_options.freelisten?cwcar:null).then(() => {
         iptfree.classList.remove('blue');
         iptfree.classList.remove('nocarret');
         iptfree.value = '';
@@ -430,7 +433,7 @@ async function verifycw(e) {
       });
       return;
     }
-    if (iptfree.value.toUpperCase() != cwplayer.Text[0]) {
+    if (cwcar.toUpperCase() != cwplayer.Text[0]) {
       iptfree.classList.add('error');
       iptfree.value = '\u274C';//'ERROR';
       CWPlayer.delay(0.35).then(() => {
