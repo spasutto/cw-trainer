@@ -972,9 +972,10 @@ function displayMorseCode(e) {
     });
   }
   csmorse.style.display = display?'flex':'none';
+  overlayloading.style.display = display?'flex':'none';
   if (display) {
     let scale = 1.0101010101010102; // *0.99 ~= 1
-    let csmwcnt = 0, csmw=0;
+    let csmwcnt = 0, csmw=0, cmpt = 0;
     morsecscnt.style.transform = '';
     csmw = csmorse.getBoundingClientRect().width;
     do {
@@ -982,7 +983,7 @@ function displayMorseCode(e) {
       morsecscnt.style.transform = `scale(${scale})`;
       csmwcnt = morsecscnt.getBoundingClientRect().width;
       if (mobile) csmwcnt+=5;
-    } while (csmwcnt > csmw);
+    } while (csmwcnt > csmw && cmpt++ < 80);
   }
   return false;
 }
