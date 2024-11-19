@@ -608,25 +608,16 @@ class CWPlayer {
       this.schedule();
       let audioBuffer = await this.context.startRendering();
 
-      const [left, right] =  [audioBuffer.getChannelData(0), audioBuffer.getChannelData(1)]
-      
-      // interleaved
-      const interleaved = new Float32Array(left.length + right.length)
-      for (let src=0, dst=0; src < left.length; src++, dst+=2) {
-        interleaved[dst] =   left[src]
-        interleaved[dst+1] = right[src]
-      }
-      
+      const left = audioBuffer.getChannelData(0);
+
       // get WAV file bytes and audio params of your audio source
-      const wavBytes = WAV.getBytes(interleaved.buffer, {
+      const wavBytes = WAV.getBytes(left.buffer, {
         isFloat: true,       // floating point or 16-bit integer
-        numChannels: 2,
+        numChannels: 1,
         sampleRate: 44100,
       })
       const wav = new Blob([wavBytes], { type: 'audio/wav' });
 
-      //document.querySelector("audio").src = URL.createObjectURL(blob);
-      //return;
       let url = URL.createObjectURL(wav);
       let a = document.createElement('a');
       a.href = url;
