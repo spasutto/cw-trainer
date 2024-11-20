@@ -578,7 +578,7 @@ async function verifycw(e) {
     restable += '</table>';
     zonerestext.innerHTML += restable;
   
-    retrynxt.style.display = perc>=90?'inline-block':'none';
+    retrynxt.style.display = cw_options.lesson <= 40 && perc>=90?'inline-block':'none';
     zoneresult.style.display = 'inline-block';
     keyboard.style.display = 'none';
     cwsbm.disabled = false;
