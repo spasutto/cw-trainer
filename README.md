@@ -26,7 +26,7 @@ There are 40 lessons consisting in letters/symbols and 5 additional lessons :
 ### Simple mode
 Type the letter you just heard till success then prepare for the next one. Press space to hear again the current letter
 
-### learn mode
+### Learn mode
 Type a letter/symbol and it will be played in morse, displayed in dots and dashes and also spelled out loud in the current browser defined language (if your browser [support speech synthesis](https://developer.mozilla.org/en-US/docs/Web/API/SpeechSynthesis#browser_compatibility))
 
 ## Commands
