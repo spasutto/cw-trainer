@@ -11,6 +11,7 @@ Just hit the "play" button and try to write the letters you copy. When the playe
 ## Use
 You can use the tool [online](https://spasutto.github.io/cw-trainer/cw-trainer.html) or click on the floppy disk icon to save it on your disk or smartphone, then you're free to practice anywhere without GSM coverage.
 
+### Koch method
 Start with lesson 1, adjust the tonality to your hearing preference, set the WPM to a value between 20 and 25 Words per minute and the Effective speed somewhere between 10 and the WPM speed. Relax, concentrate on your keyboard/paper and hit the "play" button. Try to write the letters you copy, don't try to decode already sent ones, just write the current symbol. When the player stops click "verify" ; If your score is > 90% you can go to the next lesson.
 
 If it's too hard you can decrease the "Eff. WPM" to whatever you want. You can also increase the "extra word spacing" : it's a time in seconds wich is added to the natural space between words
@@ -20,11 +21,18 @@ There are 40 lessons consisting in letters/symbols and 5 additional lessons :
  - Numbers : 0-9
  - Symbols : 19 symbols (for the most part not included in Koch's lessons)
  - QSO : chunks of sample QSO, with randomly generated callsigns, RST...
- - Free text : Randomly picked portions of Oliver Twist (by Charles Dickens, thanks to [Projet Gutenberg](https://www.gutenberg.org/ebooks/730) !)
+ - Free text : Randomly picked portions of Oliver Twist (by Charles Dickens, thanks to [Project Gutenberg](https://www.gutenberg.org/ebooks/730) !)
+
+### Simple mode
+Type the letter you just heard till success then prepare for the next one. Press space to hear again the current letter
+
+### learn mode
+Type a letter/symbol and it will be played in morse, displayed in dots and dashes and also spelled out loud in the current browser defined language (if your browser [support speech synthesis](https://developer.mozilla.org/en-US/docs/Web/API/SpeechSynthesis#browser_compatibility))
 
 ## Commands
  - <kbd>space</kbd> : pause ( <kbd>ctrl</kbd>-<kbd>space</kbd> if input has focus)
  - <kbd>left</kbd>/<kbd>right</kbd> : fast forward/rewind ( <kbd>ctrl</kbd>-<kbd>left</kbd>/<kbd>right</kbd> if input has focus)
+ - <kbd>end</kbd>/<kbd>home</kbd> : fast fwd to start/end ( <kbd>ctrl</kbd>-<kbd>end</kbd>/<kbd>home</kbd> if input has focus)
  - **right click on  play** (long click on touch devices) to activate "Automatic start"
  - **double click on app's name** to display symbols currently being played
 
