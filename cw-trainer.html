@@ -80,7 +80,9 @@
       </table>
       <div id="zonemodes">
         <a id="cheatsheet" href="#"><span class="bulle" title="display morse code">?</span>morse cheatsheet</a>
-        <a href="#" name="modes" data-mode="koch" title="Koch mode : choose a length and a number of groups then try to write as many symbols as possible">Koch</a><a href="#" name="modes" data-mode="simple" title="simple mode : just type the symbol you heard">Simple</a>
+        <a href="#" name="modes" data-mode="koch" title="Koch mode : choose a length and a number of groups then try to write as many symbols as possible">Koch</a>
+        <a href="#" name="modes" data-mode="simple" title="simple mode : just type the symbol you heard">Simple</a>
+        <a href="#" name="modes" data-mode="learn" title="learn mode : type the letter to hear it">Learn</a>
       </div>
       <div id="zonefree" style="display:none">
         <input type="text" id="iptfree" maxlength="1">
@@ -101,6 +103,10 @@
         <textarea id="cwtext" rows="4" cols="43" spellcheck="false" autocorrect="off"></textarea><br>
         <input type="button" value="submit" id="cwsbm">
         <span id="zonedkb"><input type="checkbox" id="disablekb"><label for="disablekb">disable keyboard</label></span><br>
+      </div>
+      <div id="zonelearn" style="display:none">
+        <input type="text" id="iptlearn" maxlength="1">
+        <div id="iptlearnmorse"></div>
       </div>
     </div>
     <div id="zoneresult" style="display:none;">

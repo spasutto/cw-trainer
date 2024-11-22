@@ -1,6 +1,9 @@
 const SVG_INACTIF = 'svg_inactif';
 const HASHSEP = '_';
+const DIT_SYMBOL = '<svg viewBox="0 0 150 100" width="28px" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="50" /></svg>';
+const DAH_SYMBOL = '<svg viewBox="0 0 260 100" width="56px" xmlns="http://www.w3.org/2000/svg"><rect width="210" height="100" rx="15" /></svg>';
 const FREETEXT_URL = 'https://raw.githubusercontent.com/spasutto/cw-trainer/main/freetext/CharlesDickens-OliverTwist.txt';
+const synth = window.speechSynthesis;
 var cwchecking = false;
 var maxlessons = -1;
 var cw_options = {
@@ -8,6 +11,7 @@ var cw_options = {
   grouplen : 5,
   groupsnb : 10,
   simple_mode : false,
+  learn_mode : false,
   freelisten: false,
   weighlastletters: false,
   wpm : 25,
@@ -186,7 +190,7 @@ async function generateFreeText(minlength = 60, maxlength = 150) {
   return gentext;
 }
 async function generateText() {
-  if (!cwplayer) return;
+  if (!cwplayer || cw_options.learn_mode) return;
   let cwgentext = '';
   if (!cw_options.freelisten) {
     cwplayer.Text = '';
@@ -254,7 +258,7 @@ async function generateText() {
     cwplayer.Text = cwgentext;
     return cwgentext;
   } else {
-    cwplayer.Text = cw_options.simple_mode ? iptfree.value : cwtext.value;
+    cwplayer.Text = cw_options.simple_mode ? iptfree.value : cw_options.learn_mode ? iptlearn.Value : cwtext.value;
   }
 }
 function compareStrings(str1, str2, ignorecase=true){
@@ -386,6 +390,10 @@ function key(value) {
     iptfree.value+=value;
     iptfree.focus();
     verifycw();
+  } else if (cw_options.learn_mode) {
+    iptlearn.value+=value;
+    iptlearn.focus();
+    verifycw();
   } else {
     cwtext.value+=value;
     cwtext.focus();
@@ -409,10 +417,38 @@ function combinaisons(array, length, action) {
     return ret;
   });
 }
+async function tryspeak(letter) {
+  return new Promise(res => {
+    try {
+      if (!synth) res();
+      if (synth.speaking) {
+        synth.cancel();
+      }
+      const utterThis = new SpeechSynthesisUtterance(letter);
+      utterThis.onend = res;
+      utterThis.onerror = res;
+      synth.speak(utterThis);
+    } catch(e) {
+      console.error(e);
+      res();
+    }
+  });
+}
 async function verifycw(e) {
   if (!cwplayer || cwchecking) return;
   cwchecking = true;
-  if (cw_options.simple_mode) {
+  if (cw_options.learn_mode) {
+    let cwcar = CWPlayer.cleanText(iptlearn.value);
+    iptlearn.classList.add('blue', 'nocarret');
+    await cwplayer.stop();
+    await cwplayer.play(cwcar);
+    iptlearnmorse.innerHTML = /*cwcar+'<BR>'+*/CWPlayer.translate(cwcar).split('').map(s => s == '.' ? DIT_SYMBOL : DAH_SYMBOL).join('');
+    await tryspeak(cwcar);
+    await CWPlayer.delay(1);
+    iptlearn.classList.remove('blue', 'nocarret');
+    iptlearnmorse.innerHTML = iptlearn.value = '';
+    cwchecking = false;
+  } else if (cw_options.simple_mode) {
     if (e?.keyCode == 16 || (e?.key.length>1 && e?.key != 'Unidentified')) { // shift et autres touches non imprimables
       cwchecking = false;
       return;
@@ -712,6 +748,9 @@ function decodeParam(val, i) {
     case 11:
       cw_options.volume = Math.max(0, Math.min(1, val));
       break;
+    case 12:
+      cw_options.learn_mode = val === 1;
+      break;
   }
 }
 function round2(val) {
@@ -723,7 +762,7 @@ function deferredSaveParam() {
   window.timeoutSaveParams = window.setTimeout(saveParams, 250);
 }
 function saveParams() {
-  let params = encodeURIComponent(sellesson.value+HASHSEP+selwpm.value+HASHSEP+seleffwpm.value+HASHSEP+grplen.value+HASHSEP+groupsnb.value+HASHSEP+cw_options.tone+HASHSEP+round2(selews.value)+HASHSEP+(cw_options.simple_mode?1:0)+HASHSEP+(cw_options.freelisten?1:0)+HASHSEP+(cw_options.weighlastletters?1:0)+HASHSEP+round2(cw_options.keyqual)+HASHSEP+round2(cw_options.volume));
+  let params = encodeURIComponent(sellesson.value+HASHSEP+selwpm.value+HASHSEP+seleffwpm.value+HASHSEP+grplen.value+HASHSEP+groupsnb.value+HASHSEP+cw_options.tone+HASHSEP+round2(selews.value)+HASHSEP+(cw_options.simple_mode?1:0)+HASHSEP+(cw_options.freelisten?1:0)+HASHSEP+(cw_options.weighlastletters?1:0)+HASHSEP+round2(cw_options.keyqual)+HASHSEP+round2(cw_options.volume)+HASHSEP+(cw_options.learn_mode?1:0));
   try {
     window.name = params;
     localStorage.setItem("params", params);
@@ -732,7 +771,7 @@ function saveParams() {
 }
 function loadParams() {
   //'30_25_15_5_15_800_0.6_0_0_1_1_0.41'
-  const regparams = /\d{1,2}_\d{1,2}_\d{1,2}_-?\d_\d{1,3}_\d{1,4}_\d?\d.?\d*_(0|1)_(0|1)_(0|1)_\d.?\d*_\d.?\d*/i;
+  const regparams = /\d{1,2}_\d{1,2}_\d{1,2}_-?\d_\d{1,3}_\d{1,4}_\d?\d.?\d*_(0|1)_(0|1)_(0|1)_\d.?\d*_\d.?\d*_(0|1)/i;
   let fromhash = false;
   let extractParams = (p) => regparams.test(p)?p.split(HASHSEP):[];
   let params = window.location.hash.substring(1);
@@ -810,7 +849,7 @@ window.addEventListener("load", async () => {
   selews.value = cw_options.ews;
   cwplayer.addEventListener('play', () => {
     // on ne focus le texte que si on vient de démarrer la lecture, qu'on est en mode normal et qu'on est pas en train d'écouter un résultat
-    if (!cw_options.simple_mode && !cw_options.freelisten && !document.querySelectorAll('a[name="listen"].active').length && cwplayer.CurrentTime < 0.5) {
+    if (!cw_options.simple_mode && !cw_options.learn_mode && !cw_options.freelisten && !document.querySelectorAll('a[name="listen"].active').length && cwplayer.CurrentTime < 0.5) {
       cwtext.focus();
     }
   });
@@ -842,18 +881,21 @@ window.addEventListener("load", async () => {
   if (window.mobile = isTouchDevice()) {
     generateKeyboard();
     zonedkb.style.display = 'initial';
-    if (document.activeElement === cwtext || document.activeElement === iptfree) {
+    if (document.activeElement === cwtext || document.activeElement === iptfree || document.activeElement === iptlearn) {
       showKeyboard();
     }
     cwtext.addEventListener("focus", showKeyboard);
     iptfree.addEventListener("focus", showKeyboard);
+    iptlearn.addEventListener("focus", showKeyboard);
     cwtext.addEventListener("focusout", hideKeyboard);
     iptfree.addEventListener("focusout", hideKeyboard);
+    iptlearn.addEventListener("focusout", hideKeyboard);
   }
   modelinks.forEach(a => {
     a.addEventListener('click', (e) => {
       e.preventDefault();
       cw_options.simple_mode=e?.srcElement?.innerText?.toLowerCase().includes('simple');
+      cw_options.learn_mode=e?.srcElement?.innerText?.toLowerCase().includes('learn');
       updateValues();
       return false;
     })
@@ -904,6 +946,7 @@ window.addEventListener("load", async () => {
     cwplayer.Text = cwtext.value;
   });
   iptfree.addEventListener("keyup", verifycw);
+  iptlearn.addEventListener("keyup", verifycw);
   cwtitle.addEventListener("dblclick", () => {
     cwplayer.ClearZone = !cwplayer.ClearZone;
     if (cwplayer.ClearZone) {
@@ -1036,7 +1079,7 @@ function onkeydown(e) {
   keyCode = keyCode || keynames[e.code];
   if (keyCode == keycodes.escape) {
     displayMorseCode(false);
-  } else if (keyCode !== keycodes.control && !cw_options.simple_mode && isPlayKeybCtrlOk) {
+  } else if (keyCode !== keycodes.control && !cw_options.simple_mode && !cw_options.learn_mode && isPlayKeybCtrlOk) {
     let playControls = {
       [keycodes.space] : 'playpause', 
       [keycodes.scrolltop] : 'backtostart', 
@@ -1054,6 +1097,10 @@ function onkeydown(e) {
 }
 function onkeyup(e) {
   if (!cwplayer) return;
+  if (cw_options.learn_mode || cw_options.simple_mode) {
+    Object.keys(keystates).forEach(k => keystates[k] = false);
+    return;
+  }
   if (keystates.playpause) {
     if (cwplayer.Playing) cwplayer.pause();
     else cwplayer.play();
@@ -1087,21 +1134,23 @@ async function updateValues() {
   if (cw_options.simple_mode && sellesson.value>43) {
     sellesson.value = 43;
   }
-  cwplayer.PreDelay = cw_options.simple_mode || cw_options.freelisten ? 0.05 : 2;
+  cwplayer.PreDelay = cw_options.learn_mode || cw_options.simple_mode || cw_options.freelisten ? 0.05 : 2;
   if (cw_options.simple_mode) {
     iptfree.focus();
+  } else if (cw_options.learn_mode) {
+    iptlearn.focus();
   } else {
     cwtext.focus();
   }
-  iptfree.value = cwtext.value = '';
+  iptfree.value = iptlearn.value = cwtext.value = '';
   [...document.querySelectorAll("label[for='seleffwpm'], #seleffwpm")].forEach(e => {
-    e.disabled = cw_options.simple_mode;
+    e.disabled = cw_options.simple_mode || cw_options.learn_mode;
     let title = e.title;
-    let dtext = ' - ineffective in simple mode';
+    let dtext = ' - ineffective in simple/learning mode';
     if (e.title.endsWith(dtext)) {
       e.title = e.title.substring(0, e.title.indexOf(dtext));
     }
-    if (cw_options.simple_mode) {
+    if (cw_options.simple_mode || cw_options.learn_mode) {
       e.title = e.title + dtext;
     }
   });
@@ -1125,18 +1174,22 @@ async function updateValues() {
   cw_options.keyqual = cwplayer.KeyingQuality;
   chkfreelisten.checked = cw_options.freelisten;
   chkweightlastletters.checked = cw_options.weighlastletters;
-  sellesson.disabled = cw_options.freelisten;
-  nxtlesson.disabled = cw_options.lesson >= maxlessons || cw_options.freelisten;
-  prevlesson.disabled = cw_options.lesson <= 1 || cw_options.freelisten;
+  sellesson.disabled = cw_options.freelisten || cw_options.learn_mode;
+  nxtlesson.disabled = cw_options.lesson >= maxlessons || sellesson.disabled;
+  prevlesson.disabled = cw_options.lesson <= 1 || sellesson.disabled;
   zoneresult.style.display = 'none';
   zonerestext.innerHTML = '';
   zonefree.style.display = cw_options.simple_mode?'block':'none';
-  zonekoch.style.display = !cw_options.simple_mode?'block':'none';
+  zonekoch.style.display = !cw_options.simple_mode&&!cw_options.learn_mode?'block':'none';
+  zonelearn.style.display = cw_options.learn_mode?'block':'none';
   zonewords.style.display = sellesson.value < 42?'block':'none';
-  chkweightlastletterswrapper.style.visibility = !cw_options.freelisten && sellesson.value < 41?'visible':'hidden';
+  chkweightlastletterswrapper.style.visibility = !cw_options.learn_mode && !cw_options.freelisten && sellesson.value < 41?'visible':'hidden';
+  chkfreelistenwrapper.style.visibility = !cw_options.learn_mode?'visible':'hidden';
   cwsbm.disabled = cw_options.freelisten;
   modelinks.forEach(a => {
-    if ((a.dataset.mode == 'simple' && cw_options.simple_mode) || (a.dataset.mode == 'koch' && !cw_options.simple_mode)) a.classList.add('active');
+    if ((a.dataset.mode == 'simple' && cw_options.simple_mode)
+    || (a.dataset.mode == 'koch' && !cw_options.simple_mode && !cw_options.learn_mode)
+    || (a.dataset.mode == 'learn' && cw_options.learn_mode)) a.classList.add('active');
     else a.classList.remove('active');
   });
   saveParams();
