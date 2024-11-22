@@ -1032,32 +1032,24 @@ function onkeydown(e) {
       'End' : keycodes.scrollend, 'Home' : keycodes.scrolltop,
       'ArrowLeft' : keycodes.left, 'ArrowUp' : keycodes.up, 'ArrowRight' : keycodes.right, 'ArrowDown' : keycodes.down };
   // on pause via ctrl-space si on est en train de saisir sinon directement space
-  let ctrl = e.ctrlKey || !['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement.tagName);
+  let isPlayKeybCtrlOk = e.ctrlKey || !['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement.tagName);
   keyCode = keyCode || keynames[e.code];
   if (keyCode == keycodes.escape) {
     displayMorseCode(false);
-  } else if (ctrl && keyCode != keycodes.control) {
-    switch (keyCode) {
-      case keycodes.space:
-        keystates.playpause = true;
-        break;
-      case keycodes.scrolltop:
-        keystates.backtostart = true;
+  } else if (keyCode !== keycodes.control && !cw_options.simple_mode && isPlayKeybCtrlOk) {
+    let playControls = {
+      [keycodes.space] : 'playpause', 
+      [keycodes.scrolltop] : 'backtostart', 
+      [keycodes.scrollend] : 'fwdtoend', 
+      [keycodes.left] : 'indexdec', 
+      [keycodes.right] : 'indexinc'
+    };
+    Object.keys(playControls).forEach(k => {
+      if (keyCode == k) {
+        if (keyCode == keycodes.space || cwplayer.Playing || document.activeElement !== cwtext) keystates[playControls[k]] = true;
         if (cwplayer.Playing && document.activeElement === cwtext) e.preventDefault();
-        break;
-      case keycodes.scrollend:
-        keystates.fwdtoend = true;
-        if (cwplayer.Playing && document.activeElement === cwtext) e.preventDefault();
-        break;
-      case keycodes.left:
-        if (cwplayer.Playing || document.activeElement !== cwtext) keystates.indexdec = true;
-        if (cwplayer.Playing && document.activeElement === cwtext) e.preventDefault();
-        break;
-      case keycodes.right:
-        if (cwplayer.Playing || document.activeElement !== cwtext) keystates.indexinc = true;
-        if (cwplayer.Playing && document.activeElement === cwtext) e.preventDefault();
-        break;
-    }
+      }
+    });
   }
 }
 function onkeyup(e) {
