@@ -1,7 +1,7 @@
 const SVG_INACTIF = 'svg_inactif';
 const HASHSEP = '_';
-const DIT_SYMBOL = '<svg viewBox="0 0 150 100" width="28px" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="50" /></svg>';
-const DAH_SYMBOL = '<svg viewBox="0 0 260 100" width="56px" xmlns="http://www.w3.org/2000/svg"><rect width="210" height="100" rx="15" /></svg>';
+const DIT_SYMBOL = '<svg viewBox="0 0 150 100" width="28px" xmlns="http://www.w3.org/2000/svg"><circle cx="75" cy="50" r="50" /></svg>';
+const DAH_SYMBOL = '<svg viewBox="0 0 260 100" width="56px" xmlns="http://www.w3.org/2000/svg"><rect x="25" width="210" height="100" rx="15" /></svg>';
 const FREETEXT_URL = 'https://raw.githubusercontent.com/spasutto/cw-trainer/main/freetext/CharlesDickens-OliverTwist.txt';
 const synth = window.speechSynthesis;
 var cwchecking = false;
@@ -438,11 +438,15 @@ async function verifycw(e) {
   if (!cwplayer || cwchecking) return;
   cwchecking = true;
   if (cw_options.learn_mode) {
+    if (e?.keyCode == 16 || (e?.key.length>1 && e?.key != 'Unidentified')) { // shift et autres touches non imprimables
+      cwchecking = false;
+      return;
+    }
     let cwcar = CWPlayer.cleanText(iptlearn.value);
     iptlearn.classList.add('blue', 'nocarret');
     await cwplayer.stop();
     await cwplayer.play(cwcar);
-    iptlearnmorse.innerHTML = /*cwcar+'<BR>'+*/CWPlayer.translate(cwcar).split('').map(s => s == '.' ? DIT_SYMBOL : DAH_SYMBOL).join('');
+    iptlearnmorse.innerHTML = /*cwcar+'<BR>'+*/CWPlayer.translate(cwcar).split('').filter(s => ['.','-'].includes(s)).map(s => s == '.' ? DIT_SYMBOL : DAH_SYMBOL).join('');
     await tryspeak(cwcar);
     await CWPlayer.delay(1);
     iptlearn.classList.remove('blue', 'nocarret');
