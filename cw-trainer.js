@@ -898,8 +898,12 @@ window.addEventListener("load", async () => {
   modelinks.forEach(a => {
     a.addEventListener('click', (e) => {
       e.preventDefault();
-      cw_options.simple_mode=e?.srcElement?.innerText?.toLowerCase().includes('simple');
-      cw_options.learn_mode=e?.srcElement?.innerText?.toLowerCase().includes('learn');
+      let mode = e?.srcElement?.dataset.mode;
+      cw_options.simple_mode = mode == 'simple';
+      cw_options.learn_mode = mode == 'learn';
+      if (mode == 'koch') {
+        cw_options.freelisten = chkfreelisten.checked = false; // sinon provoque des incompréhensions en changeant d'onglet
+      }
       updateValues();
       return false;
     })
