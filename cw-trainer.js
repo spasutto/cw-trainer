@@ -417,16 +417,62 @@ function combinaisons(array, length, action) {
     return ret;
   });
 }
+function trypopulatevoices() {
+  if (Array.isArray(window.voices)) return;
+  window.voices = [];
+  try {
+    window.voices = synth?.getVoices().sort(function (a, b) {
+      const aname = a.name.toUpperCase();
+      const bname = b.name.toUpperCase();
+  
+      if (aname < bname) {
+        return -1;
+      } else if (aname == bname) {
+        return 0;
+      } else {
+        return +1;
+      }
+    });
+    window.anyvoice = Array.isArray(window.voices) && window.voices.length > 0;
+    if (!anyvoice) {
+      return;
+    }
+    let lfound = false;
+    voices.forEach(v => {
+      let option = document.createElement("option");
+      option.textContent = `${v.name} (${v.lang})`;
+      if (!lfound && navigator.language == v.lang) {
+        option.selected = true;
+        lfound = true;
+      }
+      selvoices.appendChild(option);
+    });
+    let selectvoice = () => {
+      if (selvoices?.selectedIndex > -1 && Array.isArray(window.voices) && voices.length > selvoices.selectedIndex) {
+        window.speechvoice = voices[selvoices.selectedIndex];
+      }
+    };
+    selvoices.addEventListener('change', selectvoice);
+    selectvoice();
+    speechvoices.style.display = cw_options.learn_mode?'block':'none';
+  } catch(e) {console.error(e);}
+}
 async function tryspeak(letter) {
   return new Promise(res => {
     try {
-      if (!synth) res();
+      if (typeof synth?.speaking !== 'boolean') {
+        res();
+        return;
+      }
       if (synth.speaking) {
         synth.cancel();
       }
       const utterThis = new SpeechSynthesisUtterance(letter);
       utterThis.onend = res;
       utterThis.onerror = res;
+      if (window.speechvoice) {
+        utterThis.voice = window.speechvoice;
+      }
       synth.speak(utterThis);
     } catch(e) {
       console.error(e);
@@ -970,6 +1016,10 @@ window.addEventListener("load", async () => {
     cw_options.weighlastletters = chkweightlastletters.checked;
     updateValues();
   });
+  if (typeof synth?.onvoiceschanged === 'object') {
+    synth.onvoiceschanged = trypopulatevoices;
+  }
+  trypopulatevoices();
 });
 window.addEventListener("error", (e) => {
   let err = e;
@@ -1191,8 +1241,9 @@ async function updateValues() {
   zonekoch.style.display = !cw_options.simple_mode&&!cw_options.learn_mode?'block':'none';
   zonelearn.style.display = cw_options.learn_mode?'block':'none';
   zonewords.style.display = sellesson.value < 42?'block':'none';
-  chkweightlastletterswrapper.style.visibility = !cw_options.learn_mode && !cw_options.freelisten && sellesson.value < 41?'visible':'hidden';
-  chkfreelistenwrapper.style.visibility = !cw_options.learn_mode?'visible':'hidden';
+  chkweightlastletterswrapper.style.display = !cw_options.learn_mode && !cw_options.freelisten && sellesson.value < 41?'block':'none';
+  chkfreelistenwrapper.style.display = !cw_options.learn_mode?'block':'none';
+  speechvoices.style.display = window.anyvoice && cw_options.learn_mode?'block':'none';
   cwsbm.disabled = cw_options.freelisten;
   modelinks.forEach(a => {
     if ((a.dataset.mode == 'simple' && cw_options.simple_mode)

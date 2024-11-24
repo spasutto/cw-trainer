@@ -76,6 +76,16 @@ a[name="modes"].active {
   border: solid 1px #d7d7d7;
   padding: 5px;
 }
+#speechvoices {
+  display: none;
+}
+#speechvoices label {
+  white-space: nowrap;
+}
+#speechvoices select {
+  width: 170px;
+  overflow: hidden;
+}
 #zoneresult {
   display: inline-block;
   vertical-align: top;
