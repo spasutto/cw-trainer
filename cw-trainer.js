@@ -418,7 +418,7 @@ function combinaisons(array, length, action) {
   });
 }
 function trypopulatevoices() {
-  if (Array.isArray(window.voices)) return;
+  if (window.anyvoice) return;
   window.voices = [];
   try {
     window.voices = synth?.getVoices().sort(function (a, b) {
@@ -437,23 +437,28 @@ function trypopulatevoices() {
     if (!anyvoice) {
       return;
     }
-    let lfound = false;
     voices.forEach(v => {
       let option = document.createElement("option");
       option.textContent = `${v.name} (${v.lang})`;
-      if (!lfound && navigator.language == v.lang) {
-        option.selected = true;
-        lfound = true;
-      }
       selvoices.appendChild(option);
     });
-    let selectvoice = () => {
+    selvoices.addEventListener('change', (e) => {
       if (selvoices?.selectedIndex > -1 && Array.isArray(window.voices) && voices.length > selvoices.selectedIndex) {
         window.speechvoice = voices[selvoices.selectedIndex];
       }
-    };
-    selvoices.addEventListener('change', selectvoice);
-    selectvoice();
+    });
+    let getLangStrict = (l) => l.trim().toLowerCase().replaceAll(/[^a-z]*/g, '');
+    let getLang = (l) => l.trim().toLowerCase().match(/^[a-z]*/g)[0];
+    let navlang = getLangStrict(navigator.language);
+    let voiceindex = window.voices.findIndex(v => navlang == getLangStrict(v.lang));
+    if (voiceindex < 0) {
+      navlang = getLang(navigator.language);
+      voiceindex = window.voices.findIndex(v => navlang == getLang(v.lang));
+    }
+    if (voiceindex > -1) {
+      selvoices.selectedIndex = voiceindex;
+      window.speechvoice = voices[voiceindex];
+    }
     speechvoices.style.display = cw_options.learn_mode?'block':'none';
   } catch(e) {console.error(e);}
 }
@@ -1242,7 +1247,7 @@ async function updateValues() {
   zonelearn.style.display = cw_options.learn_mode?'block':'none';
   zonewords.style.display = sellesson.value < 42?'block':'none';
   chkweightlastletterswrapper.style.display = !cw_options.learn_mode && !cw_options.freelisten && sellesson.value < 41?'block':'none';
-  chkfreelistenwrapper.style.display = !cw_options.learn_mode?'block':'none';
+  chkfreelistenwrapper.style.visibility = !cw_options.learn_mode?'visible':'hidden';
   speechvoices.style.display = window.anyvoice && cw_options.learn_mode?'block':'none';
   cwsbm.disabled = cw_options.freelisten;
   modelinks.forEach(a => {
