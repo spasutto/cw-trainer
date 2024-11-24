@@ -1,7 +1,7 @@
 const SVG_INACTIF = 'svg_inactif';
 const HASHSEP = '_';
-const DIT_SYMBOL = '<svg viewBox="0 0 150 100" width="33px" xmlns="http://www.w3.org/2000/svg"><circle cx="75" cy="50" r="50" /></svg>';
-const DAH_SYMBOL = '<svg viewBox="0 0 260 100" width="56px" xmlns="http://www.w3.org/2000/svg"><rect x="25" width="210" height="100" rx="15" /></svg>';
+const DIT_SYMBOL = '<svg viewBox="0 0 150 100" height="22px" xmlns="http://www.w3.org/2000/svg"><circle cx="75" cy="50" r="50" /></svg>';
+const DAH_SYMBOL = '<svg viewBox="0 0 260 100" height="22px" xmlns="http://www.w3.org/2000/svg"><rect x="25" width="210" height="100" rx="15" /></svg>';
 const FREETEXT_URL = 'https://raw.githubusercontent.com/spasutto/cw-trainer/main/freetext/CharlesDickens-OliverTwist.txt';
 const synth = window.speechSynthesis;
 var cwchecking = false;
