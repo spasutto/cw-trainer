@@ -518,10 +518,11 @@ async function verifycw(e) {
     await cwplayer.stop();
     await cwplayer.play(cwcar);
     await Promise.race([tryspeak(cwcar), CWPlayer.delay(2)]);
-    iptlearnmorse.innerHTML = CWPlayer.translate(cwcar).split('').filter(s => ['.','-'].includes(s)).map(s => s == '.' ? DIT_SYMBOL : DAH_SYMBOL).join('');
+    cwchecking = false;
+    let tr = CWPlayer.translate(cwcar).split('').filter(s => ['.','-'].includes(s)).map(s => s == '.' ? DIT_SYMBOL : DAH_SYMBOL).join('');;
+    iptlearnmorse.innerHTML = `<a href="#" onclick="verifycw();return false;" title="replay">${tr}</a>`;
     await CWPlayer.delay(1);
     iptlearn.classList.remove('blue', 'nocarret');
-    cwchecking = false;
   } else if (cw_options.simple_mode) {
     if (e?.keyCode == 16 || (e?.key.length>1 && e?.key != 'Unidentified')) { // shift et autres touches non imprimables
       cwchecking = false;
