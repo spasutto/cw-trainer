@@ -514,13 +514,13 @@ async function verifycw(e) {
     }
     let cwcar = CWPlayer.cleanText(iptlearn.value);
     iptlearn.classList.add('blue', 'nocarret');
+    iptlearnmorse.innerHTML = '';
     await cwplayer.stop();
     await cwplayer.play(cwcar);
     await Promise.race([tryspeak(cwcar), CWPlayer.delay(2)]);
     iptlearnmorse.innerHTML = CWPlayer.translate(cwcar).split('').filter(s => ['.','-'].includes(s)).map(s => s == '.' ? DIT_SYMBOL : DAH_SYMBOL).join('');
     await CWPlayer.delay(1);
     iptlearn.classList.remove('blue', 'nocarret');
-    iptlearnmorse.innerHTML = iptlearn.value = '';
     cwchecking = false;
   } else if (cw_options.simple_mode) {
     if (e?.keyCode == 16 || (e?.key.length>1 && e?.key != 'Unidentified')) { // shift et autres touches non imprimables
@@ -1028,6 +1028,10 @@ window.addEventListener("load", async () => {
     cwplayer.Text = cwtext.value;
   });
   iptfree.addEventListener("keyup", verifycw);
+  iptlearn.addEventListener("keydown", _ => {
+    if (cwchecking) return;
+    iptlearn.value='';
+  });
   iptlearn.addEventListener("keyup", verifycw);
   cwtitle.addEventListener("dblclick", () => {
     cwplayer.ClearZone = !cwplayer.ClearZone;
@@ -1228,7 +1232,7 @@ async function updateValues() {
   } else {
     cwtext.focus();
   }
-  iptfree.value = iptlearn.value = cwtext.value = '';
+  iptfree.value = cwtext.value = '';
   [...document.querySelectorAll("label[for='seleffwpm'], #seleffwpm")].forEach(e => {
     e.disabled = cw_options.simple_mode || cw_options.learn_mode;
     let title = e.title;
