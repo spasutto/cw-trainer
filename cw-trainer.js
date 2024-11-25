@@ -437,6 +437,7 @@ function trypopulatevoices() {
     if (!anyvoice) {
       return;
     }
+    window.voices.unshift({'name':' - none - ', 'lang':'deactivated'});
     voices.forEach(v => {
       let option = document.createElement("option");
       option.textContent = `${v.name} (${v.lang})`;
@@ -465,7 +466,7 @@ function trypopulatevoices() {
 async function tryspeak(letter) {
   return new Promise(res => {
     try {
-      if (typeof synth?.speaking !== 'boolean') {
+      if (typeof synth?.speaking !== 'boolean' || window.speechvoice?.lang == 'deactivated') {
         res();
         return;
       }
