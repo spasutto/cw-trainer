@@ -472,13 +472,14 @@ async function tryspeak(letter) {
       if (synth.speaking) {
         synth.cancel();
       }
-      const utterThis = new SpeechSynthesisUtterance(letter);
-      utterThis.onend = res;
-      utterThis.onerror = res;
+      window.synthutter = new SpeechSynthesisUtterance(letter);
+      synthutter.onend = () => { window.synthutter = null; res(); };
+      synthutter.onerror = () => { window.synthutter = null; res(); };
       if (window.speechvoice) {
-        utterThis.voice = window.speechvoice;
+        synthutter.voice = window.speechvoice;
+        synthutter.lang = window.speechvoice.lang
       }
-      synth.speak(utterThis);
+      synth.speak(synthutter);
     } catch(e) {
       console.error(e);
       res();
@@ -497,7 +498,7 @@ async function verifycw(e) {
     iptlearn.classList.add('blue', 'nocarret');
     await cwplayer.stop();
     await cwplayer.play(cwcar);
-    await tryspeak(cwcar);
+    await Promise.race([tryspeak(cwcar), CWPlayer.delay(2)]);
     iptlearnmorse.innerHTML = CWPlayer.translate(cwcar).split('').filter(s => ['.','-'].includes(s)).map(s => s == '.' ? DIT_SYMBOL : DAH_SYMBOL).join('');
     await CWPlayer.delay(1);
     iptlearn.classList.remove('blue', 'nocarret');

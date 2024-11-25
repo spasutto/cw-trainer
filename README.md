@@ -27,7 +27,7 @@ There are 40 lessons consisting in letters/symbols and 5 additional lessons :
 Type the letter you just heard till success then prepare for the next one. Press space to hear again the current letter
 
 ### Learn mode
-Type a letter/symbol and it will be played in morse, displayed in dots and dashes and also spelled out loud in the current browser defined language (if your browser [support speech synthesis](https://developer.mozilla.org/en-US/docs/Web/API/SpeechSynthesis#browser_compatibility))
+Type a letter/symbol and it will be played in morse, displayed in dots and dashes and also spelled out loud in the current browser defined language (if your browser [support speech synthesis](https://developer.mozilla.org/en-US/docs/Web/API/SpeechSynthesis#browser_compatibility). Note also that speech synthesis on Android/iOS **[doesn't work very well](https://talkrapp.com/speechSynthesis.html)**).
 
 ## Commands
  - <kbd>space</kbd> : pause ( <kbd>ctrl</kbd>-<kbd>space</kbd> if input has focus)
