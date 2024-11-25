@@ -25,40 +25,43 @@ const KOCHCARS = ['K', 'M', 'U', 'R', 'E', 'S', 'N', 'A', 'P', 'T', 'L', 'W', 'I
 const ALPHA = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 const NUMBERS = "0123456789";
 const SYMBOLS = "/+=.,\"$'()[]-:;@_!?¶&";
+//https://www.qsl.net/ae0q/prosign.htm  https://m0juw.co.uk/prosigns-in-morse-code/  https://www.radioqth.net/morsecode https://www.kent-engineers.com/prosigns.htm
+// https://www.kb6nu.com/cw-geeks-no-nonsense-guide-to-having-fun-with-morse-code-prosigns/
+const PROSIGNS = ['{AR}', '{AS}', '{BK}', '{BT}', '{CL}', '{CT}', 'K', '{KN}', 'R', '{SK}', '{SN}', '{VA}', '{VE}', '{EEEEEEEE}'];
 var QSOs = [
   //http://lidscw.org/resources/cq-qso-template
   'CQ CQ CQ DE %IND1% %IND1% %IND1% PSE K',
-  '%IND1% DE %IND2% %IND2% %IND2% KN',
-  '%IND2% DE %IND1% = GA ES TNX FER CALL = UR RST %RST1% %RST1% = NAME IS %NAME1% %NAME1% QTH %QTH1% %QTH1% = HW? AR %IND2% DE %IND1% KN',
-  '%IND1% DE %IND2% = GA %NAME1% TNX FB RPT UR RST %RST2% %RST2% = OP %NAME2% %NAME2% ES QTH %QTH2% %QTH2% = HW? AR %IND1% DE %IND2% KN',
-  '%IND2% DE %IND1% = R TNX RPT ES INFO %NAME2% = RIG IS FTDX1200 PWR 100W ANT IS YAGI = WX IS SUNNY ES WARM 100F = HW? AR %IND2% DE %IND1% KN',
-  '%IND1% DE %IND2% = RIG IS FT817 5W ES ANT IS DIPOLE = WX IS WET AND COLD AR %IND1% DE %IND2% KN',
-  '%IND2% DE %IND1% = MNI TNX INFO ES FB QSO = PSE QSL VIA BURO = 73 ES CUAGN AR %IND2% DE %IND1% SK',
-  '%IND1% DE %IND2% = FB %NAME1% TNX FER NICE QSO 73 ES BCNU AR %IND1% DE %IND2% SK',
+  '%IND1% DE %IND2% %IND2% %IND2% {KN}',
+  '%IND2% DE %IND1% = GA ES TNX FER CALL = UR RST %RST1% %RST1% = NAME IS %NAME1% %NAME1% QTH %QTH1% %QTH1% = HW? {AR} %IND2% DE %IND1% {KN}',
+  '%IND1% DE %IND2% = GA %NAME1% TNX FB RPT UR RST %RST2% %RST2% = OP %NAME2% %NAME2% ES QTH %QTH2% %QTH2% = HW? {AR} %IND1% DE %IND2% {KN}',
+  '%IND2% DE %IND1% = R TNX RPT ES INFO %NAME2% = RIG IS FTDX1200 PWR 100W ANT IS YAGI = WX IS SUNNY ES WARM 100F = HW? {AR} %IND2% DE %IND1% {KN}',
+  '%IND1% DE %IND2% = RIG IS FT817 5W ES ANT IS DIPOLE = WX IS WET AND COLD {AR} %IND1% DE %IND2% {KN}',
+  '%IND2% DE %IND1% = MNI TNX INFO ES FB QSO = PSE QSL VIA BURO = 73 ES CUAGN {AR} %IND2% DE %IND1% {SK}',
+  '%IND1% DE %IND2% = FB %NAME1% TNX FER NICE QSO 73 ES BCNU {AR} %IND1% DE %IND2% {SK}',
   //https://morsecode.ninja/files/Sample-Rag-Chew-QSO-v10.pdf
   'CQ CQ de %IND1% %IND1% K',
   '%IND1% de %IND2% %IND2% K',
-  '%IND2% DE %IND1% = GA ES TNX FER THE CALL = UR RST IS %RST1% %RST1% = NAME HR %NAME1% %NAME1% MY QTH IS %QTH1% %QTH1% = HW CPY? %IND2% DE %IND1% KN',
+  '%IND2% DE %IND1% = GA ES TNX FER THE CALL = UR RST IS %RST1% %RST1% = NAME HR %NAME1% %NAME1% MY QTH IS %QTH1% %QTH1% = HW CPY? %IND2% DE %IND1% {KN}',
   '%IND1% DE %IND2% R GA %NAME1% TNX FB RPT = RST %RST2% %RST2% = OP HR %NAME2% %NAME2% ES QTH %QTH2% %QTH2% = HW? %IND1% DE %IND2% K',
-  'BK NAME? NAME? BK',
-  'BK %NAME2% %NAME2% HW? BK',
+  '{BK} NAME? NAME? {BK}',
+  '{BK} %NAME2% %NAME2% HW? {BK}',
   '%IND2% DE %IND1% = R R R TNX FER THE RPT ES INFO %NAME2% = MY RIG HR IS KX3 RUNS 100W WID AMP ES ANT IS A 4 ELE YAGI UP 76 FT = WX IS WET AND CO0L 45F = HW NW? %IND2% DE %IND1% K',
-  '%IND1% DE %IND2% SOLID COPY %NAME1% = RIG ELECRAFT K3S RUNS KW ANT IS LOOP AT 65 FT = WX SUNNY ES WARM 88F = AGE 70 HAM FOR 40 YEARS = SO HW? %IND1% DE %IND2% KN',
+  '%IND1% DE %IND2% SOLID COPY %NAME1% = RIG ELECRAFT K3S RUNS KW ANT IS LOOP AT 65 FT = WX SUNNY ES WARM 88F = AGE 70 HAM FOR 40 YEARS = SO HW? %IND1% DE %IND2% {KN}',
   '%IND2% DE %IND1% = FB COPY %NAME2% WID QSB = AGE HR IS 50 ES BN A HAM FER 6 YRS = RECENTLY RETIRED BUT NW BACK TO WORK AS CERTIFIED TOWER MONKEY = %IND2% DE %IND1% K',
   '%IND1% DE %IND2% FB %NAME1% = RECENTLY RETIRED NURSE ANESTHETIST = LIVING THE DREAM = HW? %IND1% DE %IND2% K',
-  '%IND2% DE %IND1% FB %NAME2% = GUD CPY WID MORE QSB HR = TNX FER THE INFO ES QSO = PSE QSL VIA LOTW = 73 ES HPE 2 CU AGN SK %IND2% DE %IND1% K',
-  '%IND1% DE %IND2% = FB %NAME1% WL QSL LOTW ES TNX QSO GD 73 AR SK %IND1% DE %IND2% E E',
+  '%IND2% DE %IND1% FB %NAME2% = GUD CPY WID MORE QSB HR = TNX FER THE INFO ES QSO = PSE QSL VIA LOTW = 73 ES HPE 2 CU AGN {SK} %IND2% DE %IND1% K',
+  '%IND1% DE %IND2% = FB %NAME1% WL QSL LOTW ES TNX QSO GD 73 {AR} {SK} %IND1% DE %IND2% E E',
   //http://naqcc.info/cw_qsos.html
-  '%IND1% DE %IND2% GM TNX CALL UR %RST1% %RST1% IN %QTH1% %QTH1% NAME IS %NAME1% %NAME1% HW? AR %IND1% DE %IND2% K',
-  '%IND2% DE %IND1% GM %NAME1% UR %RST2% %RST2% IN %QTH2% %QTH2% NAME IS %NAME2% %NAME2% HW? AR %IND2% DE %IND1% KN',
-  '%IND1% DE %IND2% R FB %NAME2% NICE TO MEET YOU BT THE RIG HR IS A KNWD TS-570D AT QRP 5W TO AN ATTIC RANDOM WIRE BT THE WX LITE SNOW ES 33 DEGREES HW? AR %IND1% DE %IND2% KN',
-  '%IND2% DE %IND1% R FB ON ALL %NAME1% BT THE XYL SAYS SUPPER IS READY SO I MUST GO BT TNX QSO HPE CUL 73 GE SK %IND2% DE %IND1% K',
-  '%IND1% DE %IND2% OK %NAME2% WONT HOLD YOU TNX QSO HPE CUAGN VY 73 GE SK %IND1% DE %IND2% E E',
+  '%IND1% DE %IND2% GM TNX CALL UR %RST1% %RST1% IN %QTH1% %QTH1% NAME IS %NAME1% %NAME1% HW? {AR} %IND1% DE %IND2% K',
+  '%IND2% DE %IND1% GM %NAME1% UR %RST2% %RST2% IN %QTH2% %QTH2% NAME IS %NAME2% %NAME2% HW? {AR} %IND2% DE %IND1% {KN}',
+  '%IND1% DE %IND2% R FB %NAME2% NICE TO MEET YOU {BT} THE RIG HR IS A KNWD TS-570D AT QRP 5W TO AN ATTIC RANDOM WIRE {BT} THE WX LITE SNOW ES 33 DEGREES HW? {AR} %IND1% DE %IND2% {KN}',
+  '%IND2% DE %IND1% R FB ON ALL %NAME1% {BT} THE XYL SAYS SUPPER IS READY SO I MUST GO {BT} TNX QSO HPE CUL 73 GE {SK} %IND2% DE %IND1% K',
+  '%IND1% DE %IND2% OK %NAME2% WONT HOLD YOU TNX QSO HPE CUAGN VY 73 GE {SK} %IND1% DE %IND2% E E',
   //http://www.iv3ynb.altervista.org/samplecode.htm
-  '%IND2% DE %IND1% GM DR OM ES TNX FER CALL UR RST RST RST IS %RST1% %RST1% FB MY QTH QTH IS %QTH1% %QTH1% MY NAME NAME IS %NAME1% %NAME1% HW ? %IND2% DE %IND1% KN',
-  '%IND1% DE %IND2% R R GM DR %NAME1% ES TNX FER RST UR RST RST RST IS 599 599 5NN FB MY QTH QTH QTH IS %QTH2% %QTH2% %QTH2% MY NAME IS %NAME2% %NAME2% %NAME2% HW ? %IND1% DE %IND2% KN',
-  '%IND2% DE %IND1% FB DR %NAME2% IN %QTH2% HR RTX IS TS50 TS50 PWR IS %PWR1%W %PWR1%W ANT IS VERT VERT WX WX IS CLOUDY CLOUDY TEMP 15C = NW QRU QRU TNX FER NICE QSO = PSE QSL MY QSL SURE VIA BURO 73 73 ES CUAGN CIAO %IND2% DE %IND1% SK SK  I',
-  '%IND1% DE %IND2% R R OK DR %NAME1% FB HR RTX IS YAESU FT920 FT920 ANT IS DIPOLE DIPOLE WX WX FINE TEMP 30C TNX FER FB QSO QSL OK OK 73 73 GL GB %IND1% DE %IND2% SK SK I'
+  '%IND2% DE %IND1% GM DR OM ES TNX FER CALL UR RST RST RST IS %RST1% %RST1% FB MY QTH QTH IS %QTH1% %QTH1% MY NAME NAME IS %NAME1% %NAME1% HW ? %IND2% DE %IND1% {KN}',
+  '%IND1% DE %IND2% R R GM DR %NAME1% ES TNX FER RST UR RST RST RST IS 599 599 5NN FB MY QTH QTH QTH IS %QTH2% %QTH2% %QTH2% MY NAME IS %NAME2% %NAME2% %NAME2% HW ? %IND1% DE %IND2% {KN}',
+  '%IND2% DE %IND1% FB DR %NAME2% IN %QTH2% HR RTX IS TS50 TS50 PWR IS %PWR1%W %PWR1%W ANT IS VERT VERT WX WX IS CLOUDY CLOUDY TEMP 15C = NW QRU QRU TNX FER NICE QSO = PSE QSL MY QSL SURE VIA BURO 73 73 ES CUAGN CIAO %IND2% DE %IND1% {SK} {SK}  I',
+  '%IND1% DE %IND2% R R OK DR %NAME1% FB HR RTX IS YAESU FT920 FT920 ANT IS DIPOLE DIPOLE WX WX FINE TEMP 30C TNX FER FB QSO QSL OK OK 73 73 GL GB %IND1% DE %IND2% {SK} {SK} I'
   ];
 var keystates = {
   'playpause': false,
@@ -216,6 +219,8 @@ async function generateText() {
       }
       cwgentext = generateRandomString(letters, 1);
     } else if (cw_options.lesson==44) {
+      cwgentext = generateRandomText(PROSIGNS, 1, cw_options.groupsnb);
+    } else if (cw_options.lesson==45) {
       let callsign1 = generateRandomCallsign();
       let callsign2 = generateRandomCallsign(callsign1);
       let name1 = generateRandomFirstname();
@@ -231,7 +236,7 @@ async function generateText() {
           .replaceAll('%RST2%', generateRandomRST())
           .replaceAll('%PWR1%', ''+irand(1, 10)*10)
           .replaceAll('%PWR2%', ''+irand(1, 10)*10);
-    } else if (cw_options.lesson==45) {
+    } else if (cw_options.lesson==46) {
       cwgentext = await generateFreeText();
     } else {
       let letters = null;
@@ -566,10 +571,11 @@ async function verifycw(e) {
     }
     if (cwplayer.Playing) cwplayer.stop();
     cwsbm.disabled = true;
-    let extractfn = (t) => [CWPlayer.cleanText(t.trim()).replaceAll('\t', ' ')];
-    // hormis pour les QSOs on travaille par mot => on recompare mot par mot
-    if (cw_options.lesson <= 43) {
-      extractfn = (t) => CWPlayer.cleanText(t.trim()).replaceAll('\t', ' ').split(' ').filter(e => e.length > 0);
+    let cleanText = (t) => CWPlayer.cleanText(t.trim()).replaceAll('\t', ' ').replaceAll(/[{}]/g, '');
+    let extractfn = (t) => [cleanText(t)];
+    // hormis pour les QSOs et le texte libre on travaille par mot => on recompare mot par mot
+    if (cw_options.lesson <= 44) {
+      extractfn = (t) => cleanText(t).split(' ').filter(e => e.length > 0);
     }
     let inpt = extractfn(cwtext.value);
     let verif = extractfn(cwplayer.Text);
@@ -686,6 +692,8 @@ async function listen(text, elem) {
   if (elem) elem.classList.add('active');
   cwsbm.disabled = true;
   cwplayer.PreDelay=0.05;
+  // Prosigns
+  if (cw_options.lesson == 44) text = `{${text}}`;
   cwplayer.play(text);
 }
 async function selfDownload() {
@@ -1247,7 +1255,10 @@ async function updateValues() {
   zonefree.style.display = cw_options.simple_mode?'block':'none';
   zonekoch.style.display = !cw_options.simple_mode&&!cw_options.learn_mode?'block':'none';
   zonelearn.style.display = cw_options.learn_mode?'block':'none';
-  zonewords.style.display = sellesson.value < 42?'block':'none';
+  zonewords.style.display = sellesson.value < 45?'block':'none';
+  grplen.disabled = sellesson.value >= 44;
+  grplen.title = grplen.disabled ? 'disabled in this mode' : '';
+  grplen.previousElementSibling.title = grplen.title;
   chkweightlastletterswrapper.style.display = !cw_options.learn_mode && !cw_options.freelisten && sellesson.value < 41?'block':'none';
   chkfreelistenwrapper.style.visibility = !cw_options.learn_mode?'visible':'hidden';
   speechvoices.style.display = window.anyvoice && cw_options.learn_mode?'block':'none';

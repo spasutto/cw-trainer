@@ -30,7 +30,12 @@ player.Text = "StrÀngé ïnpùt tèxt";
 console.log(player.Text);
 // 'STRANGE INPUT TEXT'
 ```
- - **Index** : get or set the playing's index (in the Text property)
+Prosigns can be entered between `{` and `}` and will be played as prosigns :
+```Javascript
+player.Text = "VE3YYY de F8XXX {AS}";
+```
+ - **TextArray** : get an array of the current text, including prosigns. Each element is either a *letter/number/punctuation* or a *prosign*.
+ - **Index** : get or set the playing's index (**in the TextArray property !**)
 
 ## Methods
 ### _constructor(options)_
@@ -92,6 +97,11 @@ Translate to Morse the specified text :
 let translated = CWPlayer.translate("Bonjour");
 console.log(translated);
 // '-... --- -. .--- --- ..- .-.'
+
+// Prosigns
+translated = CWPlayer.translate('{AS}');
+console.log(translated);
+// '.-...'
 ```
 
 ### static cleanText(text)

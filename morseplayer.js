@@ -238,6 +238,16 @@ class CWPlayer {
     }
   }
   get Recording() { return this.recording; }
+  get TextArray() {
+    let prosign = false;
+    let tmparr = [];
+    return this.text.split('').reduce((acc, cur) => {
+      if (cur == '{') prosign = true;
+      else if (cur == '}') {prosign = false;acc.push(tmparr.join(''));tmparr=[];}
+      else (prosign?tmparr:acc).push(cur);
+      return acc;
+    }, []);
+  }
   get Text() {
     return this.text;
   }
@@ -250,11 +260,13 @@ class CWPlayer {
       this.text = value;
       this.totaltime = this.getDuration();
       this.fireEvent('parameterchanged', 'Text');
+      this.fireEvent('parameterchanged', 'TextArray');
       this.Index = -1;
     } else {
       this.text = value;
       this.totaltime = this.getDuration();
       this.fireEvent('parameterchanged', 'Text');
+      this.fireEvent('parameterchanged', 'TextArray');
       this.fireEvent('indexchanged');
       if (this.playing) {
         //this.itime.findIndex(s => s >= this.context.currentTime + 0.100);
@@ -335,11 +347,14 @@ class CWPlayer {
   static parseint(value) { value = (typeof value === 'string') ? parseInt(value.trim(), 10) : value; return value = isNaN(value) ? 0 : value; }
   static parsefloat(value) { value = (typeof value === 'string') ? parseFloat(value.trim()) : value; return value = isNaN(value) ? 0 : value; }
   static cleanText(text) {
-    return text.normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+    text = text.normalize("NFD").replace(/[\u0300-\u036f]/g, "")
       .toUpperCase()
       .replaceAll(/((\r?\n)|\t)+/g, '  ') // retour à la ligne/tabulation : deux espaces
-      .replaceAll(/[^A-Z0-9/+=.,"$'()[\]\-:;@_!?¶& ]/g, '?')
+      .replaceAll(/[^A-Z0-9/+=.,"$'(){}[\]\-:;@_!?¶& ]/g, '?')
       /*.replaceAll(/\s+/g, ' ')*/;
+    let r = [...text.matchAll(/({[^{}]*})/g)].map(e => e[0]);//.replaceAll(/[^a-z{}]/g, '')
+    r.forEach(t => text = text.replaceAll(t, t.replaceAll(/[^A-Z{}]/g, '')));
+    return text;
   }
   static translate(text) {
     text = CWPlayer.cleanText(text);
@@ -348,8 +363,16 @@ class CWPlayer {
   static isSpace(c) { return c == ' ' || c == '\t'; }
   static internalTranslate(text) {
     let cwtext = '';
+    let prosign = false;
     for (let i=0; i<text.length; i++) {
-      if (i>0 && !CWPlayer.isSpace(text[i-1]) && !CWPlayer.isSpace(text[i])) cwtext += ' '; // on rajoute un espace après tout caractère (sauf si le celui-ci ou le courant est un espace)
+      if (text[i] == '{') {
+        prosign = true;
+        continue;
+      } else if (text[i] == '}') {
+        prosign = false;
+        continue;
+      }
+      if (!prosign && i>0 && !CWPlayer.isSpace(text[i-1]) && !CWPlayer.isSpace(text[i])) cwtext += ' '; // on rajoute un espace après tout caractère (sauf si le celui-ci ou le courant est un espace)
       cwtext += CWPlayer.morse[text[i]] ?? CWPlayer.morse['?'];
     }
     return cwtext;
@@ -1152,6 +1175,7 @@ class MorsePlayer extends HTMLElement {
   set KeyingQuality(value) { this.cwplayer.KeyingQuality = value; }
   get PreDelay() { return this.cwplayer.PreDelay; }
   set PreDelay(value) { this.cwplayer.PreDelay = value; }
+  get TextArray() { return this.cwplayer.TextArray; }
   get Text() { return this.cwplayer.Text; }
   set Text(value) { this.cwplayer.Text = value; }
   get Index() { return this.cwplayer.Index; }
@@ -1282,12 +1306,12 @@ class MorsePlayer extends HTMLElement {
     let playing = this.cwplayer.Playing;
     let idx = this.cwplayer.Index+1;
     if (idx<=0) {
-      idx = this.cwplayer.Text.length;
+      idx = this.cwplayer.TextArray.length;
     }
     let trc = this.clearzone.rows[0];
     let trm = this.clearzone.rows[1];
     trc.innerHTML = trm.innerHTML = '';
-    let text = this.cwplayer.Text.substring(0, idx).split('');
+    let text = this.cwplayer.TextArray.slice(0, idx);
     let title = 'set the playing to this symbol';
     text.forEach((c,i) => {
       let caction = (e) => {this.cwplayer.Index = e.srcElement?.dataset?.index;};
@@ -1303,7 +1327,7 @@ class MorsePlayer extends HTMLElement {
       cell.dataset.index = i;
       cell.addEventListener('click', caction);
       if (lastcell) cell.classList.add('lastchar');
-      cell.innerHTML = CWPlayer.translate(c);
+      cell.innerHTML = CWPlayer.translate(c.length>1?`{${c}}`:c);
     });
   }
 }

@@ -63,7 +63,12 @@ player.Text = "StrÀngé ïnpùt tèxt";
 console.log(player.Text);
 // 'STRANGE INPUT TEXT'
 ```
- - **Index** : get or set the playing's index (in the Text property)
+Prosigns can be entered between `{` and `}` and will be played as prosigns :
+```Javascript
+player.Text = "VE3YYY de F8XXX {AS}";
+```
+ - **TextArray** : get an array of the current text, including prosigns. Each element is either a *letter/number/punctuation* or a *prosign*.
+ - **Index** : get or set the playing's index (**in the TextArray property !**)
  - **ProgressBar** : display/hide the progress bar
  - **ClearZone** : display/hide the clear text zone (currently playing)
  - **ConfigButton** : display/hide the settings button
