@@ -27,7 +27,7 @@ const NUMBERS = "0123456789";
 const SYMBOLS = "/+=.,\"$'()[]-:;@_!?¶&";
 //https://www.qsl.net/ae0q/prosign.htm  https://m0juw.co.uk/prosigns-in-morse-code/  https://www.radioqth.net/morsecode https://www.kent-engineers.com/prosigns.htm
 // https://www.kb6nu.com/cw-geeks-no-nonsense-guide-to-having-fun-with-morse-code-prosigns/
-const PROSIGNS = ['{AR}', '{AS}', '{BK}', '{BT}', '{CL}', '{CT}', 'K', '{KN}', 'R', '{SK}', '{SN}', '{VA}', '{VE}', '{EEEEEEEE}'];
+const PROSIGNS = ['{AR}', '{AS}', '{BK}', '{BT}', '{CL}', '{CT}', '{KN}', '{SK}', '{SN}', '{VA}', '{VE}', '{EEEEEEEE}'];
 var QSOs = [
   //http://lidscw.org/resources/cq-qso-template
   'CQ CQ CQ DE %IND1% %IND1% %IND1% PSE K',
