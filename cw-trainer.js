@@ -492,6 +492,18 @@ async function tryspeak(letter) {
     }
   });
 }
+function compareProsigns(ps1, ps2) {
+  let cleanText = t => (t??'').replaceAll(/[^A-Z]/g, '');
+  ps1 = cleanText(ps1);
+  ps2 = cleanText(ps2);
+  let valid = CWPlayer.translate(`{${ps1}}`)==CWPlayer.translate(`{${ps2}}`);
+  return {
+    'str1':ps1,
+    'str2':ps2,
+    'errors':valid?0:1,
+    'sequences':valid?[{'isrc':0,'idst':0,'text':ps2}]:[]
+  }
+}
 async function verifycw(e) {
   if (!cwplayer || cwchecking) return;
   cwchecking = true;
@@ -571,6 +583,7 @@ async function verifycw(e) {
     }
     if (cwplayer.Playing) cwplayer.stop();
     cwsbm.disabled = true;
+    let comparefn = cw_options.lesson == 44 ? compareProsigns : compareStrings;
     let cleanText = (t) => CWPlayer.cleanText(t.trim()).replaceAll('\t', ' ').replaceAll(/[{}]/g, '');
     let extractfn = (t) => [cleanText(t)];
     // hormis pour les QSOs et le texte libre on travaille par mot => on recompare mot par mot
@@ -579,7 +592,7 @@ async function verifycw(e) {
     }
     let inpt = extractfn(cwtext.value);
     let verif = extractfn(cwplayer.Text);
-    let results = verif.map((a, i) => compareStrings(a, inpt[i] ?? ''));
+    let results = verif.map((a, i) => comparefn(a, inpt[i] ?? ''));
     let nbchars = verif.reduce((acc, cur) => acc+cur.length, 0);
     let nberr = results.reduce((acc, cur) => acc+cur.errors, 0);
     let maxerrs = nberr;
@@ -596,7 +609,7 @@ async function verifycw(e) {
           }
         }
         inpt = newinpts;
-        results = verif.map((a, i) => compareStrings(a, inpt[i] ?? ''));
+        results = verif.map((a, i) => comparefn(a, inpt[i] ?? ''));
         nberr = results.reduce((acc, cur) => acc+cur.errors, 0);
       }
     }
@@ -620,7 +633,7 @@ async function verifycw(e) {
             for (let y=0; y<nbtofill; y++) {
               inpttmp.splice(perm[y], 0, '');
             }
-            results = verif.map((a, i) => compareStrings(a, inpttmp[i] ?? ''));
+            results = verif.map((a, i) => comparefn(a, inpttmp[i] ?? ''));
             nberr = results.reduce((acc, cur) => acc+cur.errors, 0);
             if (nberr < temperr) {
               temperr = nberr;
@@ -638,7 +651,7 @@ async function verifycw(e) {
           for (let y=0; y<nbtofill; y++) {
             inpt.splice(minerrindice[y], 0, '');
           }
-          results = verif.map((a, i) => compareStrings(a, inpt[i] ?? ''));
+          results = verif.map((a, i) => comparefn(a, inpt[i] ?? ''));
           nberr = results.reduce((acc, cur) => acc+cur.errors, 0);
         }
       } else {
