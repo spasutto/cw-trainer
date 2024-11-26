@@ -392,11 +392,11 @@ function formatTestString(ret) {
 function key(value) {
   if (overlayloading.style.display==='flex') return;
   if (cw_options.simple_mode) {
-    iptfree.value+=value;
+    iptfree.value=value;
     iptfree.focus();
     verifycw();
   } else if (cw_options.learn_mode) {
-    iptlearn.value+=value;
+    iptlearn.value=value;
     iptlearn.focus();
     verifycw();
   } else {
