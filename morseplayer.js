@@ -242,9 +242,16 @@ class CWPlayer {
     let prosign = false;
     let tmparr = [];
     return this.text.split('').reduce((acc, cur) => {
-      if (cur == '{') prosign = true;
-      else if (cur == '}') {prosign = false;acc.push(tmparr.join(''));tmparr=[];}
-      else (prosign?tmparr:acc).push(cur);
+      if (cur == '{') {
+        prosign = true;
+      } else if (cur == '}') {
+        prosign = false;
+        if(tmparr.length) acc.push(tmparr.join(''));
+        tmparr=[];
+      }
+      else {
+        (prosign?tmparr:acc).push(cur);
+      }
       return acc;
     }, []);
   }
@@ -344,14 +351,33 @@ class CWPlayer {
     }
   }
   static parsebool(value) { return (typeof value === 'string') ? value.trim().toLowerCase() == 'true' : !!value; }
-  static parseint(value) { value = (typeof value === 'string') ? parseInt(value.trim(), 10) : value; return value = isNaN(value) ? 0 : value; }
-  static parsefloat(value) { value = (typeof value === 'string') ? parseFloat(value.trim()) : value; return value = isNaN(value) ? 0 : value; }
+  static parseint(value) { value = (typeof value === 'string') ? parseInt(value.trim(), 10) : value; return isNaN(value) ? 0 : value; }
+  static parsefloat(value) { value = (typeof value === 'string') ? parseFloat(value.trim()) : value; return isNaN(value) ? 0 : value; }
   static cleanText(text) {
     text = text.normalize("NFD").replace(/[\u0300-\u036f]/g, "")
       .toUpperCase()
       .replaceAll(/((\r?\n)|\t)+/g, '  ') // retour à la ligne/tabulation : deux espaces
       .replaceAll(/[^A-Z0-9/+=.,"$'(){}[\]\-:;@_!?¶& ]/g, '?')
+      .trim()
       /*.replaceAll(/\s+/g, ' ')*/;
+    let i=-1, j=0, k=0;
+    do {
+      i = text.indexOf('{', i+1);
+      if (i>=0) {
+        i++;
+        j = text.indexOf('}', i);
+        k = text.indexOf('{', i);
+        if (k >= 0 && j>k) {
+          text = text.substring(0, i-1)+text.substring(i);
+          i = k;
+        } else if (j>=0) {
+          i = j+1;
+        } else {
+          text += '}';
+          i-=2;
+        }
+      }
+    } while (i>=0);
     let r = [...text.matchAll(/({[^{}]*})/g)].map(e => e[0]);//.replaceAll(/[^a-z{}]/g, '')
     r.forEach(t => text = text.replaceAll(t, t.replaceAll(/[^A-Z{}]/g, '')));
     return text;

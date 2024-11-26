@@ -329,14 +329,14 @@
   
   <h3>Events</h3>
   <template name="sample">
-    <input type="button" onclick="player2.play('morse')" value="play">
+    <input type="button" onclick="player2.play('morse {AR}')" value="play">
     <input type="button" onclick="player2.stop()" value="stop">
 
     <script>
       var player2 = new CWPlayer({wpm: 25, effwpm: 20});
       player2.on('indexchanged', () => {
         if (player2.Index>-1) {
-          console.log('playing ' + player2.Text[player2.Index]);
+          console.log(`playing '${player2.TextArray[player2.Index]}'`);
         }
       });
       player2.on('parameterchanged', (param) => {
