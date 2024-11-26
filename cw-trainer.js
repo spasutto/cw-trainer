@@ -771,7 +771,7 @@ function generateKeyboard() {
   let keybhtml = '';
   Object.keys(CWPlayer.morse).forEach(c => {
     if ((c>='A'&&c<='Z') || c==' ') return;
-    else if (c == '"') c = '\\"';
+    else if (c == '"') c = '&quot;';
     keybhtml += `<input type="button" value="${c}">`;
     if (c == '9') keybhtml += '<BR>';
   });
