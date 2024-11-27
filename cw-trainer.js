@@ -3,6 +3,9 @@ const HASHSEP = '_';
 const DIT_SYMBOL = '<svg viewBox="0 0 150 100" height="22px" xmlns="http://www.w3.org/2000/svg"><circle cx="75" cy="50" r="50" /></svg>';
 const DAH_SYMBOL = '<svg viewBox="0 0 260 100" height="22px" xmlns="http://www.w3.org/2000/svg"><rect x="25" width="210" height="100" rx="15" /></svg>';
 const FREETEXT_URL = 'https://raw.githubusercontent.com/spasutto/cw-trainer/main/freetext/CharlesDickens-OliverTwist.txt';
+const MINIFIER_URLS = ['https://cdn.jsdelivr.net/npm/source-map@0.7.3/dist/source-map.js', 'https://cdn.jsdelivr.net/npm/terser/dist/bundle.min.js'];
+const COMPRESS_URL = 'https://unpkg.com/fflate@0.8.2';
+const BASE64_URL = 'https://cdn.jsdelivr.net/npm/js-base64@3.7.7/base64.min.js';
 const synth = window.speechSynthesis;
 var cwchecking = false;
 var maxlessons = -1;
@@ -394,11 +397,11 @@ function key(value) {
   if (cw_options.simple_mode) {
     iptfree.value=value;
     iptfree.focus();
-    verifycw();
+    verifyCW();
   } else if (cw_options.learn_mode) {
     iptlearn.value=value;
     iptlearn.focus();
-    verifycw();
+    verifyCW();
   } else {
     cwtext.value+=value;
     cwtext.focus();
@@ -422,7 +425,7 @@ function combinaisons(array, length, action) {
     return ret;
   });
 }
-function trypopulatevoices() {
+function tryPopulateVoices() {
   if (window.anyvoice) return;
   window.voices = [];
   try {
@@ -468,7 +471,7 @@ function trypopulatevoices() {
     speechvoices.style.display = cw_options.learn_mode?'block':'none';
   } catch(e) {console.error(e);}
 }
-async function tryspeak(letter) {
+async function trySpeak(letter) {
   return new Promise(res => {
     try {
       if (typeof synth?.speaking !== 'boolean' || window.speechvoice?.lang == 'deactivated') {
@@ -504,7 +507,7 @@ function compareProsigns(ps1, ps2) {
     'sequences':valid?[{'isrc':0,'idst':0,'text':ps2}]:[]
   }
 }
-async function verifycw(e) {
+async function verifyCW(e) {
   if (!cwplayer || cwchecking) return;
   cwchecking = true;
   if (cw_options.learn_mode) {
@@ -517,10 +520,10 @@ async function verifycw(e) {
     iptlearnmorse.innerHTML = '';
     await cwplayer.stop();
     await cwplayer.play(cwcar);
-    await Promise.race([tryspeak(cwcar), CWPlayer.delay(2)]);
+    await Promise.race([trySpeak(cwcar), CWPlayer.delay(2)]);
     cwchecking = false;
     let tr = CWPlayer.translate(cwcar).split('').filter(s => ['.','-'].includes(s)).map(s => s == '.' ? DIT_SYMBOL : DAH_SYMBOL).join('');;
-    iptlearnmorse.innerHTML = `<a href="#" onclick="verifycw();return false;" title="replay">${tr}</a>`;
+    iptlearnmorse.innerHTML = `<a href="#" onclick="verifyCW();return false;" title="replay">${tr}</a>`;
     await CWPlayer.delay(1);
     iptlearn.classList.remove('blue', 'nocarret');
   } else if (cw_options.simple_mode) {
@@ -710,6 +713,45 @@ async function listen(text, elem) {
   if (cw_options.lesson == 44) text = `{${text}}`;
   cwplayer.play(text);
 }
+async function tryMinify(js) {
+  return new Promise(async res => {
+    try {
+      let minifierjs = await Promise.all(MINIFIER_URLS.map(url => getUrl(url, true)));
+      minifierjs.forEach(eval);
+      let minjs = (await Terser.minify(js))?.code ?? js;
+      res(minjs);
+    } catch (e) {
+      console.error(e);
+      res(js);
+    }
+  });
+}
+async function tryCompress(js) {
+  return new Promise(async res => {
+    try {
+      let compressjs = await getUrl(COMPRESS_URL, true);
+      eval(compressjs);
+      let base64js = await getUrl(BASE64_URL, true);
+      eval(base64js);
+      const buf = fflate.strToU8(js);
+      const zippedjs = fflate.compressSync(buf);
+      minjs = `try {
+  ${compressjs}
+  ${base64js}
+  const decompressed = fflate.decompressSync(Base64.toUint8Array('${Base64.fromUint8Array(zippedjs)}'));
+  eval(new TextDecoder().decode(decompressed));
+} catch (e) {
+  console.error(e);
+  alert('Error during initialization. Either the download was corrupted or your browser is too old!!!');
+}
+`;
+      res(minjs);
+    } catch (e) {
+      console.error(e);
+      res(js);
+    }
+  });
+}
 async function selfDownload() {
   loading();
   let dlpromises = [getUrl(window.location.href, true)];
@@ -722,25 +764,8 @@ async function selfDownload() {
     loading(false);
     return;
   }
-  const regscript = /<script\s+src\s*=\s*"([^"]+)"\s*>\s*<\/script>/gi;
-  let occ = [...page.matchAll(regscript)];
-  let script = '';
-  for (let i=0; i<occ.length; i++) {
-    let s = await getUrl(occ[i][1], true);
-    if (!s) continue;
-    script += s + '\n';
-    if (i>0) {
-      page = page.replace(occ[i][0], '');
-    }
-  }
-  if (ot) {
-    script += 'var freetext = `'+ot.replaceAll('`', '\\`')+'`;\n';
-  }
-  if (script) {
-    page = page.replace(occ[0][0], '\u003cscript\u003e\n'+script.replaceAll('$', '$$$$')+'\u003c/script\u003e');
-  }
   const regstyle = /<link\s+[^>]*href\s*=\s*"([^"]+)"[^>]*>/gi;
-  occ = [...page.matchAll(regstyle)];
+  let occ = [...page.matchAll(regstyle)];
   for (let i=0; i<occ.length; i++) {
     let icon = occ[i][0].indexOf('icon') > -1;
     let data = await getUrl(occ[i][1], true, icon) ?? '';
@@ -756,6 +781,26 @@ async function selfDownload() {
       data = '\u003cstyle\u003e\n'+data.replaceAll('$', '$$$$')+'\u003c/style\u003e';
     }
     page = page.replace(occ[i][0], data)
+  }
+  const regscript = /<script\s+src\s*=\s*"([^"]+)"\s*>\s*<\/script>/gi;
+  occ = [...page.matchAll(regscript)];
+  let script = '';
+  for (let i=0; i<occ.length; i++) {
+    let s = await getUrl(occ[i][1], true);
+    if (!s) continue;
+    script += s + '\n';
+    if (i>0) {
+      page = page.replace(occ[i][0], '');
+    }
+  }
+  let compfn = tryMinify;
+  if (ot) {
+    compfn = tryCompress;
+    script += 'var freetext = `'+ot.replaceAll('`', '\\`')+'`;\n';
+  }
+  if (script) {
+    script = await compfn(script);
+    page = page.replace(occ[0][0], '\u003cscript\u003e\n'+script.replaceAll('$', '$$$$')+'\u003c/script\u003e');
   }
   let url = window.URL.createObjectURL(new Blob([page], {type: 'text/plain'}));
   let a = document.createElement('a');
@@ -1010,7 +1055,7 @@ window.addEventListener("load", async () => {
     cwplayer.EWS = selews.value;
     selews.value = cwplayer.EWS;
   });
-  cwsbm.addEventListener("click", verifycw);
+  cwsbm.addEventListener("click", verifyCW);
   retrybtn.addEventListener("click", updateValues);
   prevlesson.addEventListener("click", () => {
     sellesson.value = Math.min(maxlessons, Math.max(1, parseInt(sellesson.value, 10)-1));
@@ -1028,12 +1073,12 @@ window.addEventListener("load", async () => {
     if (!cw_options.freelisten) return;
     cwplayer.Text = cwtext.value;
   });
-  iptfree.addEventListener("keyup", verifycw);
+  iptfree.addEventListener("keyup", verifyCW);
   iptlearn.addEventListener("keydown", _ => {
     if (cwchecking) return;
     iptlearn.value='';
   });
-  iptlearn.addEventListener("keyup", verifycw);
+  iptlearn.addEventListener("keyup", verifyCW);
   cwtitle.addEventListener("dblclick", () => {
     cwplayer.ClearZone = !cwplayer.ClearZone;
     if (cwplayer.ClearZone) {
@@ -1050,9 +1095,9 @@ window.addEventListener("load", async () => {
     updateValues();
   });
   if (typeof synth?.onvoiceschanged === 'object') {
-    synth.onvoiceschanged = trypopulatevoices;
+    synth.onvoiceschanged = tryPopulateVoices;
   }
-  trypopulatevoices();
+  tryPopulateVoices();
 });
 window.addEventListener("error", (e) => {
   let err = e;
