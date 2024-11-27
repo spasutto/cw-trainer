@@ -1271,13 +1271,6 @@ async function updateValues() {
     sellesson.value = 43;
   }
   cwplayer.PreDelay = cw_options.learn_mode || cw_options.simple_mode || cw_options.freelisten ? 0.05 : 2;
-  if (cw_options.simple_mode) {
-    iptfree.focus();
-  } else if (cw_options.learn_mode) {
-    iptlearn.focus();
-  } else {
-    cwtext.focus();
-  }
   iptfree.value = cwtext.value = '';
   [...document.querySelectorAll("label[for='seleffwpm'], #seleffwpm")].forEach(e => {
     e.disabled = cw_options.simple_mode || cw_options.learn_mode;
@@ -1332,6 +1325,13 @@ async function updateValues() {
     || (a.dataset.mode == 'learn' && cw_options.learn_mode)) a.classList.add('active');
     else a.classList.remove('active');
   });
+  if (cw_options.simple_mode) {
+    iptfree.focus();
+  } else if (cw_options.learn_mode) {
+    iptlearn.focus();
+  } else {
+    cwtext.focus();
+  }
   saveParams();
 
   await generateText();
