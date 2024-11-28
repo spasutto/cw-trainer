@@ -739,7 +739,7 @@ async function tryCompress(js) {
   ${compressjs}
   ${base64js}
   const decompressed = fflate.decompressSync(Base64.toUint8Array('${Base64.fromUint8Array(zippedjs)}'));
-  eval(new TextDecoder().decode(decompressed));
+  eval(fflate.strFromU8(decompressed));
 } catch (e) {
   console.error(e);
   alert('Error during initialization. Either the download was corrupted or your browser is too old!!!');
