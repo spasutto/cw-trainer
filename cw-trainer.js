@@ -785,8 +785,8 @@ async function selfDownload() {
   }
   let compress = false, compressjs = '', base64js = '';
   if (ot) {
-    [compressjs, base64js] = tryLoadFFlate();
-    compress = compressjs.length && base64js.length;
+    [compressjs, base64js] = await tryLoadFFlate();
+    compress = compressjs.length>0 && base64js.length>0;
     script += 'var freetext = `'+ot.replaceAll('`', '\\`')+'`;\n';
   }
   if (!compress && css.length) {
@@ -796,7 +796,7 @@ async function selfDownload() {
     script = await tryMinify(script);
     if (compress) {
       let compressfn = (str) => Base64.fromUint8Array(fflate.compressSync(fflate.strToU8(str)));
-      let script = `try {
+      script = `try {
   ${compressjs}
   ${base64js}
   let js='${compressfn(script)}';
