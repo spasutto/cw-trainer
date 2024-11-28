@@ -726,29 +726,17 @@ async function tryMinify(js) {
     }
   });
 }
-async function tryCompress(js) {
+async function tryLoadFFlate() {
   return new Promise(async res => {
     try {
       let compressjs = await getUrl(COMPRESS_URL, true);
       eval(compressjs);
       let base64js = await getUrl(BASE64_URL, true);
       eval(base64js);
-      const buf = fflate.strToU8(js);
-      const zippedjs = fflate.compressSync(buf);
-      minjs = `try {
-  ${compressjs}
-  ${base64js}
-  const decompressed = fflate.decompressSync(Base64.toUint8Array('${Base64.fromUint8Array(zippedjs)}'));
-  eval(fflate.strFromU8(decompressed));
-} catch (e) {
-  console.error(e);
-  alert('Error during initialization. Either the download was corrupted or your browser is too old!!!');
-}
-`;
-      res(minjs);
+      res([compressjs, base64js]);
     } catch (e) {
       console.error(e);
-      res(js);
+      res(['','']);
     }
   });
 }
@@ -764,12 +752,13 @@ async function selfDownload() {
     loading(false);
     return;
   }
-  const regstyle = /<link\s+[^>]*href\s*=\s*"([^"]+)"[^>]*>/gi;
+  const regstyle = /<link\s+[^>]*href\s*=\s*"([^"]+)"[^>]*>\s*\r?\n?/gi;
+  let css = '';
   let occ = [...page.matchAll(regstyle)];
   for (let i=0; i<occ.length; i++) {
-    let icon = occ[i][0].indexOf('icon') > -1;
-    let data = await getUrl(occ[i][1], true, icon) ?? '';
-    if (icon) {
+    let isicon = occ[i][0].indexOf('icon') > -1;
+    let data = await getUrl(occ[i][1], true, isicon) ?? '';
+    if (isicon) {
       let bdata = '';
       let bytes = new Uint8Array(data);
       let len = bytes.byteLength;
@@ -777,12 +766,13 @@ async function selfDownload() {
         bdata += String.fromCharCode( bytes[ i ] );
       }
       data = `\u003clink rel="icon" type="image/x-icon" href="data:image/x-icon;base64, ${window.btoa(bdata)}">`;
+      page = page.replace(occ[i][0], data);
     } else if (data.trim().length > 0) {
-      data = '\u003cstyle\u003e\n'+data.replaceAll('$', '$$$$')+'\u003c/style\u003e';
+      css += data+'\n';
+      page = page.replace(occ[i][0], '');
     }
-    page = page.replace(occ[i][0], data)
   }
-  const regscript = /<script\s+src\s*=\s*"([^"]+)"\s*>\s*<\/script>/gi;
+  const regscript = /<script\s+src\s*=\s*"([^"]+)"\s*>\s*<\/script>\s*\r?\n?/gi;
   occ = [...page.matchAll(regscript)];
   let script = '';
   for (let i=0; i<occ.length; i++) {
@@ -793,13 +783,38 @@ async function selfDownload() {
       page = page.replace(occ[i][0], '');
     }
   }
-  let compfn = tryMinify;
+  let compress = false, compressjs = '', base64js = '';
   if (ot) {
-    compfn = tryCompress;
+    [compressjs, base64js] = tryLoadFFlate();
+    compress = compressjs.length && base64js.length;
     script += 'var freetext = `'+ot.replaceAll('`', '\\`')+'`;\n';
   }
+  if (!compress && css.length) {
+    page = page.replace('\u003c/body\u003e\n', '\u003cstyle\u003e\n'+css.replaceAll('$', '$$$$')+'\u003c/style\u003e\n\u003c/body\u003e\n');
+  }
   if (script) {
-    script = await compfn(script);
+    script = await tryMinify(script);
+    if (compress) {
+      let compressfn = (str) => Base64.fromUint8Array(fflate.compressSync(fflate.strToU8(str)));
+      let script = `try {
+  ${compressjs}
+  ${base64js}
+  let js='${compressfn(script)}';
+  let css='${compressfn(css)}';
+  let decompfn = (str) => fflate.strFromU8(fflate.decompressSync(Base64.toUint8Array(str)));
+  eval(decompfn(js));
+  if (css.length) {
+    let style = document.createElement('style');
+    document.body.appendChild(style);
+    style.type = 'text/css';
+    style.appendChild(document.createTextNode(decompfn(css)));
+  }
+} catch (e) {
+  console.error(e);
+  alert('Error during initialization. Either the download was corrupted or your browser is too old!!!');
+}
+`;
+    }
     page = page.replace(occ[0][0], '\u003cscript\u003e\n'+script.replaceAll('$', '$$$$')+'\u003c/script\u003e');
   }
   let url = window.URL.createObjectURL(new Blob([page], {type: 'text/plain'}));
