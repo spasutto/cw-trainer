@@ -805,7 +805,7 @@ async function selfDownload() {
   eval(decompfn(js));
   if (css.length) {
     let style = document.createElement('style');
-    document.body.appendChild(style);
+    document.head.appendChild(style);
     style.type = 'text/css';
     style.appendChild(document.createTextNode(decompfn(css)));
   }
