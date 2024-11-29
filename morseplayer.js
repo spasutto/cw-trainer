@@ -101,14 +101,14 @@ class CWPlayer {
   }
 
   /*CONSTANTES*/
-  static get MIN_WPM() { return 1; };
-  static get MAX_WPM() { return 60; };
-  static get MIN_EWS() { return 0; };
-  static get MAX_EWS() { return 10; };
-  static get MIN_TONE() { return 100; };
-  static get MAX_TONE() { return 5000; };
-  static get MIN_KEYQUAL() { return 0.5; };
-  static get MAX_KEYQUAL() { return 1; };
+  static get MIN_WPM() { return 1; }
+  static get MAX_WPM() { return 60; }
+  static get MIN_EWS() { return 0; }
+  static get MAX_EWS() { return 10; }
+  static get MIN_TONE() { return 100; }
+  static get MAX_TONE() { return 5000; }
+  static get MIN_KEYQUAL() { return 0.5; }
+  static get MAX_KEYQUAL() { return 1; }
   /*FIN CONSTANTES*/
 
   get Options() { return {...this.options}; }
@@ -664,7 +664,7 @@ class CWPlayer {
         isFloat: true,       // floating point or 16-bit integer
         numChannels: 1,
         sampleRate: 44100,
-      })
+      });
       const wav = new Blob([wavBytes], { type: 'audio/wav' });
 
       let url = URL.createObjectURL(wav);
@@ -689,77 +689,76 @@ class CWPlayer {
 class WAV {
   // Returns Uint8Array of WAV bytes
   static getBytes(buffer, options) {
-    const type = options.isFloat ? Float32Array : Uint16Array
-    const numFrames = buffer.byteLength / type.BYTES_PER_ELEMENT
+    const type = options.isFloat ? Float32Array : Uint16Array;
+    const numFrames = buffer.byteLength / type.BYTES_PER_ELEMENT;
   
-    const headerBytes = WAV.getHeader(Object.assign({}, options, { numFrames }))
+    const headerBytes = WAV.getHeader(Object.assign({}, options, { numFrames }));
     const wavBytes = new Uint8Array(headerBytes.length + buffer.byteLength);
   
     // prepend header, then add pcmBytes
-    wavBytes.set(headerBytes, 0)
-    wavBytes.set(new Uint8Array(buffer), headerBytes.length)
+    wavBytes.set(headerBytes, 0);
+    wavBytes.set(new Uint8Array(buffer), headerBytes.length);
   
-    return wavBytes
+    return wavBytes;
   }
   
   // adapted from https://gist.github.com/also/900023
   // returns Uint8Array of WAV header bytes
   static getHeader(options) {
-    const numFrames =      options.numFrames
-    const numChannels =    options.numChannels || 2
-    const sampleRate =     options.sampleRate || 44100
-    const bytesPerSample = options.isFloat? 4 : 2
-    const format =         options.isFloat? 3 : 1
+    const numFrames =      options.numFrames;
+    const numChannels =    options.numChannels || 2;
+    const sampleRate =     options.sampleRate || 44100;
+    const bytesPerSample = options.isFloat? 4 : 2;
+    const format =         options.isFloat? 3 : 1;
   
-    const blockAlign = numChannels * bytesPerSample
-    const byteRate = sampleRate * blockAlign
-    const dataSize = numFrames * blockAlign
+    const blockAlign = numChannels * bytesPerSample;
+    const byteRate = sampleRate * blockAlign;
+    const dataSize = numFrames * blockAlign;
   
-    const buffer = new ArrayBuffer(44)
-    const dv = new DataView(buffer)
+    const buffer = new ArrayBuffer(44);
+    const dv = new DataView(buffer);
   
-    let p = 0
+    let p = 0;
   
     function writeString(s) {
       for (let i = 0; i < s.length; i++) {
-        dv.setUint8(p + i, s.charCodeAt(i))
+        dv.setUint8(p + i, s.charCodeAt(i));
       }
-      p += s.length
+      p += s.length;
     }
   
     function writeUint32(d) {
-      dv.setUint32(p, d, true)
-      p += 4
+      dv.setUint32(p, d, true);
+      p += 4;
     }
   
     function writeUint16(d) {
-      dv.setUint16(p, d, true)
-      p += 2
+      dv.setUint16(p, d, true);
+      p += 2;
     }
   
-    writeString('RIFF')              // ChunkID
-    writeUint32(dataSize + 36)       // ChunkSize
-    writeString('WAVE')              // Format
-    writeString('fmt ')              // Subchunk1ID
-    writeUint32(16)                  // Subchunk1Size
-    writeUint16(format)              // AudioFormat https://i.sstatic.net/BuSmb.png
-    writeUint16(numChannels)         // NumChannels
-    writeUint32(sampleRate)          // SampleRate
-    writeUint32(byteRate)            // ByteRate
-    writeUint16(blockAlign)          // BlockAlign
-    writeUint16(bytesPerSample * 8)  // BitsPerSample
-    writeString('data')              // Subchunk2ID
-    writeUint32(dataSize)            // Subchunk2Size
+    writeString('RIFF');              // ChunkID
+    writeUint32(dataSize + 36);       // ChunkSize
+    writeString('WAVE');              // Format
+    writeString('fmt ');              // Subchunk1ID
+    writeUint32(16);                  // Subchunk1Size
+    writeUint16(format);              // AudioFormat https://i.sstatic.net/BuSmb.png
+    writeUint16(numChannels);         // NumChannels
+    writeUint32(sampleRate);          // SampleRate
+    writeUint32(byteRate);            // ByteRate
+    writeUint16(blockAlign);          // BlockAlign
+    writeUint16(bytesPerSample * 8);  // BitsPerSample
+    writeString('data');              // Subchunk2ID
+    writeUint32(dataSize);            // Subchunk2Size
   
-    return new Uint8Array(buffer)
+    return new Uint8Array(buffer);
   }
 }
 
 class MorsePlayer extends HTMLElement {
   static get TAG() { return "morse-player"; }
   static get SVG_INACTIF() { return 'svg_inactif'; }
-  static observedAttributes = ['player', 'playing', 'paused', 'autoplay', 'wpm', 'effwpm', 'ews', 'tone', 'volume', 'keyingquality', 'predelay', 'text', 'index', 'progressbar', 'clearzone', 'configbutton', 'downloadbutton'];
-  setters = [];
+  static observedAttributes = ['player', 'playing', 'paused', 'autoplay', 'currenttime', 'wpm', 'effwpm', 'ews', 'tone', 'volume', 'keyingquality', 'predelay', 'text', 'index', 'progressbar', 'clearzone', 'configbutton', 'downloadbutton'];
 
   static DEFAULT_OPTIONS = {
     progressBar : true,
@@ -1128,7 +1127,7 @@ class MorsePlayer extends HTMLElement {
         this.btnplay.title = 'start playing';
       }
       return false;
-    }
+    };
     this.btnconfig.onclick = () => {
       this.configzone.style.display = this.configzone.style.display == 'block' ? 'none' : 'block';
       this.btnconfig.classList.toggle('opened');
@@ -1321,7 +1320,7 @@ class MorsePlayer extends HTMLElement {
       } else {
         btn.classList.remove(MorsePlayer.SVG_INACTIF);
       }
-    }
+    };
     applyClass(this.btnstop);
     applyClass(this.btnplay);
     applyClass(this.btnpause);
