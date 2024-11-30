@@ -996,6 +996,10 @@ window.addEventListener("load", async () => {
       cwtext.focus();
     }
   });
+  cwplayer.addEventListener('record', () => {
+    cwplayer.on('stop', _ => loading(false));
+    loading();
+  });
   cwplayer.addEventListener('parameterchanged', (arg) => {
     if (arg == 'AutoPlay') {
       message(`Autoplay ${cwplayer.AutoPlay?'':'de'}activated!`);

@@ -328,25 +328,29 @@ class CWPlayer {
 
   fireEvent(evtname, args) {
     if (!this.events[evtname]) return;
-    this.events[evtname].forEach(evt => {if (typeof evt === 'function') evt(args);});
+    this.events[evtname].forEach(evt => {
+      evt.func(args);
+      if (evt.once) this.removeEventListener(evtname, evt.func);
+    });
   }
-  addEventListener(evtname, cb) {
+  addEventListener(evtname, cb, once=false) {
+    if (typeof cb !== 'function') return;
     if (!this.events[evtname]) this.events[evtname] = [];
-    this.events[evtname].push(cb);
+    this.events[evtname].push({'func':cb, 'once':once});
   }
-  on(evtname, cb) { return this.addEventListener(evtname, cb); }
+  on(evtname, cb) { this.addEventListener(evtname, cb, true); }
   removeEventListener(evtname, cb=null) {
     if (typeof evtname === 'function') {
       cb = evtname;
       Object.keys(this.events).forEach(k => {
-        this.events[k] = this.events[k].filter(cb2 => cb2!==cb);
+        this.events[k] = this.events[k].filter(cb2 => cb2.func!==cb);
       });
     } else {
       if (!this.events[evtname]) return;
       if (!cb) {
         delete this.events[evtname];
       } else {
-        this.events[evtname] = this.events[evtname].filter(cb2 => cb2!==cb);
+        this.events[evtname] = this.events[evtname].filter(cb2 => cb2.func!==cb);
       }
     }
   }
@@ -649,6 +653,7 @@ class CWPlayer {
     if (this.playing) this.stop();
     this.recording = true;
     this.fireEvent('play'); // permet de déclencher les évenements
+    this.fireEvent('record');
     if (text) {
       this.Text = text;
     }
@@ -1259,7 +1264,7 @@ class MorsePlayer extends HTMLElement {
   }
   
   addEventListener(evtname, cb) { this.cwplayer.addEventListener(evtname, cb); }
-  on(evtname, cb) { this.cwplayer.addEventListener(evtname, cb); }
+  on(evtname, cb) { this.cwplayer.on(evtname, cb); }
   removeEventListener(evtname, cb=null) { this.cwplayer.removeEventListener(evtname, cb); }
 
   mouseup() {

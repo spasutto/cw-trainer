@@ -71,7 +71,7 @@ stops the playing and reset the current playing time
 ### playBoop()
 play a 'boop' sound (used for wrong entry in simple mode)
 
-### addEventListener(event_name, func) / on(event_name, func)
+### addEventListener(event_name, func)
 Register an event listener
 ```Javascript
 player.addEventListener('play', () => {
@@ -81,12 +81,23 @@ player.addEventListener('parameterchanged', (param) => {
     console.log(`"${param}" changed to ${player[param]}`);
 });
 ```
+
 #### Supported events
  - `parameterchanged` : one of the properties of the player has changed. The parameter's name is passed as argument with the event.
  - `indexchanged` : the current index in the input text changed. **Warning** the index reference the `Text` property, which is cleaned (and thus can be different from original provided text)
  - `play` : playing has started or been resumed from pause
  - `pause` : playing has been temporarily stopped
  - `stop` : playing has been definitely stopped
+ - `recording` : recording to wave has started. `stop` is triggered once finished
+
+### on(event_name, func)
+Register an event listener, **triggered only once**
+```Javascript
+player.on('play', () => {
+    // this message will appear only once even if play is called multiple times
+    console.log('CW Time !');
+});
+```
 
 ### removeEventListener(event_name, func?) / removeEventListener(func)
 Remove the event listener. If no `func` is provided, remove all the listeners. If only `func` is provided, remove this listener from all events.
