@@ -451,22 +451,26 @@ function tryPopulateVoices() {
       option.textContent = `${v.name} (${v.lang})`;
       selvoices.appendChild(option);
     });
-    selvoices.addEventListener('change', (e) => {
+    let onchangelang = (e) => {
       if (selvoices?.selectedIndex > -1 && Array.isArray(window.voices) && voices.length > selvoices.selectedIndex) {
         window.speechvoice = voices[selvoices.selectedIndex];
+        if (window.localStorage) localStorage.setItem("speechlang", window.speechvoice?.lang);
       }
-    });
+    };
+    selvoices.addEventListener('change', onchangelang);
     let getLangStrict = (l) => l.trim().toLowerCase().replaceAll(/[^a-z]*/g, '');
     let getLang = (l) => l.trim().toLowerCase().match(/^[a-z]*/g)[0];
-    let navlang = getLangStrict(navigator.language);
+    let lang = navigator.language;
+    if (window.localStorage) lang = localStorage.getItem("speechlang") ?? navigator.language;
+    let navlang = getLangStrict(lang);
     let voiceindex = window.voices.findIndex(v => navlang == getLangStrict(v.lang));
     if (voiceindex < 0) {
-      navlang = getLang(navigator.language);
+      navlang = getLang(lang);
       voiceindex = window.voices.findIndex(v => navlang == getLang(v.lang));
     }
     if (voiceindex > -1) {
       selvoices.selectedIndex = voiceindex;
-      window.speechvoice = voices[voiceindex];
+      onchangelang();
     }
     speechvoices.style.display = cw_options.learn_mode?'block':'none';
   } catch(e) {console.error(e);}
@@ -786,7 +790,7 @@ async function selfDownload() {
   let compress = false, compressjs = '', base64js = '';
   if (ot) {
     [compressjs, base64js] = await tryLoadFFlate();
-    compress = compressjs.length>0 && base64js.length>0;
+    compress = typeof window?.fflate?.compressSync === 'function' && typeof window?.Base64?.fromUint8Array === 'function';
     script += 'var freetext = `'+ot.replaceAll('`', '\\`')+'`;\n';
   }
   if (!compress && css.length) {
