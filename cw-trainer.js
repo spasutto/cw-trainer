@@ -1054,8 +1054,9 @@ window.addEventListener("load", async () => {
   updateValues();
   cheatsheet.addEventListener("click", displayMorseCode);
   morseclosebtn.addEventListener("click", displayMorseCode);
-  document.addEventListener("mouseup",  onmouseup);
+  selfdl.addEventListener("click", selfDownload);
   selfdl.style.visibility = window.location.href.toLowerCase().startsWith('http') ? 'visible' : 'hidden';
+  document.addEventListener("mouseup",  onmouseup);
   document.body.addEventListener("keydown",  onkeydown);
   document.body.addEventListener("keyup", onkeyup);
   sellesson.addEventListener("change", updateValues);
@@ -1088,6 +1089,7 @@ window.addEventListener("load", async () => {
     sellesson.value = Math.min(maxlessons, Math.max(1, parseInt(sellesson.value, 10)+1));
     updateValues();
   });
+  retrynxt.addEventListener("click", nxtlesson.click);
   chkfreelisten.addEventListener("change", (e) => {
     cw_options.freelisten = chkfreelisten.checked;
     updateValues();
