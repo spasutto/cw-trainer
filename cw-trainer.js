@@ -1229,17 +1229,18 @@ function onmouseup(e) {
 function onkeydown(e) {
   if (!cwplayer) return;
   e = e || window.event;
-  let keyCode = e.keyCode || e.which,
-      keycodes = {control: 17, escape: 27, space: 32, scrollend: 35, scrolltop: 36, left: 37, up: 38, right: 39, down: 40 },
+  let keyCode = e.charCode || e.keyCode || e.which,
+      keycodes = {control: 17, escape: 27, space: 32, scrollend: 35, scrolltop: 36, left: 37, up: 38, right: 39, down: 40, f1: 112 },
       keynames = {'ControlLeft': keycodes.control, 'ControlRight': keycodes.control,
       'Escape': keycodes.escape, 'Esc': keycodes.escape, 'Space' : keycodes.space,
       'End' : keycodes.scrollend, 'Home' : keycodes.scrolltop,
-      'ArrowLeft' : keycodes.left, 'ArrowUp' : keycodes.up, 'ArrowRight' : keycodes.right, 'ArrowDown' : keycodes.down };
+      'ArrowLeft' : keycodes.left, 'ArrowUp' : keycodes.up, 'ArrowRight' : keycodes.right, 'ArrowDown' : keycodes.down, 'F1' : keycodes.f1 };
   // on pause via ctrl-space si on est en train de saisir sinon directement space
   let isPlayKeybCtrlOk = e.ctrlKey || !['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement.tagName);
   keyCode = keyCode || keynames[e.code];
-  if (keyCode == keycodes.escape) {
-    displayMorseCode(false);
+  if (keyCode == keycodes.escape || keyCode == keycodes.f1) {
+    displayMorseCode(keyCode == keycodes.f1);
+    e.preventDefault();
   } else if (keyCode !== keycodes.control && !cw_options.simple_mode && !cw_options.learn_mode && isPlayKeybCtrlOk) {
     let playControls = {
       [keycodes.space] : 'playpause', 
