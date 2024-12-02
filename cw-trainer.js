@@ -1152,6 +1152,9 @@ async function playLetter(letter) {
 function displayMorseCode(e) {
   let display = csmorse.style.display != 'flex';
   if (typeof e == 'boolean') display = e;
+  csmorse.style.display = display?'flex':'none';
+  overlayloading.style.display = display?'flex':'none';
+  if (!display) return;
   if (morsecscnt.innerText.trim().length <= 0) {
     //ALPHA NUMBERS SYMBOLS
     let cs = '';
@@ -1175,52 +1178,48 @@ function displayMorseCode(e) {
       elms.forEach(td => td.addEventListener('click', plcl));
     });
   }
-  csmorse.style.display = display?'flex':'none';
-  overlayloading.style.display = display?'flex':'none';
-  if (display) {
-    let lessonletters = [];
-    let isActive = (l) => lessonletters.includes(l);
-    if (cw_options.lesson > 43) {
-      isActive = (l) => false;
-    } else if (cw_options.lesson <= 40) {
-      lessonletters = KOCHCARS.slice(0, cw_options.lesson+1);
-    } else if (cw_options.lesson == 41) {
-      lessonletters = ALPHA;
-    } else if (cw_options.lesson == 42) {
-      lessonletters = NUMBERS;
-    } else if (cw_options.lesson == 43) {
-      lessonletters = SYMBOLS;
-    }
-    [...morsecscnt.querySelectorAll('td:not(.mletter)')].forEach(td => {
-      let elms = [td, td.nextElementSibling];
-      let active = isActive(td.innerText);
-      let classSelector = (cell) => {
-        if (active) {
-          cell.classList.add('active');
-          cell.title = 'symbol included in current lesson';
-        } else {
-          cell.classList.remove('active');
-          if (cw_options.lesson > 43) {
-            cell.removeAttribute('title');
-          } else {
-            cell.title = 'symbol not included in current lesson';
-          }
-        }
-      };
-      elms.forEach(classSelector);
-    });
-
-    let scale = 1.0101010101010102; // *0.99 ~= 1
-    let csmwcnt = 0, csmw=0, cmpt = 0;
-    morsecscnt.style.transform = '';
-    csmw = csmorse.getBoundingClientRect().width;
-    do {
-      scale *= 0.99;
-      morsecscnt.style.transform = `scale(${scale})`;
-      csmwcnt = morsecscnt.getBoundingClientRect().width;
-      if (mobile) csmwcnt+=5;
-    } while (csmwcnt > csmw && cmpt++ < 80);
+  let lessonletters = [];
+  let isActive = (l) => lessonletters.includes(l);
+  if (cw_options.lesson > 43) {
+    isActive = (l) => false;
+  } else if (cw_options.lesson <= 40) {
+    lessonletters = KOCHCARS.slice(0, cw_options.lesson+1);
+  } else if (cw_options.lesson == 41) {
+    lessonletters = ALPHA;
+  } else if (cw_options.lesson == 42) {
+    lessonletters = NUMBERS;
+  } else if (cw_options.lesson == 43) {
+    lessonletters = SYMBOLS;
   }
+  [...morsecscnt.querySelectorAll('td:not(.mletter)')].forEach(td => {
+    let elms = [td, td.nextElementSibling];
+    let active = isActive(td.innerText);
+    let classSelector = (cell) => {
+      if (active) {
+        cell.classList.add('active');
+        cell.title = 'symbol included in current lesson';
+      } else {
+        cell.classList.remove('active');
+        if (cw_options.lesson > 43) {
+          cell.removeAttribute('title');
+        } else {
+          cell.title = 'symbol not included in current lesson';
+        }
+      }
+    };
+    elms.forEach(classSelector);
+  });
+
+  let scale = 1.0101010101010102; // *0.99 ~= 1
+  let csmwcnt = 0, csmw=0, cmpt = 0;
+  morsecscnt.style.transform = '';
+  csmw = csmorse.getBoundingClientRect().width;
+  do {
+    scale *= 0.99;
+    morsecscnt.style.transform = `scale(${scale})`;
+    csmwcnt = morsecscnt.getBoundingClientRect().width;
+    if (mobile) csmwcnt+=5;
+  } while (csmwcnt > csmw && cmpt++ < 80);
   return false;
 }
 function onmouseup(e) {
