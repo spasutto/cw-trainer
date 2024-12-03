@@ -1180,7 +1180,7 @@ function displayMorseCode(e) {
   }
   let lessonletters = [];
   let isActive = (l) => lessonletters.includes(l);
-  if (cw_options.lesson > 43) {
+  if (cw_options.simple_mode || cw_options.learn_mode || cw_options.lesson > 43) {
     isActive = (l) => false;
   } else if (cw_options.lesson <= 40) {
     lessonletters = KOCHCARS.slice(0, cw_options.lesson+1);
