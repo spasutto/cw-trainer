@@ -334,22 +334,22 @@
 
     <script>
       var player2 = new CWPlayer({wpm: 25, effwpm: 20});
-      player2.on('indexchanged', () => {
+      player2.addEventListener('indexchanged', () => {
         if (player2.Index>-1) {
           console.log(`playing '${player2.TextArray[player2.Index]}'`);
         }
       });
-      player2.on('parameterchanged', (param) => {
+      player2.addEventListener('parameterchanged', (param) => {
         console.log(`"${param}" changed to ${player2[param]}`);
       });
-      player2.on('play', () => {
+      player2.addEventListener('play', () => {
         player2.WPM = 25;
         window.setTimeout(() => {
           // EffWPM can't be higher than WPM. This cause the EffWPM to be subsequently set to 15 wpm
           player2.WPM = 15;
         }, 1400);
       });
-      player2.on('stop', () => {
+      player2.addEventListener('stop', () => {
         console.log('ended playing');
       });
       /*  In the same way, play() is async :
