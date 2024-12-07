@@ -334,16 +334,16 @@
 
     <script>
       var player2 = new CWPlayer({wpm: 25, effwpm: 20});
-      player2.addEventListener('indexchanged', () => {
-        if (player2.Index>-1) {
-          console.log(`playing '${player2.TextArray[player2.Index]}'`);
+      player2.addEventListener('indexchanged', (idx) => {
+        if (idx>-1) {
+          console.log(`playing '${player2.TextArray[idx]}'`);
         }
       });
       player2.addEventListener('parameterchanged', (param) => {
-        console.log(`"${param}" changed to ${player2[param]}`);
+        console.log(`"${param}" changed to "${player2[param]}"`);
       });
       player2.addEventListener('play', () => {
-        player2.WPM = 25;
+        player2.WPM = 25;player2.EffWPM = 20;
         window.setTimeout(() => {
           // EffWPM can't be higher than WPM. This cause the EffWPM to be subsequently set to 15 wpm
           player2.WPM = 15;

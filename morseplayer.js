@@ -74,6 +74,7 @@ class CWPlayer {
   rampperiod = 0.005;
   constructor(options) {
     this.text = '';
+    this.textarray = [];
     this.curti = -1;
     this.endtime = this.starttime = this.lastpausetime = this.totalpausetime = this.totaltime = 0;
     this.stime = [];
@@ -238,26 +239,8 @@ class CWPlayer {
     }
   }
   get Recording() { return this.recording; }
-  get TextArray() {
-    let prosign = false;
-    let tmparr = [];
-    return this.text.split('').reduce((acc, cur) => {
-      if (cur == '{') {
-        prosign = true;
-      } else if (cur == '}') {
-        prosign = false;
-        if(tmparr.length) acc.push(tmparr.join(''));
-        tmparr=[];
-      }
-      else {
-        (prosign?tmparr:acc).push(cur);
-      }
-      return acc;
-    }, []);
-  }
-  get Text() {
-    return this.text;
-  }
+  get TextArray() { return this.textarray; }
+  get Text() { return this.text; }
   set Text(value) {
     value = CWPlayer.cleanText(value ?? '');
     let oldtext = this.text;
@@ -265,16 +248,18 @@ class CWPlayer {
     // si on modifie le texte qui a déjà été joué on remet la lecture à 0
     if (this.curti>=0 && (value.length<=this.curti || value.substring(0, this.curti) != this.text.substring(0, this.curti))) {
       this.text = value;
+      this.updateTextArray();
       this.totaltime = this.getDuration();
       this.fireEvent('parameterchanged', 'Text');
       this.fireEvent('parameterchanged', 'TextArray');
       this.Index = -1;
     } else {
       this.text = value;
+      this.updateTextArray();
       this.totaltime = this.getDuration();
       this.fireEvent('parameterchanged', 'Text');
       this.fireEvent('parameterchanged', 'TextArray');
-      this.fireEvent('indexchanged');
+      this.fireEvent('indexchanged', this.curti);
       if (this.playing) {
         //this.itime.findIndex(s => s >= this.context.currentTime + 0.100);
         //let startindex = this.curti+2;
@@ -299,7 +284,7 @@ class CWPlayer {
     let time = value<0 ? 0 : this.itime[value];
     this.starttime = now-time;
     this.lastpausetime = now;
-    this.fireEvent('indexchanged');
+    this.fireEvent('indexchanged', this.curti);
     if (this.playing) {
       this.schedule(time);
     }
@@ -320,7 +305,7 @@ class CWPlayer {
     let now = this.context?.currentTime ?? 0;
     this.starttime = now-value;
     this.lastpausetime = now;
-    this.fireEvent('indexchanged');
+    this.fireEvent('indexchanged', this.curti);
     if (this.playing) {
       this.schedule(value);
     }
@@ -492,7 +477,7 @@ class CWPlayer {
     if (!pause) {
       this.curti = -1;
       this.totalpausetime = this.lastpausetime = this.starttime = this.endtime = 0;
-      this.fireEvent('indexchanged');
+      this.fireEvent('indexchanged', this.curti);
     }
     if (this.playing) {
       this.playing = false;
@@ -553,7 +538,7 @@ class CWPlayer {
       curti = this.itime.findIndex(s => s+this.starttime >= this.context.currentTime-this.totalpausetime)-1;
       if (curti != this.curti) {
         this.curti = curti;
-        this.fireEvent('indexchanged');
+        this.fireEvent('indexchanged', curti);
       }
       await CWPlayer.delay(0.01);
     }
@@ -648,6 +633,23 @@ class CWPlayer {
     });
     this.itime.push(d);
     return d;
+  }
+  updateTextArray() {
+    let prosign = false;
+    let tmparr = [];
+    this.textarray = this.text.split('').reduce((acc, cur) => {
+      if (cur == '{') {
+        prosign = true;
+      } else if (cur == '}') {
+        prosign = false;
+        if(tmparr.length) acc.push(tmparr.join(''));
+        tmparr=[];
+      }
+      else {
+        (prosign?tmparr:acc).push(cur);
+      }
+      return acc;
+    }, []);
   }
   async renderToFile(text=null) {
     if (this.playing) this.stop();
