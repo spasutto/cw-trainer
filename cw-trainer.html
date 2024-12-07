@@ -87,7 +87,7 @@
         <a href="#" name="modes" data-mode="learn" title="learn mode : type the letter to hear it">Learn</a>
       </div>
       <div id="zonefree" style="display:none">
-        <input type="text" id="iptfree" maxlength="1">
+        <input type="text" id="iptfree" maxlength="1" autocomplete="off" spellcheck="false" autocorrect="off">
         <div id="zoneresultfree"></div>
       </div>
       <div id="zonekoch">
@@ -102,12 +102,12 @@
           <input type="number" id="groupsnb" min="1" max="250">
         </div>
         <morse-player id="cwplayer" downloadbutton="true"></morse-player>
-        <textarea id="cwtext" rows="4" cols="43" spellcheck="false" autocorrect="off"></textarea><br>
+        <textarea id="cwtext" rows="4" cols="43" autocomplete="off" spellcheck="false" autocorrect="off"></textarea><br>
         <input type="button" value="submit" id="cwsbm">
         <span id="zonedkb"><input type="checkbox" id="disablekb"><label for="disablekb">disable keyboard</label></span><br>
       </div>
       <div id="zonelearn" style="display:none">
-        <input type="text" id="iptlearn" maxlength="1">
+        <input type="text" id="iptlearn" maxlength="1" autocomplete="off" spellcheck="false" autocorrect="off">
         <div id="iptlearnmorse"></div>
       </div>
     </div>
