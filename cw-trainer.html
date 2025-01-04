@@ -4,6 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1, interactive-widget=resizes-content"/>
     <title>CW Trainer</title>
+    <link rel="manifest" href="manifest.json" />
     <link rel="icon" type="image/x-icon" href="cw-trainer.ico">
     <script src="morseplayer.js"></script>
     <script src="cw-trainer.js"></script>
@@ -74,6 +75,15 @@
                 <span class="switch-x-toggletext" style="width: 130px;">
                   <span class="switch-x-unchecked"><span class="switch-x-hiddenlabel">Unchecked: </span>free listen mode</span>
                   <span class="switch-x-checked"><span class="switch-x-hiddenlabel">Checked: </span>free listen mode</span>
+                </span>
+              </label>
+            </div>
+            <div id="chkwrandwrapper" class="checkbox-wrapper" title="wrong symbols will have more probability to occur (same if you take too much time to answer !)">
+              <input class="switch" type="checkbox" id="chkwrand">
+              <label for="chkwrand">
+                <span class="switch-x-toggletext" style="width: 160px;">
+                  <span class="switch-x-unchecked"><span class="switch-x-hiddenlabel">Unchecked: </span>focus on mistakes</span>
+                  <span class="switch-x-checked"><span class="switch-x-hiddenlabel">Checked: </span>focus on mistakes</span>
                 </span>
               </label>
             </div>

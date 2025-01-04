@@ -17,6 +17,7 @@ var cw_options = {
   learn_mode : false,
   freelisten: false,
   weighlastletters: false,
+  wrand: true,
   wpm : 25,
   eff : 17,
   ews : 0,
@@ -73,6 +74,34 @@ var keystates = {
   'indexdec': false,
   'indexinc': false
 };
+var els = [];
+var pmf = [];
+var cdf = [];
+var simplemode_starttime = 0;
+var getElements = (e) => [...document.querySelectorAll(e)];
+function updateCDF() {
+  let lpmf = pmf;
+  let t = pmf.reduce((a,c) => a+c, 0);
+  if (t<=0) return;
+  else if (t != 1) {
+    lpmf = pmf.map(v => v / t);
+  }
+  cdf = lpmf.map((sum => value => sum += value)(0)); // cumulative distribution function
+}
+function reinitPMF() {
+  window.wrandstat = els.reduce((acc, cur) => {acc[cur]=0;return acc;}, {});
+  pmf = Array(els.length).fill(1);
+  if (cw_options.weighlastletters) {
+    for (let i=pmf.length-1; i>=0&&i>=pmf.length-3; i--) {
+      pmf[i]=2;
+    }
+  }
+  updateCDF();
+}
+function wrand() {
+  let rand = Math.random();
+  return els[cdf.findIndex(el => rand <= el)];
+}
 function irand(start, end) {
   if (arguments.length < 2) {
     end = start;
@@ -181,8 +210,6 @@ async function generateFreeText(minlength = 60, maxlength = 150) {
         startind = nxtptid + 1;
       }
     } while (nxtptid-prvptid < minlength);
-    //console.log('--------------------------------------------------------------------------------------------');
-    //console.log(text.substring(prvptid+1, nxtptid+1));
     gentext = text.substring(prvptid+1, nxtptid+1)
         .replaceAll(/\r?\n/g, ' ')
         .replaceAll(/\s+/g, ' ')
@@ -191,7 +218,6 @@ async function generateFreeText(minlength = 60, maxlength = 150) {
     while (regclean.test(gentext)) {
       gentext = gentext.replaceAll(regclean, '\'');
     }
-    //console.log(gentext);
   } while ((gentext.length<minlength || gentext.length>maxlength) && ++nbtry<80);
   return gentext;
 }
@@ -201,26 +227,38 @@ async function generateText() {
   if (!cw_options.freelisten) {
     cwplayer.Text = '';
     if (cw_options.simple_mode) {
-      let letters = null;
+      let oels = Array.isArray(els) ? els : [];
       if (cw_options.lesson == 41) {
-        letters = ALPHA.split('');
+        els = ALPHA.split('');
       } else if (cw_options.lesson == 42) {
-        letters = NUMBERS.split('');
+        els = NUMBERS.split('');
       } else if (cw_options.lesson == 43) {
-        letters = SYMBOLS.split('');
+        els = SYMBOLS.split('');
       } else {
         let maxlesson = Math.min(40, cw_options.lesson);
-        letters = KOCHCARS.slice(0, maxlesson+1);
-        if (cw_options.weighlastletters) {
+        els = KOCHCARS.slice(0, maxlesson+1);
+        if (!cw_options.wrand && cw_options.weighlastletters) {
           // lettres "nouvelles"
           let newletters = KOCHCARS.slice(Math.max(0, maxlesson-2), maxlesson+1);
           // plus de poids pour les lettres nouvelles :
           // 1/4 des lettres doivent être les 'récentes'
-          let nbtl = Math.floor(letters.length+letters.length/3);
-          while (letters.length < nbtl) letters.push(...newletters);
+          let nbtl = Math.floor(els.length+els.length/3);
+          while (els.length < nbtl) els.push(...newletters);
         }
       }
-      cwgentext = generateRandomString(letters, 1);
+      if (cw_options.wrand) {
+        if (oels.length != els.length || els.length != pmf.length || els.some(e => !oels.includes(e))) {
+          reinitPMF();
+        }
+      }
+      cwgentext = cw_options.wrand ? wrand() : generateRandomString(els, 1);
+      if (cw_options.wrand) {
+        wrandstat[cwgentext]++;
+        let tmps = els.reduce((acc, cur) => acc += wrandstat[cur], 0);
+        console.log(`distribution (${tmps} tirages) :`, els.reduce((acc, cur) => {acc[cur]=Math.round(1000*wrandstat[cur]/tmps)/10;if(acc[cur] == 0) delete acc[cur];return acc;}, {}));
+        let penal = els.filter((e,i) => pmf[i]>1).sort((a,b) => pmf[els.indexOf(b)]-pmf[els.indexOf(a)]).map((e, i) => `\n${e} (${Math.round(100*pmf[els.indexOf(e)])/100})`);
+        if (penal.length)  console.log('penalites : '+penal.join(''));
+      }
     } else if (cw_options.lesson==44) {
       cwgentext = generateRandomText(PROSIGNS, 1, cw_options.groupsnb);
     } else if (cw_options.lesson==45) {
@@ -564,9 +602,37 @@ async function verifyCW(e) {
       if (window.freefirsttry) {
         window.freefirsttry = false;
         window.freeerr++;
+        if (cw_options.wrand) {
+          let is = els.indexOf(cwplayer.Text[0]);
+          if (is > -1) {
+            pmf[is]++;
+            updateCDF();
+          }
+        }
       }
       iptfree.value = '';
     } else {
+      if (window.freefirsttry) {
+        if (cw_options.wrand) {
+          let is = els.indexOf(cwplayer.Text[0]);
+          if (is > -1) {
+            const maxtime = 4;
+            let ttime = 0;
+            if (simplemode_starttime>0) {
+              ttime = Math.min(maxtime, (new Date() - simplemode_starttime)/1000);
+            }
+            if (ttime > 0) {
+              // coef € [-0.8;1.5] pour ttime € [0;maxtime]
+              const min = -0.8;
+              const max = 1.5;
+              let penal = min+(ttime*(max-min)/maxtime);
+              console.log('réponse en', Math.round(10*ttime)/10, 's pour le symbole', cwplayer.Text[0],'==> penal =',Math.round(100*penal)/100);
+              pmf[is] = Math.max(1, penal+pmf[is]);
+              updateCDF();
+            }
+          }
+        }
+      }
       iptfree.classList.add('ok');
       iptfree.value = '\u2714';//'GOOD !';
       CWPlayer.delay(0.35).then(() => {
@@ -576,7 +642,7 @@ async function verifyCW(e) {
         cwchecking = false;
       });
       generateText();
-      cwplayer.play();
+      cwplayer.play().then(() => simplemode_starttime = new Date());
       window.freetotal++;
       window.freefirsttry = true;
     }
@@ -648,7 +714,6 @@ async function verifyCW(e) {
               minerrindice = perm.slice();
             }
             //inpttmp.splice(-1*nbtofill);
-            //console.log(perm, inpttmp, nberr);
           }));
           loading(false);
           if (minerrindice == null || new Date().getTime() > window.intperm) {
@@ -709,7 +774,7 @@ async function listen(text, elem) {
   if (cwplayer.Playing) {
     cwplayer.stop();
   }
-  [...document.querySelectorAll('a[name="listen"]')].forEach(e => e.classList.remove('active'));
+  getElements('a[name="listen"]').forEach(e => e.classList.remove('active'));
   if (elem) elem.classList.add('active');
   cwsbm.disabled = true;
   cwplayer.PreDelay=0.05;
@@ -840,7 +905,7 @@ function generateKeyboard() {
     if (c == '9') keybhtml += '<BR>';
   });
   keyboard.innerHTML = keybhtml;
-  [...document.querySelectorAll('#keyboard input')].forEach(i => i.onclick=key.bind(i, i.value));
+  getElements('#keyboard input').forEach(i => i.onclick=key.bind(i, i.value));
 }
 function setMinMax() {
   selwpm.min = CWPlayer.MIN_WPM;
@@ -894,6 +959,9 @@ function decodeParam(val, i) {
     case 12:
       cw_options.learn_mode = val === 1;
       break;
+    case 13:
+      cw_options.wrand = val === 1;
+      break;
   }
 }
 function round2(val) {
@@ -905,7 +973,7 @@ function deferredSaveParam() {
   window.timeoutSaveParams = window.setTimeout(saveParams, 250);
 }
 function saveParams() {
-  let params = encodeURIComponent(sellesson.value+HASHSEP+selwpm.value+HASHSEP+seleffwpm.value+HASHSEP+grplen.value+HASHSEP+groupsnb.value+HASHSEP+cw_options.tone+HASHSEP+round2(selews.value)+HASHSEP+(cw_options.simple_mode?1:0)+HASHSEP+(cw_options.freelisten?1:0)+HASHSEP+(cw_options.weighlastletters?1:0)+HASHSEP+round2(cw_options.keyqual)+HASHSEP+round2(cw_options.volume)+HASHSEP+(cw_options.learn_mode?1:0));
+  let params = encodeURIComponent(sellesson.value+HASHSEP+selwpm.value+HASHSEP+seleffwpm.value+HASHSEP+grplen.value+HASHSEP+groupsnb.value+HASHSEP+cw_options.tone+HASHSEP+round2(selews.value)+HASHSEP+(cw_options.simple_mode?1:0)+HASHSEP+(cw_options.freelisten?1:0)+HASHSEP+(cw_options.weighlastletters?1:0)+HASHSEP+round2(cw_options.keyqual)+HASHSEP+round2(cw_options.volume)+HASHSEP+(cw_options.learn_mode?1:0)+HASHSEP+(cw_options.wrand?1:0));
   try {
     window.name = params;
     localStorage.setItem("params", params);
@@ -914,7 +982,7 @@ function saveParams() {
 }
 function loadParams() {
   //'30_25_15_5_15_800_0.6_0_0_1_1_0.41'
-  const regparams = /\d{1,2}_\d{1,2}_\d{1,2}_-?\d_\d{1,3}_\d{1,4}_\d?\d.?\d*_(0|1)_(0|1)_(0|1)_\d.?\d*_\d.?\d*_(0|1)/i;
+  const regparams = /\d{1,2}_\d{1,2}_\d{1,2}_-?\d_\d{1,3}_\d{1,4}_\d?\d.?\d*_(0|1)_(0|1)_(0|1)_\d.?\d*_\d.?\d*_(0|1)_(0|1)/i;
   let fromhash = false;
   let extractParams = (p) => regparams.test(p)?p.split(HASHSEP):[];
   let params = window.location.hash.substring(1);
@@ -977,12 +1045,12 @@ function message(msg='', style=null) {
 }
 window.addEventListener("load", async () => {
   // https://stackoverflow.com/a/25325330
-  [...document.querySelectorAll('*[id]')].forEach(e => {
+  getElements('*[id]').forEach(e => {
     window[e.id] = e;
   });
-  window.modelinks = [...document.querySelectorAll("a[name='modes']")];
+  window.modelinks = getElements("a[name='modes']");
   setMinMax();
-  window.maxlessons = Math.max.apply(null, [...document.querySelectorAll('#sellesson>option')].map(o => parseInt(o.value, 10)));
+  window.maxlessons = Math.max.apply(null, getElements('#sellesson>option').map(o => parseInt(o.value, 10)));
   loadParams();
   sellesson.value = cw_options.lesson;
   selwpm.value = cw_options.wpm;
@@ -1042,10 +1110,13 @@ window.addEventListener("load", async () => {
     a.addEventListener('click', (e) => {
       e.preventDefault();
       let mode = e?.srcElement?.dataset.mode;
+      if ((mode == 'simple' && cw_options.simple_mode) || (mode == 'learn' && cw_options.learn_mode) || (mode == 'koch' && !cw_options.simple_mode && !cw_options.learn_mode)) return false;
       cw_options.simple_mode = mode == 'simple';
       cw_options.learn_mode = mode == 'learn';
-      if (mode == 'koch') {
-        cw_options.freelisten = chkfreelisten.checked = false; // sinon provoque des incompréhensions en changeant d'onglet
+      // sinon provoque des incompréhensions en changeant d'onglet
+      cw_options.freelisten = chkfreelisten.checked = false;
+      if (mode == 'simple') {
+        cw_options.wrand = chkwrand.checked = true;
       }
       updateValues();
       return false;
@@ -1092,6 +1163,16 @@ window.addEventListener("load", async () => {
   retrynxt.addEventListener("click", nxtlesson.click);
   chkfreelisten.addEventListener("change", (e) => {
     cw_options.freelisten = chkfreelisten.checked;
+    if (cw_options.freelisten) {
+      cw_options.wrand = chkwrand.checked = false;
+    }
+    updateValues();
+  });
+  chkwrand.addEventListener("change", (e) => {
+    cw_options.wrand = chkwrand.checked;
+    if (cw_options.wrand) {
+      cw_options.freelisten = chkfreelisten.checked = false;
+    }
     updateValues();
   });
   cwtext.addEventListener("keyup", () => {
@@ -1288,7 +1369,7 @@ function onkeyup(e) {
 async function updateValues() {
   if (!cwplayer) return;
   if (cwplayer.Playing) cwplayer.stop();
-  [...document.querySelectorAll('#sellesson>option')].forEach(o => {
+  getElements('#sellesson>option').forEach(o => {
     if (o.value < 44) return;
     o.disabled = cw_options.simple_mode;
     o.title=cw_options.simple_mode?'disabled in simple mode':'';
@@ -1298,7 +1379,7 @@ async function updateValues() {
   }
   cwplayer.PreDelay = cw_options.learn_mode || cw_options.simple_mode || cw_options.freelisten ? 0.05 : 2;
   iptfree.value = cwtext.value = '';
-  [...document.querySelectorAll("label[for='seleffwpm'], #seleffwpm")].forEach(e => {
+  getElements("label[for='seleffwpm'], #seleffwpm").forEach(e => {
     e.disabled = cw_options.simple_mode || cw_options.learn_mode;
     let title = e.title;
     let dtext = ' - ineffective in simple/learning mode';
@@ -1327,7 +1408,9 @@ async function updateValues() {
   cw_options.tone = cwplayer.Tone;
   cw_options.volume = cwplayer.Volume;
   cw_options.keyqual = cwplayer.KeyingQuality;
-  chkfreelisten.checked = cw_options.freelisten;
+  chkwrand.checked = cw_options.wrand;
+  if (cw_options.wrand && cw_options.simple_mode) reinitPMF();
+  chkfreelisten.checked = !cw_options.wrand && cw_options.freelisten;
   chkweightlastletters.checked = cw_options.weighlastletters;
   sellesson.disabled = cw_options.freelisten || cw_options.learn_mode;
   nxtlesson.disabled = cw_options.lesson >= maxlessons || sellesson.disabled;
@@ -1342,9 +1425,12 @@ async function updateValues() {
   grplen.title = grplen.disabled ? 'disabled in this mode' : '';
   grplen.previousElementSibling.title = grplen.title;
   chkweightlastletterswrapper.style.display = !cw_options.learn_mode && !cw_options.freelisten && sellesson.value < 41?'block':'none';
-  chkfreelistenwrapper.style.visibility = !cw_options.learn_mode?'visible':'hidden';
+  chkfreelistenwrapper.style.visibility = !cw_options.learn_mode && !cw_options.simple_mode?'visible':'hidden';
+  chkfreelistenwrapper.style.display = cw_options.simple_mode ? 'none':'block';
+  chkwrandwrapper.style.display = cw_options.simple_mode ? 'block':'none';
   speechvoices.style.display = window.anyvoice && cw_options.learn_mode?'block':'none';
   cwsbm.disabled = cw_options.freelisten;
+  simplemode_starttime = 0;
   modelinks.forEach(a => {
     if ((a.dataset.mode == 'simple' && cw_options.simple_mode)
     || (a.dataset.mode == 'koch' && !cw_options.simple_mode && !cw_options.learn_mode)

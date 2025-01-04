@@ -263,7 +263,7 @@ class CWPlayer {
       if (this.playing) {
         //this.itime.findIndex(s => s >= this.context.currentTime + 0.100);
         //let startindex = this.curti+2;
-        let startindex = Math.min(this.curti+2, CWPlayer.sharedStart([oldtext, value]).length);
+        let startindex = Math.min(this.curti+2, CWPlayer.sharedStart(oldtext, value).length);
         //cwplayer.Text='aaaa';window.setTimeout(()=>{cwplayer.Text='aann';}, 1400);
         //console.log(`rescheduling @${startindex}, silence starting from ${this.itime[startindex-1]} (${(this.context.currentTime-this.starttime-this.totalpausetime)+this.itime[startindex-1]}) (${oldtext}/${value})`, this.itime);
         //this.gain.gain.cancelScheduledValues((this.context.currentTime-this.starttime-this.totalpausetime)+this.itime[startindex-1]);
@@ -393,13 +393,24 @@ class CWPlayer {
     return cwtext;
   }
 
-  static async delay(s) {
-    return new Promise(res => setTimeout(res, s*1000));
+  /* pour annuler le délai : 
+  let controller = new window.AbortController();
+  let signal = controller.signal;
+  CWPlayer.delay(5, signal).then(() => {console.log('will never happen')});
+  controller.abort(); <-- Ici
+  */
+  static async delay(s, signal = null) {
+    return new Promise(res => {
+      let toid = setTimeout(res, s*1000);
+      signal?.addEventListener('abort', () => {
+        clearInterval(toid);
+      });
+    });
   }
-  static sharedStart(array){
-    var A= array.concat().sort(), 
-    a1= A[0], a2= A[A.length-1], L= a1.length, i= 0;
-    while(i<L && a1.charAt(i)=== a2.charAt(i)) i++;
+  static sharedStart(...args){
+    let A=args.sort(), 
+    a1=A[0], a2=A[A.length-1], L=a1.length, i=0;
+    while(i<L && a1.charAt(i) === a2.charAt(i)) i++;
     return a1.substring(0, i);
   }
   static rand(...args) {
