@@ -302,6 +302,7 @@ a {
 }
 textarea {
   width: 360px;
+  resize: none;
 }
 small {
   color: #a0a0a0;
