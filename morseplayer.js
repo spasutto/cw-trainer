@@ -180,6 +180,7 @@ class CWPlayer {
   set Tone(value) {
     value = CWPlayer.parseint(value);
     value = Math.min(CWPlayer.MAX_TONE, Math.max(CWPlayer.MIN_TONE, value));
+    if (value == this.options.tone && value == this.osc?.frequency?.value) return;
     this.options.tone = value;
     if (this.context) {
       this.osc.frequency.setValueAtTime(value, this.context.currentTime);
@@ -190,6 +191,7 @@ class CWPlayer {
   set Volume(value) {
     value = CWPlayer.parsefloat(value);
     value = Math.min(1, Math.max(0, value));
+    if (value == this.options.volume && value == this.master?.gain?.value) return;
     this.options.volume = value;
     if (this.context) {
       this.setMasterVolume();
