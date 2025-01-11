@@ -1003,17 +1003,17 @@ function loadParams() {
   const regparams = /\d{1,2}_\d{1,2}_\d{1,2}_-?\d_\d{1,3}_\d{1,4}_\d?\d.?\d*_(0|1)_(0|1)_(0|1)_\d.?\d*_\d.?\d*_(0|1)_(0|1)_.*/i;
   let fromhash = false;
   let extractParams = (p) => regparams.test(p)?p.split(HASHSEP):[];
-  let params = window.location.hash.substring(1);
+  let params = decodeURIComponent(window.location.hash.substring(1));
   if (typeof params === 'string' && params?.trim().length > 0) {
     fromhash = true;
-    extractParams(decodeURIComponent(params)).forEach(decodeParam);
+    extractParams(params).forEach(decodeParam);
   }
   try {
     if (typeof window.localStorage === 'object' && typeof localStorage.getItem === 'function') {
       params = localStorage.getItem("params");
     }
   } catch(e) {}
-  params = params ?? window.name;
+  params = decodeURIComponent(params ?? window.name);
   if (typeof params === 'string' && params?.trim().length > 0) {
     // les parametres du hash sont prioritaires sur ceux du localstorage (excepté le volume)
     if (!fromhash) {
