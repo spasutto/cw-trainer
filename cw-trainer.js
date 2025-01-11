@@ -1062,11 +1062,7 @@ function message(msg='', style=null) {
   }, 1);
 }
 function cleanCustomset(cs) {
-  cs = (cs??'').trim().split('').reduce((acc, cur) => {
-    cur = CWPlayer.cleanText(cur);
-    if (!acc.includes(cur) && cur != ' ') acc.push(cur);
-    return acc;
-  }, []).join('');
+  cs = [...new Set(CWPlayer.cleanText(typeof cs === 'string'?cs:'').replaceAll(' ', '').split(''))].join('');
   if (!cs.length) {
     cs = KOCHCARS.join('');
   }
