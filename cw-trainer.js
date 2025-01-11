@@ -7,6 +7,20 @@ const MINIFIER_URLS = ['https://cdn.jsdelivr.net/npm/source-map@0.7.3/dist/sourc
 const COMPRESS_URL = 'https://unpkg.com/fflate@0.8.2';
 const BASE64_URL = 'https://cdn.jsdelivr.net/npm/js-base64@3.7.7/base64.min.js';
 const synth = window.speechSynthesis;
+const KOCHCARS = ['K', 'M', 'U', 'R', 'E', 'S', 'N', 'A', 'P', 'T', 'L', 'W', 'I', '.', 'J', 'Z', '=', 'F', 'O', 'Y', ',', 'V', 'G', '5', '/', 'Q', '9', '2', 'H', '3', '8', 'B', '?', '4', '7', 'C', '1', 'D', '6', '0', 'X'];
+const ALPHA = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+const NUMBERS = "0123456789";
+const SYMBOLS = "/+=.,\"$'()[]-:;@_!?¶&";
+//https://www.qsl.net/ae0q/prosign.htm  https://m0juw.co.uk/prosigns-in-morse-code/  https://www.radioqth.net/morsecode https://www.kent-engineers.com/prosigns.htm
+// https://www.kb6nu.com/cw-geeks-no-nonsense-guide-to-having-fun-with-morse-code-prosigns/
+const PROSIGNS = ['{AR}', '{AS}', '{BK}', '{BT}', '{CL}', '{CT}', '{KN}', '{SK}', '{SN}', '{VA}', '{VE}', '{EEEEEEEE}'];
+const LSN_LETTERS = 41;
+const LSN_NUMBERS = 42;
+const LSN_SYMBOLS = 43;
+const LSN_CUSTOM = 44;
+const LSN_PROSIGNS = 45;
+const LSN_QSO = 46;
+const LSN_FREE_TEXT = 47;
 var cwchecking = false;
 var maxlessons = -1;
 var cw_options = {
@@ -23,15 +37,9 @@ var cw_options = {
   ews : 0,
   tone : 800,
   volume : 1,
-  keyqual: 1
+  keyqual: 1,
+  customset: KOCHCARS.join('')
 };
-const KOCHCARS = ['K', 'M', 'U', 'R', 'E', 'S', 'N', 'A', 'P', 'T', 'L', 'W', 'I', '.', 'J', 'Z', '=', 'F', 'O', 'Y', ',', 'V', 'G', '5', '/', 'Q', '9', '2', 'H', '3', '8', 'B', '?', '4', '7', 'C', '1', 'D', '6', '0', 'X'];
-const ALPHA = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-const NUMBERS = "0123456789";
-const SYMBOLS = "/+=.,\"$'()[]-:;@_!?¶&";
-//https://www.qsl.net/ae0q/prosign.htm  https://m0juw.co.uk/prosigns-in-morse-code/  https://www.radioqth.net/morsecode https://www.kent-engineers.com/prosigns.htm
-// https://www.kb6nu.com/cw-geeks-no-nonsense-guide-to-having-fun-with-morse-code-prosigns/
-const PROSIGNS = ['{AR}', '{AS}', '{BK}', '{BT}', '{CL}', '{CT}', '{KN}', '{SK}', '{SN}', '{VA}', '{VE}', '{EEEEEEEE}'];
 var QSOs = [
   //http://lidscw.org/resources/cq-qso-template
   'CQ CQ CQ DE %IND1% %IND1% %IND1% PSE K',
@@ -228,14 +236,16 @@ async function generateText() {
     cwplayer.Text = '';
     if (cw_options.simple_mode) {
       let oels = Array.isArray(els) ? els : [];
-      if (cw_options.lesson == 41) {
+      if (cw_options.lesson == LSN_LETTERS) {
         els = ALPHA.split('');
-      } else if (cw_options.lesson == 42) {
+      } else if (cw_options.lesson == LSN_NUMBERS) {
         els = NUMBERS.split('');
-      } else if (cw_options.lesson == 43) {
+      } else if (cw_options.lesson == LSN_SYMBOLS) {
         els = SYMBOLS.split('');
+      } else if (cw_options.lesson == LSN_CUSTOM) {
+        els = cw_options.customset.split('');
       } else {
-        let maxlesson = Math.min(40, cw_options.lesson);
+        let maxlesson = Math.min(KOCHCARS.length-1, cw_options.lesson);
         els = KOCHCARS.slice(0, maxlesson+1);
         if (!cw_options.wrand && cw_options.weighlastletters) {
           // lettres "nouvelles"
@@ -259,9 +269,9 @@ async function generateText() {
         let penal = els.filter((e,i) => pmf[i]>1).sort((a,b) => pmf[els.indexOf(b)]-pmf[els.indexOf(a)]).map((e, i) => `\n${e} (${Math.round(100*pmf[els.indexOf(e)])/100})`);
         if (penal.length)  console.log('penalites : '+penal.join(''));
       }
-    } else if (cw_options.lesson==44) {
+    } else if (cw_options.lesson==LSN_PROSIGNS) {
       cwgentext = generateRandomText(PROSIGNS, 1, cw_options.groupsnb);
-    } else if (cw_options.lesson==45) {
+    } else if (cw_options.lesson==LSN_QSO) {
       let callsign1 = generateRandomCallsign();
       let callsign2 = generateRandomCallsign(callsign1);
       let name1 = generateRandomFirstname();
@@ -277,18 +287,20 @@ async function generateText() {
           .replaceAll('%RST2%', generateRandomRST())
           .replaceAll('%PWR1%', ''+irand(1, 10)*10)
           .replaceAll('%PWR2%', ''+irand(1, 10)*10);
-    } else if (cw_options.lesson==46) {
+    } else if (cw_options.lesson==LSN_FREE_TEXT) {
       cwgentext = await generateFreeText();
     } else {
       let letters = null;
-      if (cw_options.lesson == 41) {
+      if (cw_options.lesson == LSN_LETTERS) {
         letters = ALPHA.split('');
-      } else if (cw_options.lesson == 42) {
+      } else if (cw_options.lesson == LSN_NUMBERS) {
         letters = NUMBERS.split('');
-      } else if (cw_options.lesson == 43) {
+      } else if (cw_options.lesson == LSN_SYMBOLS) {
         letters = SYMBOLS.split('');
+      } else if (cw_options.lesson == LSN_CUSTOM) {
+        letters = cw_options.customset.split('');
       }  else {
-        let maxlesson = Math.min(40, cw_options.lesson);
+        let maxlesson = Math.min(KOCHCARS.length-1, cw_options.lesson);
         letters = KOCHCARS.slice(0, maxlesson+1);
         if (cw_options.weighlastletters) {
           // lettres "nouvelles"
@@ -657,11 +669,11 @@ async function verifyCW(e) {
     }
     if (cwplayer.Playing) cwplayer.stop();
     cwsbm.disabled = true;
-    let comparefn = cw_options.lesson == 44 ? compareProsigns : compareStrings;
+    let comparefn = cw_options.lesson == LSN_PROSIGNS ? compareProsigns : compareStrings;
     let cleanText = (t) => CWPlayer.cleanText(t.trim()).replaceAll('\t', ' ').replaceAll(/[{}]/g, '');
     let extractfn = (t) => [cleanText(t)];
     // hormis pour les QSOs et le texte libre on travaille par mot => on recompare mot par mot
-    if (cw_options.lesson <= 44) {
+    if (cw_options.lesson <= LSN_PROSIGNS) {
       extractfn = (t) => cleanText(t).split(' ').filter(e => e.length > 0);
     }
     let inpt = extractfn(cwtext.value);
@@ -736,7 +748,7 @@ async function verifyCW(e) {
     results.forEach(r => {
       let str2bk = r.str2;
       // hormis pour les QSOs on travaille par mot
-      if (cw_options.lesson <= 43) {
+      if (cw_options.lesson <= LSN_CUSTOM) {
         r.str1 = r.str1.replaceAll(/\s/g, '\n');
         r.str2 = r.str2.replaceAll(/\s/g, '\n');
         r.str2 = formatTestString(r).replaceAll(/\s/g, '<BR>').replaceAll('<span<BR>class="', '<span class="');
@@ -763,7 +775,7 @@ async function verifyCW(e) {
     restable += '</table>';
     zonerestext.innerHTML += restable;
   
-    retrynxt.style.display = cw_options.lesson <= 40 && perc>=90?'inline-block':'none';
+    retrynxt.style.display = cw_options.lesson <= KOCHCARS.length-1 && perc>=90?'inline-block':'none';
     zoneresult.style.display = 'inline-block';
     keyboard.style.display = 'none';
     cwsbm.disabled = false;
@@ -779,7 +791,7 @@ async function listen(text, elem) {
   cwsbm.disabled = true;
   cwplayer.PreDelay=0.05;
   // Prosigns
-  if (cw_options.lesson == 44) text = `{${text}}`;
+  if (cw_options.lesson == LSN_PROSIGNS) text = `{${text}}`;
   cwplayer.play(text);
 }
 async function tryMinify(js) {
@@ -916,8 +928,11 @@ function setMinMax() {
   selews.max = CWPlayer.MAX_EWS;
 }
 function decodeParam(val, i) {
-  val = parseFloat(val);
-  if (isNaN(val)) return;
+  // hormis le cumstomset tout est en numerique
+  if (i < 14) {
+    val = parseFloat(val);
+    if (isNaN(val)) return;
+  }
   switch (i) {
     case 0:
       cw_options.lesson = Math.max(1, Math.min(maxlessons, Math.trunc(val)));
@@ -962,6 +977,9 @@ function decodeParam(val, i) {
     case 13:
       cw_options.wrand = val === 1;
       break;
+    case 14:
+      cw_options.customset = cleanCustomset(val);
+      break;
   }
 }
 function round2(val) {
@@ -973,7 +991,7 @@ function deferredSaveParam() {
   window.timeoutSaveParams = window.setTimeout(saveParams, 250);
 }
 function saveParams() {
-  let params = encodeURIComponent(sellesson.value+HASHSEP+selwpm.value+HASHSEP+seleffwpm.value+HASHSEP+grplen.value+HASHSEP+groupsnb.value+HASHSEP+cw_options.tone+HASHSEP+round2(selews.value)+HASHSEP+(cw_options.simple_mode?1:0)+HASHSEP+(cw_options.freelisten?1:0)+HASHSEP+(cw_options.weighlastletters?1:0)+HASHSEP+round2(cw_options.keyqual)+HASHSEP+round2(cw_options.volume)+HASHSEP+(cw_options.learn_mode?1:0)+HASHSEP+(cw_options.wrand?1:0));
+  let params = encodeURIComponent(sellesson.value+HASHSEP+selwpm.value+HASHSEP+seleffwpm.value+HASHSEP+grplen.value+HASHSEP+groupsnb.value+HASHSEP+cw_options.tone+HASHSEP+round2(selews.value)+HASHSEP+(cw_options.simple_mode?1:0)+HASHSEP+(cw_options.freelisten?1:0)+HASHSEP+(cw_options.weighlastletters?1:0)+HASHSEP+round2(cw_options.keyqual)+HASHSEP+round2(cw_options.volume)+HASHSEP+(cw_options.learn_mode?1:0)+HASHSEP+(cw_options.wrand?1:0)+HASHSEP+(cw_options.customset));
   try {
     window.name = params;
     localStorage.setItem("params", params);
@@ -982,7 +1000,7 @@ function saveParams() {
 }
 function loadParams() {
   //'30_25_15_5_15_800_0.6_0_0_1_1_0.41'
-  const regparams = /\d{1,2}_\d{1,2}_\d{1,2}_-?\d_\d{1,3}_\d{1,4}_\d?\d.?\d*_(0|1)_(0|1)_(0|1)_\d.?\d*_\d.?\d*_(0|1)_(0|1)/i;
+  const regparams = /\d{1,2}_\d{1,2}_\d{1,2}_-?\d_\d{1,3}_\d{1,4}_\d?\d.?\d*_(0|1)_(0|1)_(0|1)_\d.?\d*_\d.?\d*_(0|1)_(0|1)_.*/i;
   let fromhash = false;
   let extractParams = (p) => regparams.test(p)?p.split(HASHSEP):[];
   let params = window.location.hash.substring(1);
@@ -1042,6 +1060,23 @@ function message(msg='', style=null) {
       toaster.classList.add(style);
     }
   }, 1);
+}
+function cleanCustomset(cs) {
+  cs = (cs??'').trim().split('').reduce((acc, cur) => {
+    cur = CWPlayer.cleanText(cur);
+    if (!acc.includes(cur) && cur != ' ') acc.push(cur);
+    return acc;
+  }, []).join('');
+  if (!cs.length) {
+    cs = KOCHCARS.join('');
+  }
+  return cs;
+}
+function lessonchanged() {
+  if (sellesson.value == LSN_CUSTOM) {
+    cw_options.customset = cleanCustomset(prompt('Enter custom set', cw_options.customset));
+  }
+  updateValues();
 }
 window.addEventListener("load", async () => {
   // https://stackoverflow.com/a/25325330
@@ -1130,7 +1165,7 @@ window.addEventListener("load", async () => {
   document.addEventListener("mouseup",  onmouseup);
   document.body.addEventListener("keydown",  onkeydown);
   document.body.addEventListener("keyup", onkeyup);
-  sellesson.addEventListener("change", updateValues);
+  sellesson.addEventListener("change", lessonchanged);
   grplen.addEventListener("change", updateValues);
   groupsnb.addEventListener("change", updateValues);
   selwpm.addEventListener("change", () => {
@@ -1154,11 +1189,11 @@ window.addEventListener("load", async () => {
   retrybtn.addEventListener("click", updateValues);
   prevlesson.addEventListener("click", () => {
     sellesson.value = Math.min(maxlessons, Math.max(1, parseInt(sellesson.value, 10)-1));
-    updateValues();
+    lessonchanged();
   });
   nxtlesson.addEventListener("click", () => {
     sellesson.value = Math.min(maxlessons, Math.max(1, parseInt(sellesson.value, 10)+1));
-    updateValues();
+    lessonchanged();
   });
   retrynxt.addEventListener("click", nxtlesson.click);
   chkfreelisten.addEventListener("change", (e) => {
@@ -1261,16 +1296,18 @@ function displayMorseCode(e) {
   }
   let lessonletters = [];
   let isActive = (l) => lessonletters.includes(l);
-  if (cw_options.simple_mode || cw_options.learn_mode || cw_options.lesson > 43) {
+  if (cw_options.simple_mode || cw_options.learn_mode || cw_options.lesson > LSN_CUSTOM) {
     isActive = (l) => false;
-  } else if (cw_options.lesson <= 40) {
+  } else if (cw_options.lesson < LSN_LETTERS) {
     lessonletters = KOCHCARS.slice(0, cw_options.lesson+1);
-  } else if (cw_options.lesson == 41) {
+  } else if (cw_options.lesson == LSN_LETTERS) {
     lessonletters = ALPHA;
-  } else if (cw_options.lesson == 42) {
+  } else if (cw_options.lesson == LSN_NUMBERS) {
     lessonletters = NUMBERS;
-  } else if (cw_options.lesson == 43) {
+  } else if (cw_options.lesson == LSN_SYMBOLS) {
     lessonletters = SYMBOLS;
+  } else if (cw_options.lesson == LSN_CUSTOM) {
+    lessonletters = cw_options.customset;
   }
   [...morsecscnt.querySelectorAll('td:not(.mletter)')].forEach(td => {
     let elms = [td, td.nextElementSibling];
@@ -1281,7 +1318,7 @@ function displayMorseCode(e) {
         cell.title = 'symbol included in current lesson';
       } else {
         cell.classList.remove('active');
-        if (cw_options.lesson > 43) {
+        if (cw_options.lesson > LSN_CUSTOM) {
           cell.removeAttribute('title');
         } else {
           cell.title = 'symbol not included in current lesson';
@@ -1370,12 +1407,12 @@ async function updateValues() {
   if (!cwplayer) return;
   if (cwplayer.Playing) cwplayer.stop();
   getElements('#sellesson>option').forEach(o => {
-    if (o.value < 44) return;
+    if (o.value < LSN_PROSIGNS) return;
     o.disabled = cw_options.simple_mode;
     o.title=cw_options.simple_mode?'disabled in simple mode':'';
   });
-  if (cw_options.simple_mode && sellesson.value>43) {
-    sellesson.value = 43;
+  if (cw_options.simple_mode && sellesson.value > LSN_CUSTOM) {
+    sellesson.value = LSN_CUSTOM;
   }
   cwplayer.PreDelay = cw_options.learn_mode || cw_options.simple_mode || cw_options.freelisten ? 0.05 : 2;
   iptfree.value = cwtext.value = '';
@@ -1420,11 +1457,11 @@ async function updateValues() {
   zonefree.style.display = cw_options.simple_mode?'block':'none';
   zonekoch.style.display = !cw_options.simple_mode&&!cw_options.learn_mode?'block':'none';
   zonelearn.style.display = cw_options.learn_mode?'block':'none';
-  zonewords.style.display = sellesson.value < 45?'block':'none';
-  grplen.disabled = sellesson.value >= 44;
+  zonewords.style.display = sellesson.value < LSN_QSO?'block':'none';
+  grplen.disabled = sellesson.value >= LSN_PROSIGNS;
   grplen.title = grplen.disabled ? 'disabled in this mode' : '';
   grplen.previousElementSibling.title = grplen.title;
-  chkweightlastletterswrapper.style.display = !cw_options.learn_mode && !cw_options.freelisten && sellesson.value < 41?'block':'none';
+  chkweightlastletterswrapper.style.display = !cw_options.learn_mode && !cw_options.freelisten && sellesson.value < LSN_LETTERS?'block':'none';
   chkfreelistenwrapper.style.visibility = !cw_options.learn_mode && !cw_options.simple_mode?'visible':'hidden';
   chkfreelistenwrapper.style.display = cw_options.simple_mode ? 'none':'block';
   chkwrandwrapper.style.display = cw_options.simple_mode ? 'block':'none';
