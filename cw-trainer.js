@@ -999,10 +999,8 @@ function saveParams() {
   window.location.hash = params;
 }
 function loadParams() {
-  //'30_25_15_5_15_800_0.6_0_0_1_1_0.41'
-  const regparams = /\d{1,2}_\d{1,2}_\d{1,2}_-?\d_\d{1,3}_\d{1,4}_\d?\d.?\d*_(0|1)_(0|1)_(0|1)_\d.?\d*_\d.?\d*_(0|1)_(0|1)_.*/i;
   let fromhash = false;
-  let extractParams = (p) => regparams.test(p)?p.split(HASHSEP):[];
+  let extractParams = (p) => p.split(HASHSEP);
   let params = decodeURIComponent(window.location.hash.substring(1));
   if (typeof params === 'string' && params?.trim().length > 0) {
     fromhash = true;
