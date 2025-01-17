@@ -652,6 +652,7 @@ async function verifyCW(e) {
         await CWPlayer.delay(0.25);
       }
       generateText();
+      simplemode_starttime = new Date(); // au cas où on répond avant la fin du prochain play()
       let p = [CWPlayer.delay(0.35), cwplayer.play().then(() => simplemode_starttime = new Date())];
       Promise.race(p).then(() => {
         iptfree.classList.remove('ok');
