@@ -647,14 +647,15 @@ async function verifyCW(e) {
       }
       iptfree.classList.add('ok');
       iptfree.value = '\u2714';//'GOOD !';
-      CWPlayer.delay(0.35).then(() => {
+      generateText();
+      let p = [CWPlayer.delay(0.35), cwplayer.play()];
+      p[1].then(() => simplemode_starttime = new Date());
+      Promise.all(p).then(() => {
         iptfree.classList.remove('ok');
         iptfree.classList.remove('nocarret');
         iptfree.value = '';
         cwchecking = false;
       });
-      generateText();
-      cwplayer.play().then(() => simplemode_starttime = new Date());
       window.freetotal++;
       window.freefirsttry = true;
     }
@@ -1060,11 +1061,11 @@ function message(msg='', style=null) {
   }, 1);
 }
 function cleanCustomset(cs) {
-  cs = [...new Set(CWPlayer.cleanText(typeof cs === 'string'?cs:'').replaceAll(' ', '').split(''))].join('');
+  cs = [...new Set(CWPlayer.cleanText(typeof cs === 'string'?cs:'').replaceAll(' ', '').split(''))];
   if (!cs.length) {
-    cs = KOCHCARS.join('');
+    cs = KOCHCARS;
   }
-  return cs;
+  return cs/*.sort()*/.join('');
 }
 function lessonchanged() {
   if (sellesson.value == LSN_CUSTOM) {
@@ -1210,7 +1211,7 @@ window.addEventListener("load", async () => {
   });
   iptfree.addEventListener("keyup", verifyCW);
   iptlearn.addEventListener("keydown", _ => {
-    if (cwchecking) return;
+    if (cwchecking) return false;
     iptlearn.value='';
   });
   iptlearn.addEventListener("keyup", verifyCW);
