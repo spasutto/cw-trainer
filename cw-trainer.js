@@ -647,10 +647,13 @@ async function verifyCW(e) {
       }
       iptfree.classList.add('ok');
       iptfree.value = '\u2714';//'GOOD !';
+      if (cwplayer.Playing) {
+        cwplayer.stop();
+        await CWPlayer.delay(0.25);
+      }
       generateText();
-      let p = [CWPlayer.delay(0.35), cwplayer.play()];
-      p[1].then(() => simplemode_starttime = new Date());
-      Promise.all(p).then(() => {
+      let p = [CWPlayer.delay(0.35), cwplayer.play().then(() => simplemode_starttime = new Date())];
+      Promise.race(p).then(() => {
         iptfree.classList.remove('ok');
         iptfree.classList.remove('nocarret');
         iptfree.value = '';
