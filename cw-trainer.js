@@ -565,227 +565,236 @@ async function verifyCW(e) {
   if (!cwplayer || cwchecking) return;
   cwchecking = true;
   if (cw_options.learn_mode) {
-    if (e?.keyCode == 16 || (e?.key.length>1 && e?.key != 'Unidentified')) { // shift et autres touches non imprimables
-      cwchecking = false;
-      return;
-    }
-    let cwcar = CWPlayer.cleanText(iptlearn.value);
-    iptlearn.classList.add('blue', 'nocarret');
-    iptlearnmorse.innerHTML = '';
-    await cwplayer.stop();
-    await cwplayer.play(cwcar);
-    await Promise.race([trySpeak(cwcar), CWPlayer.delay(2)]);
-    cwchecking = false;
-    let tr = CWPlayer.translate(cwcar).split('').filter(s => ['.','-'].includes(s)).map(s => s == '.' ? DIT_SYMBOL : DAH_SYMBOL).join('');;
-    iptlearnmorse.innerHTML = `<a href="#" onclick="verifyCW();return false;" title="replay">${tr}</a>`;
-    await CWPlayer.delay(1);
-    iptlearn.classList.remove('blue', 'nocarret');
+    await verifyLearn(e);
   } else if (cw_options.simple_mode) {
-    if (e?.keyCode == 16 || (e?.key.length>1 && e?.key != 'Unidentified')) { // shift et autres touches non imprimables
+    await verifySimple(e);
+  } else {
+    await verifyKoch(e);
+  }
+}
+async function verifyLearn(e) {
+  if (e?.keyCode == 16 || (e?.key.length>1 && e?.key != 'Unidentified')) { // shift et autres touches non imprimables
+    cwchecking = false;
+    return;
+  }
+  let cwcar = CWPlayer.cleanText(iptlearn.value);
+  iptlearn.classList.add('blue', 'nocarret');
+  iptlearnmorse.innerHTML = '';
+  await cwplayer.stop();
+  await cwplayer.play(cwcar);
+  await Promise.race([trySpeak(cwcar), CWPlayer.delay(2)]);
+  cwchecking = false;
+  let tr = CWPlayer.translate(cwcar).split('').filter(s => ['.','-'].includes(s)).map(s => s == '.' ? DIT_SYMBOL : DAH_SYMBOL).join('');;
+  iptlearnmorse.innerHTML = `<a href="#" onclick="verifyCW();return false;" title="replay">${tr}</a>`;
+  await CWPlayer.delay(1);
+  iptlearn.classList.remove('blue', 'nocarret');
+}
+async function verifySimple(e) {
+  if (e?.keyCode == 16 || (e?.key.length>1 && e?.key != 'Unidentified')) { // shift et autres touches non imprimables
+    cwchecking = false;
+    return;
+  }
+  let cwcar = iptfree.value;
+  iptfree.value = '';
+  iptfree.classList.add('nocarret');
+  if (cw_options.freelisten || cwcar==' ') {
+    cwplayer.stop();
+    iptfree.classList.add('blue');
+    iptfree.value = '\u266A';
+    cwplayer.play(cw_options.freelisten?cwcar:null).then(() => {
+      iptfree.classList.remove('blue');
+      iptfree.classList.remove('nocarret');
+      iptfree.value = '';
+      iptfree.focus();
       cwchecking = false;
-      return;
+    });
+    return;
+  }
+  if (cwcar.toUpperCase() != cwplayer.Text[0]) {
+    iptfree.classList.add('error');
+    iptfree.value = '\u274C';//'ERROR';
+    CWPlayer.delay(0.35).then(() => {
+      iptfree.classList.remove('error');
+      iptfree.classList.remove('nocarret');
+      cwchecking = false;
+    });
+    cwplayer.stop();
+    await cwplayer.playBoop();
+    if (window.freefirsttry) {
+      window.freefirsttry = false;
+      window.freeerr++;
+      if (cw_options.wrand) {
+        let is = els.indexOf(cwplayer.Text[0]);
+        if (is > -1) {
+          pmf[is]++;
+          updateCDF();
+        }
+      }
     }
-    let cwcar = iptfree.value;
     iptfree.value = '';
-    iptfree.classList.add('nocarret');
-    if (cw_options.freelisten || cwcar==' ') {
-      cwplayer.stop();
-      iptfree.classList.add('blue');
-      iptfree.value = '\u266A';
-      cwplayer.play(cw_options.freelisten?cwcar:null).then(() => {
-        iptfree.classList.remove('blue');
-        iptfree.classList.remove('nocarret');
-        iptfree.value = '';
-        iptfree.focus();
-        cwchecking = false;
-      });
-      return;
-    }
-    if (cwcar.toUpperCase() != cwplayer.Text[0]) {
-      iptfree.classList.add('error');
-      iptfree.value = '\u274C';//'ERROR';
-      CWPlayer.delay(0.35).then(() => {
-        iptfree.classList.remove('error');
-        iptfree.classList.remove('nocarret');
-        cwchecking = false;
-      });
-      cwplayer.stop();
-      await cwplayer.playBoop();
-      if (window.freefirsttry) {
-        window.freefirsttry = false;
-        window.freeerr++;
-        if (cw_options.wrand) {
-          let is = els.indexOf(cwplayer.Text[0]);
-          if (is > -1) {
-            pmf[is]++;
+  } else {
+    if (window.freefirsttry) {
+      if (cw_options.wrand) {
+        let is = els.indexOf(cwplayer.Text[0]);
+        if (is > -1) {
+          const maxtime = 4;
+          let ttime = 0;
+          if (simplemode_starttime>0) {
+            ttime = Math.min(maxtime, (new Date() - simplemode_starttime)/1000);
+          }
+          if (ttime > 0) {
+            // coef € [-0.8;1.5] pour ttime € [0;maxtime]
+            const min = -0.8;
+            const max = 1.5;
+            let penal = min+(ttime*(max-min)/maxtime);
+            console.log('réponse en', Math.round(10*ttime)/10, 's pour le symbole', cwplayer.Text[0],'==> penal =',Math.round(100*penal)/100);
+            pmf[is] = Math.max(1, penal+pmf[is]);
             updateCDF();
           }
         }
       }
+    }
+    iptfree.classList.add('ok');
+    iptfree.value = '\u2714';//'GOOD !';
+    if (cwplayer.Playing) {
+      cwplayer.stop();
+      await CWPlayer.delay(0.25);
+    }
+    generateText();
+    simplemode_starttime = new Date(); // au cas où on répond avant la fin du prochain play()
+    let p = [CWPlayer.delay(0.35), cwplayer.play().then(() => simplemode_starttime = new Date())];
+    Promise.race(p).then(() => {
+      iptfree.classList.remove('ok');
+      iptfree.classList.remove('nocarret');
       iptfree.value = '';
-    } else {
-      if (window.freefirsttry) {
-        if (cw_options.wrand) {
-          let is = els.indexOf(cwplayer.Text[0]);
-          if (is > -1) {
-            const maxtime = 4;
-            let ttime = 0;
-            if (simplemode_starttime>0) {
-              ttime = Math.min(maxtime, (new Date() - simplemode_starttime)/1000);
-            }
-            if (ttime > 0) {
-              // coef € [-0.8;1.5] pour ttime € [0;maxtime]
-              const min = -0.8;
-              const max = 1.5;
-              let penal = min+(ttime*(max-min)/maxtime);
-              console.log('réponse en', Math.round(10*ttime)/10, 's pour le symbole', cwplayer.Text[0],'==> penal =',Math.round(100*penal)/100);
-              pmf[is] = Math.max(1, penal+pmf[is]);
-              updateCDF();
-            }
-          }
-        }
-      }
-      iptfree.classList.add('ok');
-      iptfree.value = '\u2714';//'GOOD !';
-      if (cwplayer.Playing) {
-        cwplayer.stop();
-        await CWPlayer.delay(0.25);
-      }
-      generateText();
-      simplemode_starttime = new Date(); // au cas où on répond avant la fin du prochain play()
-      let p = [CWPlayer.delay(0.35), cwplayer.play().then(() => simplemode_starttime = new Date())];
-      Promise.race(p).then(() => {
-        iptfree.classList.remove('ok');
-        iptfree.classList.remove('nocarret');
-        iptfree.value = '';
-        cwchecking = false;
-      });
-      window.freetotal++;
-      window.freefirsttry = true;
-    }
-    
-    zoneresultfree.innerHTML = `Success rate : ${Math.round((100*(freetotal-freeerr)/freetotal)*10)/10}% (${window.freetotal-1} symbols)`;
-
-    iptfree.focus();
-  } else {
-    if (cw_options.freelisten) {
       cwchecking = false;
-      return;
-    }
-    if (cwplayer.Playing) cwplayer.stop();
-    cwsbm.disabled = true;
-    let comparefn = cw_options.lesson == LSN_PROSIGNS ? compareProsigns : compareStrings;
-    let cleanText = (t) => CWPlayer.cleanText(t.trim()).replaceAll('\t', ' ').replaceAll(/[{}]/g, '');
-    let extractfn = (t) => [cleanText(t)];
-    // hormis pour les QSOs et le texte libre on travaille par mot => on recompare mot par mot
-    if (cw_options.lesson <= LSN_PROSIGNS) {
-      extractfn = (t) => cleanText(t).split(' ').filter(e => e.length > 0);
-    }
-    let inpt = extractfn(cwtext.value);
-    let verif = extractfn(cwplayer.Text);
-    let results = verif.map((a, i) => comparefn(a, inpt[i] ?? ''));
-    let nbchars = verif.reduce((acc, cur) => acc+cur.length, 0);
-    let nberr = results.reduce((acc, cur) => acc+cur.errors, 0);
-    let maxerrs = nberr;
-    if (inpt.length < verif.length) {
-      // on cherche si par hasard il n'y aurait pas eu un oubli d'espace
-      let toobigwords = cw_options.grouplen < 0 ? [] : inpt.filter(ipt => ipt.length > cw_options.grouplen && ipt.length%cw_options.grouplen == 0);
-      if (cw_options.grouplen > 0 && toobigwords.length > 0) {
-        let newinpts = [];
-        for (let i=0; i<inpt.length; i++) {
-          if (inpt[i].length>cw_options.grouplen && inpt[i].length%cw_options.grouplen==0) {
-            newinpts.push(...inpt[i].match(new RegExp(`.{1,${cw_options.grouplen}}`, 'g')));
-          } else {
-            newinpts.push(inpt[i]);
-          }
+    });
+    window.freetotal++;
+    window.freefirsttry = true;
+  }
+  
+  zoneresultfree.innerHTML = `Success rate : ${Math.round((100*(freetotal-freeerr)/freetotal)*10)/10}% (${window.freetotal-1} symbols)`;
+
+  iptfree.focus();
+}
+async function verifyKoch(e) { // KOCH MODE
+  if (cw_options.freelisten) {
+    cwchecking = false;
+    return;
+  }
+  if (cwplayer.Playing) cwplayer.stop();
+  cwsbm.disabled = true;
+  let comparefn = cw_options.lesson == LSN_PROSIGNS ? compareProsigns : compareStrings;
+  let cleanText = (t) => CWPlayer.cleanText(t.trim()).replaceAll('\t', ' ').replaceAll(/[{}]/g, '');
+  let extractfn = (t) => [cleanText(t)];
+  // hormis pour les QSOs et le texte libre on travaille par mot => on recompare mot par mot
+  if (cw_options.lesson <= LSN_PROSIGNS) {
+    extractfn = (t) => cleanText(t).split(' ').filter(e => e.length > 0);
+  }
+  let inpt = extractfn(cwtext.value);
+  let verif = extractfn(cwplayer.Text);
+  let results = verif.map((a, i) => comparefn(a, inpt[i] ?? ''));
+  let nbchars = verif.reduce((acc, cur) => acc+cur.length, 0);
+  let nberr = results.reduce((acc, cur) => acc+cur.errors, 0);
+  let maxerrs = nberr;
+  if (inpt.length < verif.length) {
+    // on cherche si par hasard il n'y aurait pas eu un oubli d'espace
+    let toobigwords = cw_options.grouplen < 0 ? [] : inpt.filter(ipt => ipt.length > cw_options.grouplen && ipt.length%cw_options.grouplen == 0);
+    if (cw_options.grouplen > 0 && toobigwords.length > 0) {
+      let newinpts = [];
+      for (let i=0; i<inpt.length; i++) {
+        if (inpt[i].length>cw_options.grouplen && inpt[i].length%cw_options.grouplen==0) {
+          newinpts.push(...inpt[i].match(new RegExp(`.{1,${cw_options.grouplen}}`, 'g')));
+        } else {
+          newinpts.push(inpt[i]);
         }
-        inpt = newinpts;
+      }
+      inpt = newinpts;
+      results = verif.map((a, i) => comparefn(a, inpt[i] ?? ''));
+      nberr = results.reduce((acc, cur) => acc+cur.errors, 0);
+    }
+  }
+  if (inpt.length < verif.length) {
+    if (confirm('Warning : it seems that you have not entered enough groups, are you sure to proceed to verification?')) {
+      let nbtofill = verif.length-inpt.length;
+      // on tente de trouver l'emplacement du/des mot(s) qui manque(nt)
+      inpt.push(...Array(nbtofill).fill('')); // on insère pour permettre aux insertions de combinaisons de fonctionner sans soucis
+      // on va faire toutes les combinaisons possible pour insérer les 'nbtofill' mots manquants
+      // pour chaque combinaison on va calculer le nombre d'erreur et on prendra la combinaison avec le plus faible taux d'erreur
+      if (inpt.reduce((a,c)=>a+=c.length,0)>0 && factorial(verif.length)<Number.MAX_VALUE) {
+        let temperr = Number.MAX_VALUE;
+        let minerrindice = null;//Array(nbtofill).fill(0).map((_,i) => inpt.length-(nbtofill-i)); // valeur par défaut au cas où le traitement est interrompu
+        let inpttmp = null;
+        loading();
+        await CWPlayer.delay(0.05);//sinon l'overlay de chargement ne s'affiche pas
+        window.intperm = new Date().getTime() + 5000; // 5s max de traitement
+        combinaisons(Array(verif.length).fill(0).map((_,i) => i), nbtofill, perms => perms.forEach(perm => {
+          if (perm.length != nbtofill || new Date().getTime() > window.intperm) return;
+          inpttmp = inpt.slice();
+          for (let y=0; y<nbtofill; y++) {
+            inpttmp.splice(perm[y], 0, '');
+          }
+          results = verif.map((a, i) => comparefn(a, inpttmp[i] ?? ''));
+          nberr = results.reduce((acc, cur) => acc+cur.errors, 0);
+          if (nberr < temperr) {
+            temperr = nberr;
+            minerrindice = perm.slice();
+          }
+          //inpttmp.splice(-1*nbtofill);
+        }));
+        loading(false);
+        if (minerrindice == null || new Date().getTime() > window.intperm) {
+          // emplacements d'origine (en fin de chaîne)
+          minerrindice = Array(nbtofill).fill(0).map((_,i) => inpt.length-(nbtofill-i));
+        }
+        // on a trouvé l'emplacement, on insère et on compare définitivement
+        for (let y=0; y<nbtofill; y++) {
+          inpt.splice(minerrindice[y], 0, '');
+        }
         results = verif.map((a, i) => comparefn(a, inpt[i] ?? ''));
         nberr = results.reduce((acc, cur) => acc+cur.errors, 0);
       }
+    } else {
+      cwsbm.disabled = false;
+      cwchecking = false;
+      return;
     }
-    if (inpt.length < verif.length) {
-      if (confirm('Warning : it seems that you have not entered enough groups, are you sure to proceed to verification?')) {
-        let nbtofill = verif.length-inpt.length;
-        // on tente de trouver l'emplacement du/des mot(s) qui manque(nt)
-        inpt.push(...Array(nbtofill).fill('')); // on insère pour permettre aux insertions de combinaisons de fonctionner sans soucis
-        // on va faire toutes les combinaisons possible pour insérer les 'nbtofill' mots manquants
-        // pour chaque combinaison on va calculer le nombre d'erreur et on prendra la combinaison avec le plus faible taux d'erreur
-        if (inpt.reduce((a,c)=>a+=c.length,0)>0 && factorial(verif.length)<Number.MAX_VALUE) {
-          let temperr = Number.MAX_VALUE;
-          let minerrindice = null;//Array(nbtofill).fill(0).map((_,i) => inpt.length-(nbtofill-i)); // valeur par défaut au cas où le traitement est interrompu
-          let inpttmp = null;
-          loading();
-          await CWPlayer.delay(0.05);//sinon l'overlay de chargement ne s'affiche pas
-          window.intperm = new Date().getTime() + 5000; // 5s max de traitement
-          combinaisons(Array(verif.length).fill(0).map((_,i) => i), nbtofill, perms => perms.forEach(perm => {
-            if (perm.length != nbtofill || new Date().getTime() > window.intperm) return;
-            inpttmp = inpt.slice();
-            for (let y=0; y<nbtofill; y++) {
-              inpttmp.splice(perm[y], 0, '');
-            }
-            results = verif.map((a, i) => comparefn(a, inpttmp[i] ?? ''));
-            nberr = results.reduce((acc, cur) => acc+cur.errors, 0);
-            if (nberr < temperr) {
-              temperr = nberr;
-              minerrindice = perm.slice();
-            }
-            //inpttmp.splice(-1*nbtofill);
-          }));
-          loading(false);
-          if (minerrindice == null || new Date().getTime() > window.intperm) {
-            // emplacements d'origine (en fin de chaîne)
-            minerrindice = Array(nbtofill).fill(0).map((_,i) => inpt.length-(nbtofill-i));
-          }
-          // on a trouvé l'emplacement, on insère et on compare définitivement
-          for (let y=0; y<nbtofill; y++) {
-            inpt.splice(minerrindice[y], 0, '');
-          }
-          results = verif.map((a, i) => comparefn(a, inpt[i] ?? ''));
-          nberr = results.reduce((acc, cur) => acc+cur.errors, 0);
-        }
-      } else {
-        cwsbm.disabled = false;
-        cwchecking = false;
-        return;
-      }
-    }
-    results.forEach(r => {
-      let str2bk = r.str2;
-      // hormis pour les QSOs on travaille par mot
-      if (cw_options.lesson <= LSN_CUSTOM) {
-        r.str1 = r.str1.replaceAll(/\s/g, '\n');
-        r.str2 = r.str2.replaceAll(/\s/g, '\n');
-        r.str2 = formatTestString(r).replaceAll(/\s/g, '<BR>').replaceAll('<span<BR>class="', '<span class="');
-        r.str1 = r.str1.replaceAll(/\s+/g, '<BR>');
-      } else {
-        r.str2 = formatTestString(r);
-      }
-      r.str2bk = str2bk;
-    });
-    // bug : cwplayer.Text='T5TWR DE N8LRT R FB ROBERT NICE TO MEET YOU BT THE RIG HR IS A KNWD TS-570D AT QRP 5W TO AN ATTIC RANDOM WIRE BT THE WX LITE SNOW ES 33 DEGREES HW? AR T5TWR DE N8LRT KN', cwtext.value='T5TWR DE N8LRT R FB ROBERT NICE TO MEET YOU BT THE RIG HR IS A KNWD TS-570D AT QRP 5W TO AN ATTIC RANDOM WIRE BT THE WX LITE SNOW ES 33 DEGREES HW? AR T5TWR N8LRT KN'
-    let perc = (nbchars-nberr)*100/nbchars;
-    perc = Math.round(perc*10)/10;
-    let stats = [`${nbchars-nberr}/${nbchars} characters sent`];
-    let missing = results.reduce((a,c) => a+=(c.str2.match(new RegExp(emptyChar, 'g')) || []).length, 0);
-    if (missing > 0) stats.push(`${missing} missing${missing>1?'s':''}`);
-    if (nberr > missing) stats.push(`${nberr-missing} error${nberr-missing>1?'s':''}`);
-    zonerestext.innerHTML = `<h5>${perc}% success rate</h5><small>(${stats.join(', ')})</small><BR>`;
-    let restable = '<table><th>original</th><th>input</th><th>errors</th>'
-    results.forEach(r => {
-      restable += `<tr><td><span><a href="#" title="listen" name="listen" onclick="listen('${r.str1.replaceAll('<BR>', ' ').replaceAll('\'', '\\\'').replaceAll('"', '&quot;')}', this);">${r.str1}</a></span></td>`;
-      restable += `<td><a href="#" title="listen" name="listen" onclick="listen('${r.str2bk.replaceAll('\'', '\\\'').replaceAll('"', '&quot;')}', this);">${r.str2}</a></td>`;
-      restable += `<td>${r.errors}</td></tr>`;
-    });
-    restable += '</table>';
-    zonerestext.innerHTML += restable;
-  
-    retrynxt.style.display = cw_options.lesson <= KOCHCARS.length-1 && perc>=90?'inline-block':'none';
-    zoneresult.style.display = 'inline-block';
-    keyboard.style.display = 'none';
-    cwsbm.disabled = false;
-    cwchecking = false;
   }
+  results.forEach(r => {
+    let str2bk = r.str2;
+    // hormis pour les QSOs on travaille par mot
+    if (cw_options.lesson <= LSN_CUSTOM) {
+      r.str1 = r.str1.replaceAll(/\s/g, '\n');
+      r.str2 = r.str2.replaceAll(/\s/g, '\n');
+      r.str2 = formatTestString(r).replaceAll(/\s/g, '<BR>').replaceAll('<span<BR>class="', '<span class="');
+      r.str1 = r.str1.replaceAll(/\s+/g, '<BR>');
+    } else {
+      r.str2 = formatTestString(r);
+    }
+    r.str2bk = str2bk;
+  });
+  // bug : cwplayer.Text='T5TWR DE N8LRT R FB ROBERT NICE TO MEET YOU BT THE RIG HR IS A KNWD TS-570D AT QRP 5W TO AN ATTIC RANDOM WIRE BT THE WX LITE SNOW ES 33 DEGREES HW? AR T5TWR DE N8LRT KN', cwtext.value='T5TWR DE N8LRT R FB ROBERT NICE TO MEET YOU BT THE RIG HR IS A KNWD TS-570D AT QRP 5W TO AN ATTIC RANDOM WIRE BT THE WX LITE SNOW ES 33 DEGREES HW? AR T5TWR N8LRT KN'
+  let perc = (nbchars-nberr)*100/nbchars;
+  perc = Math.round(perc*10)/10;
+  let stats = [`${nbchars-nberr}/${nbchars} characters sent`];
+  let missing = results.reduce((a,c) => a+=(c.str2.match(new RegExp(emptyChar, 'g')) || []).length, 0);
+  if (missing > 0) stats.push(`${missing} missing${missing>1?'s':''}`);
+  if (nberr > missing) stats.push(`${nberr-missing} error${nberr-missing>1?'s':''}`);
+  zonerestext.innerHTML = `<h5>${perc}% success rate</h5><small>(${stats.join(', ')})</small><BR>`;
+  let restable = '<table><th>original</th><th>input</th><th>errors</th>'
+  results.forEach(r => {
+    restable += `<tr><td><span><a href="#" title="listen" name="listen" onclick="listen('${r.str1.replaceAll('<BR>', ' ').replaceAll('\'', '\\\'').replaceAll('"', '&quot;')}', this);">${r.str1}</a></span></td>`;
+    restable += `<td><a href="#" title="listen" name="listen" onclick="listen('${r.str2bk.replaceAll('\'', '\\\'').replaceAll('"', '&quot;')}', this);">${r.str2}</a></td>`;
+    restable += `<td>${r.errors}</td></tr>`;
+  });
+  restable += '</table>';
+  zonerestext.innerHTML += restable;
+
+  retrynxt.style.display = cw_options.lesson <= KOCHCARS.length-1 && perc>=90?'inline-block':'none';
+  zoneresult.style.display = 'inline-block';
+  keyboard.style.display = 'none';
+  cwsbm.disabled = false;
+  cwchecking = false;
 }
 async function listen(text, elem) {
   if (cwplayer.Playing) {
