@@ -60,7 +60,7 @@ a[name="modes"], a[name="modes"]:visited {
   color: #e7e7e7;
   padding: 0 15px;
   border: solid 1px #d7d7d7;
-  border-bottom: solid 2px #d7d7d700;
+  border-bottom: 0;
   border-radius: 5px;
   border-bottom-left-radius: 0;
   border-bottom-right-radius: 0;
@@ -68,6 +68,7 @@ a[name="modes"], a[name="modes"]:visited {
 a[name="modes"].active {
   background-color: white;
   color: #6ec113;
+  border-bottom: solid 2px #d7d7d700;
 }
 #zonemodes {
   text-align: right;
