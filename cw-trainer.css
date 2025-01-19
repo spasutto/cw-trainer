@@ -60,7 +60,7 @@ a[name="modes"], a[name="modes"]:visited {
   color: #e7e7e7;
   padding: 0 15px;
   border: solid 1px #d7d7d7;
-  border-bottom: none;
+  border-bottom: solid 2px #d7d7d700;
   border-radius: 5px;
   border-bottom-left-radius: 0;
   border-bottom-right-radius: 0;
