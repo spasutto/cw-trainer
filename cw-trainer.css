@@ -273,6 +273,14 @@ select, option {
   font-family: monospace;
   font-size: medium;
 }
+#sellesson {
+  width: 95px;
+}
+#prevlesson, #nxtlesson {
+  width: 23px;
+  height: 22px;
+  padding: 0px;
+}
 #zoneresult table {
   width: fit-content;
   margin: auto;
