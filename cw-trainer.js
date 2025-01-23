@@ -101,7 +101,7 @@ function reinitPMF() {
   pmf = Array(els.length).fill(1);
   if (cw_options.weighlastletters) {
     for (let i=pmf.length-1; i>=0&&i>=pmf.length-3; i--) {
-      pmf[i]=2;
+      pmf[i]=Math.max(3, els.length/5);
     }
   }
   updateCDF();
