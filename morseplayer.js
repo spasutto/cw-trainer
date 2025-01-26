@@ -67,7 +67,8 @@ class CWPlayer {
     ews : 0,
     predelay : 0,
     autoplay : false,
-    volume : 1
+    volume : 1,
+    qrn: 0
   };
   elperiod = 0.06; // 20WPM.
   spperiod = 0.06;
@@ -99,6 +100,7 @@ class CWPlayer {
     this.AutoPlay = options.autoplay;
     this.Volume = options.volume;
     this.KeyingQuality = options.keyqual;
+    this.QRN = options.qrn;
   }
 
   /*CONSTANTES*/
@@ -110,6 +112,8 @@ class CWPlayer {
   static get MAX_TONE() { return 5000; }
   static get MIN_KEYQUAL() { return 0.5; }
   static get MAX_KEYQUAL() { return 1; }
+  static get MIN_QRN() { return 0; }
+  static get MAX_QRN() { return NoiseGainNode.MAX_NOISE; }
   /*FIN CONSTANTES*/
 
   get Options() { return {...this.options}; }
@@ -210,6 +214,17 @@ class CWPlayer {
       this.scheduleFromCurrentSymbol();
     }
     this.fireEvent('parameterchanged', 'KeyingQuality');
+  }
+  get QRN() { return this.options.qrn; }
+  set QRN(value) {
+    value = CWPlayer.parsefloat(value);
+    value = Math.min(CWPlayer.MAX_QRN, Math.max(CWPlayer.MIN_QRN, value));
+    if (value == this.options.qrn && value == this.noise?.quantity?.value) return;
+    this.options.qrn = value;
+    if (this.context) {
+      this.noise.quantity.value = value;
+    }
+    this.fireEvent('parameterchanged', 'QRN');
   }
   get PreDelay() { return this.options.predelay; }
   set PreDelay(value) {
@@ -430,7 +445,7 @@ class CWPlayer {
     this.master.gain.setValueAtTime(Math.pow(this.options.volume*10, 2)/100, this.context.currentTime);
   }
 
-  initAudio(offline = false) {
+  async initAudio(offline = false) {
     if (!offline) {
       if (this.recording) return;
       this.context = new (window.AudioContext || window.webkitAudioContext)();
@@ -438,17 +453,21 @@ class CWPlayer {
       this.context = new OfflineAudioContext(2, 44100 * (this.totaltime+0.5), 44100);
     }
     this.osc = this.context.createOscillator();
+    this.noise = new NoiseGainNode(this.context);
+    await this.noise.initAudio();
     this.gain = this.context.createGain();
-    this.osc.connect(this.gain);//.connect(this.context.destination);
-    this.osc.frequency.value = this.options.tone;
+    this.osc.connect(this.gain).connect(this.noise.Input);
     this.gain.gain.value = 0;
+    this.osc.frequency.value = this.options.tone;
     if (!offline) {
       this.master = this.context.createGain();
       this.setMasterVolume();
-      this.gain.connect(this.master);
+      //this.gain.connect(this.master);
+      this.noise.connect(this.master);
       this.master.connect(this.context.destination);
     } else {
-      this.gain.connect(this.context.destination);
+      //this.gain.connect(this.context.destination);
+      this.noise.connect(this.context.destination);
     }
     this.osc.start();
   }
@@ -457,7 +476,7 @@ class CWPlayer {
     else if (this.playing) {
       this.stop();
     } else if (!this.context) {
-      this.initAudio();
+      await this.initAudio();
     }
     this.booping = true;
 
@@ -475,6 +494,7 @@ class CWPlayer {
     this.booping = false;
   }
   stopSound() {
+    this.noise.quantity.value = 0;
     let curGain = this.gain.gain.value;
     if (curGain > 0) {
       let stopTime = this.context.currentTime + this.rampperiod;
@@ -512,7 +532,7 @@ class CWPlayer {
     return this.stop(true);
   }
   async play(text) {
-    return new Promise(res => {
+    return new Promise(async res => {
       if (this.playing || this.booping || this.recording) {
         res();
         return;
@@ -524,7 +544,7 @@ class CWPlayer {
       }
       this.onplayend = res;
       if (!this.context) {
-        this.initAudio();
+        await this.initAudio();
       }
       if (this.starttime==0) {
         this.totalpausetime = 0;
@@ -586,6 +606,7 @@ class CWPlayer {
     } else {
       this.gain.gain.cancelScheduledValues(this.starttime+this.totalpausetime+this.itime[startindex?startindex-1:0]);
     }
+    this.noise.quantity.value = this.options.qrn;
     let t=0;
     for (let i=startindex; i<this.stime.length; i++) {
       t = this.stime[i] - timefromstart;
@@ -673,7 +694,7 @@ class CWPlayer {
       this.Text = text;
     }
     try {
-      this.initAudio(true);
+      await this.initAudio(true);
       this.schedule();
       let audioBuffer = await this.context.startRendering();
 
@@ -699,7 +720,7 @@ class CWPlayer {
       console.error(e);
     } finally {
       this.recording = false;
-      this.initAudio();
+      await this.initAudio();
       this.fireEvent('stop'); // permet de déclencher les évenements
     }
   }
@@ -867,6 +888,7 @@ class MorsePlayer extends HTMLElement {
     cfghtml += `<span><label for="val_EWS" title="extra space between words (in seconds)">Extra Word Space :</label><input id="val_EWS" type="number" min="${CWPlayer.MIN_EWS}" max="${CWPlayer.MAX_EWS}" step="0.1" title="extra space between words (in seconds)"></span><BR>`;
     cfghtml += `<span><label for="val_Tone" title="tone (in Hertz)">Tone :</label><input id="val_Tone" type="number" min="${CWPlayer.MIN_TONE}" max="${CWPlayer.MAX_TONE}" step="100" title="tone (in Hertz)"></span><BR>`;
     cfghtml += `<span><label for="val_KeyingQuality" title="keying quality">Keying Quality :</label><input id="val_KeyingQuality" type="range" min="${CWPlayer.MIN_KEYQUAL}" max="${CWPlayer.MAX_KEYQUAL}" step="0.1" title="keying quality"></span><BR>`;
+    cfghtml += `<span><label for="val_QRN" title="QRN">QRN :</label><input id="val_QRN" type="range" min="${CWPlayer.MIN_QRN}" max="${CWPlayer.MAX_QRN}" step="0.05" title="QRN"></span><BR>`;
     cfghtml += `<span><label for="val_Volume" title="volume">Volume :</label><input id="val_Volume" type="range" min="0" max="1" step="0.01" title="volume"></span>`;
     configzonecont.innerHTML = cfghtml;
 
@@ -916,7 +938,7 @@ class MorsePlayer extends HTMLElement {
         display: none;
         background-color: #ccc;
         padding: 2px;
-        height: 97px; /* à cause de l'élement enfant scale */
+        height: 110px; /* à cause de l'élement enfant scale */
       }
       #configzone>div {
         background-color: #f8f8f8;
@@ -1170,7 +1192,7 @@ class MorsePlayer extends HTMLElement {
       if (e.key === 'Escape' || (e.keyCode || e.which) == 27) this.mouseup();
     });
     Object.keys(this.configfields).forEach(k => {
-      let evttype = k=='Volume' ? 'input' : 'change';
+      let evttype = ['Volume', 'QRN'].includes(k) ? 'input' : 'change';
       this.configfields[k].addEventListener(evttype, () => { this[k] = this.configfields[k].value; });
     });
 
@@ -1218,6 +1240,8 @@ class MorsePlayer extends HTMLElement {
   set Volume(value) { this.cwplayer.Volume = value; }
   get KeyingQuality() { return this.cwplayer.KeyingQuality; }
   set KeyingQuality(value) { this.cwplayer.KeyingQuality = value; }
+  get QRN() { return this.cwplayer.QRN; }
+  set QRN(value) { this.cwplayer.QRN = value; }
   get PreDelay() { return this.cwplayer.PreDelay; }
   set PreDelay(value) { this.cwplayer.PreDelay = value; }
   get TextArray() { return this.cwplayer.TextArray; }
@@ -1378,3 +1402,75 @@ class MorsePlayer extends HTMLElement {
 }
 
 customElements.define(MorsePlayer.TAG, MorsePlayer);
+
+class NoiseGainNode/* extends GainNode*/ {
+  static get MAX_NOISE() { return 0.85; }
+  static get NOISE_PROC() {
+    return `
+    const randomWhite = () => Math.random() * 2 - 1;
+    class NoiseGen extends AudioWorkletProcessor {
+      constructor() {
+        super();
+        this.lastOut = 0.0;
+      }
+      static get parameterDescriptors () {
+        return [{
+          name: 'quantity',
+          defaultValue: 0.5,
+          minValue: 0,
+          maxValue: `+NoiseGainNode.MAX_NOISE+`,
+          automationRate: "k-rate"
+        }];
+      }
+      process([inputs], [outputs], parameters) {
+        let input = inputs[0];
+        let output = outputs[0];
+        if (parameters.quantity[0]) {
+          // Noise
+          for (let i = 0; i < output.length; ++i) {
+            let white = Math.random() * 2 - 1;
+            output[i] = (this.lastOut + (0.02 * white)) / 1.02;
+            this.lastOut = output[i];
+            output[i] *= 3.5; // (roughly) compensate for gain
+          }
+          // Drive
+          let drive = 0.2*parameters.quantity[0]/`+NoiseGainNode.MAX_NOISE+`;
+          let drv = Math.pow(0.05,drive);
+          for (let channel = 0; channel < output.length; ++channel) {
+            for (let i = 0; i < output[channel].length; ++i) {
+              let d=output[channel][i];
+              if(d<0)
+                output[channel][i]=-Math.pow(-d,drv);
+              else
+                output[channel][i]=Math.pow(d,drv);
+            }
+          }
+        }
+        // Mix input
+        for (let i = 0; i < output.length; ++i) {
+          output[i] = parameters.quantity[0]*output[i] + (1-parameters.quantity[0])*input[i];
+        }
+
+        return true;
+      }
+    }
+    registerProcessor("NoiseGen", NoiseGen);
+    `;
+  }
+  constructor(context, options) {
+    if (!context) throw new Error('NoiseGenerator : No AudioContext');
+    this.context=context;
+  }
+  get Input() { return this.noise; }
+  async initAudio() {
+    await this.context.audioWorklet.addModule('data:text/javascript,'+encodeURI(NoiseGainNode.NOISE_PROC));
+    this.noise = new AudioWorkletNode(this.context, 'NoiseGen');
+    this.quantity = this.noise.parameters.get('quantity');
+  }
+  async connect(to) {
+    if (!this.noise) {
+      await this.initAudio();
+    }
+    return this.noise.connect(to);
+  }
+}

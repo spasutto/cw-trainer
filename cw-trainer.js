@@ -38,6 +38,7 @@ var cw_options = {
   tone : 800,
   volume : 1,
   keyqual: 1,
+  qrn: 0,
   customset: KOCHCARS.join('')
 };
 var QSOs = [
@@ -994,10 +995,16 @@ function decodeParam(val, i) {
     case 14:
       cw_options.customset = cleanCustomset(val);
       break;
+    case 15:
+      cw_options.qrn = Math.max(CWPlayer.MIN_QRN, Math.min(CWPlayer.MAX_QRN, val));
+      break;
   }
 }
 function round2(val) {
   return Math.round(100*val)/100;
+}
+function round3(val) {
+  return Math.round(1000*val)/1000;
 }
 function deferredSaveParam() {
   // permet d'éviter de freezer quand on bouge le curseur de volume. https://issues.chromium.org/issues/40113103
@@ -1005,7 +1012,7 @@ function deferredSaveParam() {
   window.timeoutSaveParams = window.setTimeout(saveParams, 250);
 }
 function saveParams() {
-  let params = encodeURIComponent(sellesson.value+HASHSEP+selwpm.value+HASHSEP+seleffwpm.value+HASHSEP+grplen.value+HASHSEP+groupsnb.value+HASHSEP+cw_options.tone+HASHSEP+round2(selews.value)+HASHSEP+(cw_options.simple_mode?1:0)+HASHSEP+(cw_options.freelisten?1:0)+HASHSEP+(cw_options.weighlastletters?1:0)+HASHSEP+round2(cw_options.keyqual)+HASHSEP+round2(cw_options.volume)+HASHSEP+(cw_options.learn_mode?1:0)+HASHSEP+(cw_options.wrand?1:0)+HASHSEP+(cw_options.customset));
+  let params = encodeURIComponent(sellesson.value+HASHSEP+selwpm.value+HASHSEP+seleffwpm.value+HASHSEP+grplen.value+HASHSEP+groupsnb.value+HASHSEP+cw_options.tone+HASHSEP+round2(selews.value)+HASHSEP+(cw_options.simple_mode?1:0)+HASHSEP+(cw_options.freelisten?1:0)+HASHSEP+(cw_options.weighlastletters?1:0)+HASHSEP+round2(cw_options.keyqual)+HASHSEP+round2(cw_options.volume)+HASHSEP+(cw_options.learn_mode?1:0)+HASHSEP+(cw_options.wrand?1:0)+HASHSEP+(cw_options.customset)+HASHSEP+round3(cw_options.qrn));
   try {
     window.name = params;
     localStorage.setItem("params", params);
@@ -1123,6 +1130,9 @@ window.addEventListener("load", async () => {
     } else if (arg == 'KeyingQuality') {
       cw_options.keyqual = cwplayer.KeyingQuality;
       saveParams();
+    } else if (arg == 'QRN') {
+      cw_options.qrn = cwplayer.QRN;
+      deferredSaveParam();
     } else if (arg == 'WPM') {
       selwpm.value = cw_options.wpm = cwplayer.WPM;
       saveParams();
@@ -1445,6 +1455,7 @@ async function updateValues() {
   cwplayer.Tone = cw_options.tone;
   cwplayer.Volume = cw_options.volume;
   cwplayer.KeyingQuality = cw_options.keyqual;
+  cwplayer.QRN = cw_options.qrn;
   // on remet à jour les contrôles si'il y'a eu des bornages
   sellesson.value = cw_options.lesson;
   selwpm.value = cw_options.wpm = cwplayer.WPM;
@@ -1453,6 +1464,7 @@ async function updateValues() {
   cw_options.tone = cwplayer.Tone;
   cw_options.volume = cwplayer.Volume;
   cw_options.keyqual = cwplayer.KeyingQuality;
+  cw_options.qrn = cwplayer.QRN;
   chkwrand.checked = cw_options.wrand;
   if (cw_options.wrand && cw_options.simple_mode) reinitPMF();
   chkfreelisten.checked = !cw_options.wrand && cw_options.freelisten;
