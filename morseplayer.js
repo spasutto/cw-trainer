@@ -221,7 +221,7 @@ class CWPlayer {
     value = Math.min(CWPlayer.MAX_QRN, Math.max(CWPlayer.MIN_QRN, value));
     if (value == this.options.qrn && value == this.noise?.quantity?.value) return;
     this.options.qrn = value;
-    if (this.context) {
+    if (this.context && this.playing) {
       this.noise.quantity.value = value;
     }
     this.fireEvent('parameterchanged', 'QRN');
