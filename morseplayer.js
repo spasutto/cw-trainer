@@ -1272,6 +1272,9 @@ class MorsePlayer extends HTMLElement {
     if (value == this.options.qrm) return;
     this.options.qrm = value;
     this.qrmgenerator.setParams(Math.round(value*10), value);
+    if (this.Playing) {
+      this.qrmgenerator.start();
+    }
     this.cwplayer.fireEvent('parameterchanged', 'QRM');
   }
   get PreDelay() { return this.cwplayer.PreDelay; }
@@ -1559,6 +1562,8 @@ class QRMGenerator {
     this.active = false;
     this.setParams(quantity, maxvolume);
   }
+  
+  get Active() { return this.active; }
 
   get MaxVolume() { return this.maxvolume; }
   set MaxVolume(value) { 
