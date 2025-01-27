@@ -455,6 +455,7 @@ class CWPlayer {
     this.osc = this.context.createOscillator();
     this.noise = new NoiseGainNode(this.context);
     await this.noise.initAudio();
+    this.noise.quantity.value = 0;
     this.gain = this.context.createGain();
     this.osc.connect(this.gain).connect(this.noise);
     this.gain.gain.value = 0;
