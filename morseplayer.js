@@ -1412,6 +1412,7 @@ class NoiseGainNode/* extends GainNode*/ {
       constructor() {
         super();
         this.lastOut = 0.0;
+        this.currentQuantity=-1;
       }
       static get parameterDescriptors () {
         return [{
@@ -1420,9 +1421,19 @@ class NoiseGainNode/* extends GainNode*/ {
           minValue: 0,
           maxValue: `+NoiseGainNode.MAX_NOISE+`,
           automationRate: "k-rate"
+        },{
+          name: 'volume',
+          defaultValue: 1,
+          minValue: 0,
+          maxValue: 1,
+          automationRate: "a-rate"
         }];
       }
       process([inputs], [outputs], parameters) {
+        if (this.currentQuantity != parameters.quantity[0]) {
+          this.port.postMessage(parameters.quantity[0]);
+          this.currentQuantity = parameters.quantity[0];
+        }
         let input = inputs[0];
         let output = outputs[0];
         if (parameters.quantity[0]) {
@@ -1447,8 +1458,10 @@ class NoiseGainNode/* extends GainNode*/ {
           }
         }
         // Mix input
-        for (let i = 0; i < output.length; ++i) {
-          output[i] = parameters.quantity[0]*output[i] + (1-parameters.quantity[0])*input[i];
+        if (input.length) {
+          for (let i = 0; i < output.length; ++i) {
+            output[i] = parameters.quantity[0]*output[i] + parameters.volume[0]*(1-parameters.quantity[0])*input[i];
+          }
         }
 
         return true;
@@ -1466,6 +1479,29 @@ class NoiseGainNode/* extends GainNode*/ {
     await this.context.audioWorklet.addModule('data:text/javascript,'+encodeURI(NoiseGainNode.NOISE_PROC));
     this.noise = new AudioWorkletNode(this.context, 'NoiseGen');
     this.quantity = this.noise.parameters.get('quantity');
+    this.volume = this.noise.parameters.get('volume');
+    let p = this.noise.port;
+    p.addEventListener('message', (e) => {
+      clearTimeout(this.volto);
+      this.volume.cancelScheduledValues(this.context.currentTime);
+      if (this.quantity.value) {
+        this.volumeVar();
+      } else {
+        this.volume.value = 1;
+      }
+    });
+    p.start();
+  }
+  async volumeVar() {
+    let vol = 1;
+    let dly = 1;
+    this.volume.cancelScheduledValues(this.context.currentTime);
+    if (this.quantity.value) {
+      vol = Math.min(1, (0.9-this.quantity.value)+Math.random());
+      dly = 1+Math.random()*5*vol; // volume bas ==> délai court
+    }
+    this.volume.setValueAtTime(vol, this.context.currentTime+dly);
+    this.volto = setTimeout(this.volumeVar.bind(this), dly*1000);
   }
   async connect(to) {
     if (!this.noise) {
