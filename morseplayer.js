@@ -1486,7 +1486,7 @@ class NoiseGainNode/* extends GainNode*/ {
     let p = this.noise.port;
     p.addEventListener('message', (e) => {
       clearTimeout(this.volto);
-      this.volume.cancelScheduledValues(this.context.currentTime);
+      this.volume.cancelAndHoldAtTime(this.context.currentTime);
       if (this.quantity.value) {
         this.volumeVar();
       } else {
@@ -1498,12 +1498,13 @@ class NoiseGainNode/* extends GainNode*/ {
   volumeVar() {
     let vol = 1;
     let dly = 1;
-    this.volume.cancelScheduledValues(this.context.currentTime);
+    let prevvol = this.volume.value;
+    this.volume.cancelAndHoldAtTime(this.context.currentTime);
     if (this.quantity.value) {
       vol = Math.min(1, (0.9-this.quantity.value)+Math.random());
-      dly = 1+Math.random()*5*vol; // volume bas ==> délai court
+      dly = 1+Math.random()*5*prevvol; // volume bas ==> délai court
     }
-    this.volume.setValueAtTime(vol, this.context.currentTime+dly);
+    this.volume.linearRampToValueAtTime(vol, this.context.currentTime+dly);
     this.volto = setTimeout(this.volumeVar.bind(this), dly*1000);
   }
   connect(to) {
@@ -1516,4 +1517,4 @@ AudioNode.prototype.connect = function(dstNode, inputNum, outputNum){
     dstNode = dstNode.Input;
   }
   return nativeConnect.call(this, dstNode, inputNum, outputNum);
-}
+};
