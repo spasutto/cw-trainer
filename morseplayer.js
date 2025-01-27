@@ -456,7 +456,7 @@ class CWPlayer {
     this.noise = new NoiseGainNode(this.context);
     await this.noise.initAudio();
     this.gain = this.context.createGain();
-    this.osc.connect(this.gain).connect(this.noise.Input);
+    this.osc.connect(this.gain).connect(this.noise);
     this.gain.gain.value = 0;
     this.osc.frequency.value = this.options.tone;
     if (!offline) {
@@ -1447,20 +1447,23 @@ class NoiseGainNode/* extends GainNode*/ {
           // Drive
           let drive = 0.2*parameters.quantity[0]/`+NoiseGainNode.MAX_NOISE+`;
           let drv = Math.pow(0.05,drive);
-          for (let channel = 0; channel < output.length; ++channel) {
-            for (let i = 0; i < output[channel].length; ++i) {
-              let d=output[channel][i];
-              if(d<0)
-                output[channel][i]=-Math.pow(-d,drv);
-              else
-                output[channel][i]=Math.pow(d,drv);
-            }
+          for (let i = 0; i < output.length; ++i) {
+            let d=output[i];
+            if(d<0)
+              output[i]=-Math.pow(-d,drv);
+            else
+              output[i]=Math.pow(d,drv);
+          }
+          for (let c = 1; c < outputs.length; ++c) {
+            outputs[c].set(outputs[0]);
           }
         }
         // Mix input
-        if (input.length) {
-          for (let i = 0; i < output.length; ++i) {
-            output[i] = parameters.quantity[0]*output[i] + parameters.volume[0]*(1-parameters.quantity[0])*input[i];
+        if (inputs.length) {
+          for (let c = 0; c < outputs.length; ++c) {
+            for (let i = 0; i < outputs[c].length; ++i) {
+              outputs[c][i] = parameters.quantity[0]*outputs[c][i] + parameters.volume[0]*(1-parameters.quantity[0])*inputs[c][i];
+            }
           }
         }
 
@@ -1492,7 +1495,7 @@ class NoiseGainNode/* extends GainNode*/ {
     });
     p.start();
   }
-  async volumeVar() {
+  volumeVar() {
     let vol = 1;
     let dly = 1;
     this.volume.cancelScheduledValues(this.context.currentTime);
@@ -1503,10 +1506,14 @@ class NoiseGainNode/* extends GainNode*/ {
     this.volume.setValueAtTime(vol, this.context.currentTime+dly);
     this.volto = setTimeout(this.volumeVar.bind(this), dly*1000);
   }
-  async connect(to) {
-    if (!this.noise) {
-      await this.initAudio();
-    }
+  connect(to) {
     return this.noise.connect(to);
   }
+}
+const nativeConnect = AudioNode.prototype.connect;
+AudioNode.prototype.connect = function(dstNode, inputNum, outputNum){
+  if (dstNode instanceof NoiseGainNode) {
+    dstNode = dstNode.Input;
+  }
+  return nativeConnect.call(this, dstNode, inputNum, outputNum);
 }
