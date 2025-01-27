@@ -1260,7 +1260,10 @@ class MorsePlayer extends HTMLElement {
   get Tone() { return this.cwplayer.Tone; }
   set Tone(value) { this.cwplayer.Tone = value; }
   get Volume() { return this.cwplayer.Volume; }
-  set Volume(value) { this.cwplayer.Volume = value; }
+  set Volume(value) { 
+    this.cwplayer.Volume = value;
+    this.qrmgenerator.MaxVolume = value;
+  }
   get KeyingQuality() { return this.cwplayer.KeyingQuality; }
   set KeyingQuality(value) { this.cwplayer.KeyingQuality = value; }
   get QRN() { return this.cwplayer.QRN; }
@@ -1272,7 +1275,7 @@ class MorsePlayer extends HTMLElement {
     if (value == this.options.qrm) return;
     this.options.qrm = value;
     this.qrmgenerator.setParams(Math.round(value*10), value);
-    if (this.Playing) {
+    if (this.Playing && !this.qrmgenerator.Active) {
       this.qrmgenerator.start();
     }
     this.cwplayer.fireEvent('parameterchanged', 'QRM');
