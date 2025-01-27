@@ -1476,8 +1476,16 @@ class NoiseGainNode/* extends GainNode*/ {
   constructor(context, options) {
     if (!context) throw new Error('NoiseGenerator : No AudioContext');
     this.context=context;
+    const nativeConnect = AudioNode.prototype.connect;
+    AudioNode.prototype.connect = function(dstNode, inputNum, outputNum){
+      if (dstNode instanceof NoiseGainNode) {
+        dstNode = dstNode.InputNode;
+      }
+      return nativeConnect.call(this, dstNode, inputNum, outputNum);
+    };
   }
-  get Input() { return this.noise; }
+  get InputNode() { return this.noise; }
+  get OutputNode() { return this.noise; }
   async initAudio() {
     await this.context.audioWorklet.addModule('data:text/javascript,'+encodeURI(NoiseGainNode.NOISE_PROC));
     this.noise = new AudioWorkletNode(this.context, 'NoiseGen');
@@ -1507,14 +1515,7 @@ class NoiseGainNode/* extends GainNode*/ {
     this.volume.linearRampToValueAtTime(vol, this.context.currentTime+dly);
     this.volto = setTimeout(this.volumeVar.bind(this), dly*1000);
   }
-  connect(to) {
-    return this.noise.connect(to);
+  connect(dstNode, inputNum, outputNum) {
+    return this.OutputNode.connect(dstNode, inputNum, outputNum);
   }
 }
-const nativeConnect = AudioNode.prototype.connect;
-AudioNode.prototype.connect = function(dstNode, inputNum, outputNum){
-  if (dstNode instanceof NoiseGainNode) {
-    dstNode = dstNode.Input;
-  }
-  return nativeConnect.call(this, dstNode, inputNum, outputNum);
-};
