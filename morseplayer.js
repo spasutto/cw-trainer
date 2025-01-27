@@ -1616,20 +1616,20 @@ class QRMGenerator {
     return result;
   }
   start() {
+    if (this.players.length && this.active) return;
     this.active = !!this.players.length;
     this.players.forEach((p, i) => this.startPlayer(i));
   }
   stop() {
-    this.players.forEach(p => p.stop());
     this.active = false;
+    this.players.forEach(p => p.stop());
   }
   async startPlayer(index) {
     if (!this.players[index]) return; // si l'index n'existe plus c'est qu'on a réduit la capacité
     let player = this.players[index];
-    let text = this.randText(50*Math.random());
+    let text = this.randText(10+40*Math.random());
     await CWPlayer.delay(Math.random()*3);
-    if (!this.active) return;
-    if (!this.players[index]) return; // si l'index n'existe plus c'est qu'on a réduit la capacité
+    if (!this.active || !this.players[index]) return; // si l'index n'existe plus c'est qu'on a réduit la capacité
     player.EffWPM = player.WPM = 15+20*Math.random();
     player.Tone = 300+1700*Math.random();
     player.Volume = this.MaxVolume*(Math.random()/2+0.5);
