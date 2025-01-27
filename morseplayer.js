@@ -68,7 +68,8 @@ class CWPlayer {
     predelay : 0,
     autoplay : false,
     volume : 1,
-    qrn: 0
+    qrn: 0,
+    no_noise: false
   };
   elperiod = 0.06; // 20WPM.
   spperiod = 0.06;
@@ -101,6 +102,7 @@ class CWPlayer {
     this.Volume = options.volume;
     this.KeyingQuality = options.keyqual;
     this.QRN = options.qrn;
+    this.options.no_noise = !!options.no_noise;
   }
 
   /*CONSTANTES*/
@@ -221,7 +223,7 @@ class CWPlayer {
     value = Math.min(CWPlayer.MAX_QRN, Math.max(CWPlayer.MIN_QRN, value));
     if (value == this.options.qrn && value == this.noise?.quantity?.value) return;
     this.options.qrn = value;
-    if (this.context && this.playing) {
+    if (this.context && this.playing && this.noise) {
       this.noise.quantity.value = value;
     }
     this.fireEvent('parameterchanged', 'QRN');
@@ -453,22 +455,25 @@ class CWPlayer {
       this.context = new OfflineAudioContext(2, 44100 * (this.totaltime+0.5), 44100);
     }
     this.osc = this.context.createOscillator();
-    this.noise = new NoiseGainNode(this.context);
-    await this.noise.initAudio();
-    this.noise.quantity.value = 0;
     this.gain = this.context.createGain();
-    this.osc.connect(this.gain).connect(this.noise);
+    this.osc.connect(this.gain);
+    let termnode = this.gain;
+    if (!this.options.no_noise) {
+      this.noise = new NoiseGainNode(this.context);
+      await this.noise.initAudio();
+      this.noise.quantity.value = 0;
+      termnode = this.noise;
+      this.gain.connect(this.noise);
+    }
     this.gain.gain.value = 0;
     this.osc.frequency.value = this.options.tone;
     if (!offline) {
       this.master = this.context.createGain();
       this.setMasterVolume();
-      //this.gain.connect(this.master);
-      this.noise.connect(this.master);
+      termnode.connect(this.master);
       this.master.connect(this.context.destination);
     } else {
-      //this.gain.connect(this.context.destination);
-      this.noise.connect(this.context.destination);
+      termnode.connect(this.context.destination);
     }
     this.osc.start();
   }
@@ -495,7 +500,9 @@ class CWPlayer {
     this.booping = false;
   }
   stopSound() {
-    this.noise.quantity.value = 0;
+    if (this.noise) {
+      this.noise.quantity.value = 0;
+    }
     let curGain = this.gain.gain.value;
     if (curGain > 0) {
       let stopTime = this.context.currentTime + this.rampperiod;
@@ -607,7 +614,9 @@ class CWPlayer {
     } else {
       this.gain.gain.cancelScheduledValues(this.starttime+this.totalpausetime+this.itime[startindex?startindex-1:0]);
     }
-    this.noise.quantity.value = this.options.qrn;
+    if (this.noise) {
+      this.noise.quantity.value = this.options.qrn;
+    }
     let t=0;
     for (let i=startindex; i<this.stime.length; i++) {
       t = this.stime[i] - timefromstart;
@@ -806,12 +815,17 @@ class MorsePlayer extends HTMLElement {
     progressBar : true,
     clearZone : false,
     configButton : true,
-    downloadButton : false
+    downloadButton : false,
+    qrm: 0
   };
 
+  static get MIN_QRM() { return 0; }
+  static get MAX_QRM() { return 1; }
+  
   constructor(...args) {
     super();
     this.enumerateSetters();
+    this.qrmgenerator = new QRMGenerator();
     let options = null;
     for (const arg of args) {
       if (arg instanceof CWPlayer) {
@@ -848,6 +862,7 @@ class MorsePlayer extends HTMLElement {
     this.ClearZone = options.clearZone;
     this.ConfigButton = options.configButton;
     this.DownloadButton = options.downloadButton;
+    this.QRM = options.qrm;
   }
   enumerateSetters() {
     this.setters = Object.entries(Object.getOwnPropertyDescriptors(Reflect.getPrototypeOf(this)))
@@ -890,6 +905,7 @@ class MorsePlayer extends HTMLElement {
     cfghtml += `<span><label for="val_Tone" title="tone (in Hertz)">Tone :</label><input id="val_Tone" type="number" min="${CWPlayer.MIN_TONE}" max="${CWPlayer.MAX_TONE}" step="100" title="tone (in Hertz)"></span><BR>`;
     cfghtml += `<span><label for="val_KeyingQuality" title="keying quality">Keying Quality :</label><input id="val_KeyingQuality" type="range" min="${CWPlayer.MIN_KEYQUAL}" max="${CWPlayer.MAX_KEYQUAL}" step="0.1" title="keying quality"></span><BR>`;
     cfghtml += `<span><label for="val_QRN" title="QRN">QRN :</label><input id="val_QRN" type="range" min="${CWPlayer.MIN_QRN}" max="${CWPlayer.MAX_QRN}" step="0.05" title="QRN"></span><BR>`;
+    cfghtml += `<span><label for="val_QRM" title="QRM">QRM :</label><input id="val_QRM" type="range" min="${MorsePlayer.MIN_QRM}" max="${MorsePlayer.MAX_QRM}" step="0.05" title="QRM"></span><BR>`;
     cfghtml += `<span><label for="val_Volume" title="volume">Volume :</label><input id="val_Volume" type="range" min="0" max="1" step="0.01" title="volume"></span>`;
     configzonecont.innerHTML = cfghtml;
 
@@ -939,7 +955,7 @@ class MorsePlayer extends HTMLElement {
         display: none;
         background-color: #ccc;
         padding: 2px;
-        height: 110px; /* à cause de l'élement enfant scale */
+        height: 127px; /* à cause de l'élement enfant scale */
       }
       #configzone>div {
         background-color: #f8f8f8;
@@ -1139,11 +1155,17 @@ class MorsePlayer extends HTMLElement {
     [...configzone.querySelectorAll('input')].filter(f => f.id.startsWith('val_')).forEach(f => this.configfields[f.id.substring(4)] = f );
 
     this.cwplayer.addEventListener('play', () => {
+      this.qrmgenerator.setParams(Math.round(this.options.qrm*10), this.options.qrm);
+      this.qrmgenerator.start();
       this.updateButtonsState(true);
       this.updateDisplayTime();
     });
-    this.cwplayer.addEventListener('pause', this.updateButtonsState.bind(this));
+    this.cwplayer.addEventListener('pause', () => {
+      this.qrmgenerator.stop();
+      this.updateButtonsState();
+    });
     this.cwplayer.addEventListener('stop', () => {
+      this.qrmgenerator.stop();
       this.updateButtonsState();
       this.updateClearZone();
     });
@@ -1243,6 +1265,15 @@ class MorsePlayer extends HTMLElement {
   set KeyingQuality(value) { this.cwplayer.KeyingQuality = value; }
   get QRN() { return this.cwplayer.QRN; }
   set QRN(value) { this.cwplayer.QRN = value; }
+  get QRM() { return this.options.qrm; }
+  set QRM(value) {
+    value = CWPlayer.parsefloat(value);
+    value = Math.min(MorsePlayer.MAX_QRM, Math.max(MorsePlayer.MIN_QRM, value));
+    if (value == this.options.qrm) return;
+    this.options.qrm = value;
+    this.qrmgenerator.setParams(Math.round(value*10), value);
+    this.cwplayer.fireEvent('parameterchanged', 'QRM');
+  }
   get PreDelay() { return this.cwplayer.PreDelay; }
   set PreDelay(value) { this.cwplayer.PreDelay = value; }
   get TextArray() { return this.cwplayer.TextArray; }
@@ -1518,5 +1549,92 @@ class NoiseGainNode/* extends GainNode*/ {
   }
   connect(dstNode, inputNum, outputNum) {
     return this.OutputNode.connect(dstNode, inputNum, outputNum);
+  }
+}
+
+class QRMGenerator {
+  constructor(quantity=5, maxvolume=0.5) {
+    this.alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ/!+?.@"0123456789'+' '.repeat(10);
+    this.players = [];
+    this.active = false;
+    this.setParams(quantity, maxvolume);
+  }
+
+  get MaxVolume() { return this.maxvolume; }
+  set MaxVolume(value) { 
+    this.maxvolume = Math.min(1, Math.max(0, value));
+    this.adjustPlayers(this.Quantity, this.maxvolume);
+  }
+  get Quantity() { return this.quantity; }
+  set Quantity(value) { 
+    this.quantity = Math.max(0, value);
+    this.adjustPlayers(this.quantity, this.MaxVolume);
+  }
+
+  setParams(quantity, maxvolume) {
+    this.quantity = Math.max(0, quantity);
+    this.maxvolume = Math.min(1, Math.max(0, maxvolume));
+    this.adjustPlayers(this.quantity, this.maxvolume);
+  }
+  adjustPlayers(quantity, maxvolume) {
+    if (this.players.length < quantity) {
+      let nbplayers = this.players.length;
+      for (let i=0; i<quantity-nbplayers; i++) {
+        let p = new CWPlayer({no_noise: true});
+        this.players.push(p);
+        if (this.active) {
+          this.startPlayer(i);
+        }
+      }
+    } else if (this.players.length > quantity) {
+      let nbplayers = this.players.length;
+      for (let i=nbplayers-1; i>=quantity; i--) {
+        let p = this.players.pop();
+        if (this.active) {
+          p.stop();
+        }
+      }
+      if (!this.players.length) {
+        this.active = false;
+      }
+    }
+    this.players.forEach(p => {
+      p.Volume = maxvolume*(Math.random()/2+0.5);
+    });
+  }
+  randText(length) {
+    let result = '';
+    length = Math.trunc(length);
+    while (length--) {
+      let c = null;
+      do {
+        c = this.alphabet.charAt(Math.floor(Math.random() * this.alphabet.length));
+      }
+      while (c == ' ' && (!result.length || result[result.length-1] == ' '));
+      result += c;
+    }
+    return result;
+  }
+  start() {
+    this.active = !!this.players.length;
+    this.players.forEach((p, i) => this.startPlayer(i));
+  }
+  stop() {
+    this.players.forEach(p => p.stop());
+    this.active = false;
+  }
+  async startPlayer(index) {
+    if (!this.players[index]) return; // si l'index n'existe plus c'est qu'on a réduit la capacité
+    let player = this.players[index];
+    let text = this.randText(50*Math.random());
+    await CWPlayer.delay(Math.random()*3);
+    if (!this.active) return;
+    if (!this.players[index]) return; // si l'index n'existe plus c'est qu'on a réduit la capacité
+    player.EffWPM = player.WPM = 15+20*Math.random();
+    player.Tone = 300+1700*Math.random();
+    player.Volume = this.MaxVolume*(Math.random()/2+0.5);
+    await player.play(text);
+    if (!this.active || !this.players[index]) return;
+    setTimeout(this.startPlayer.bind(this, index), 0);
   }
 }
