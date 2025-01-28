@@ -1573,16 +1573,11 @@ class QRMGenerator {
   }
   
   get Active() { return this.active; }
-
   get MaxVolume() { return this.maxvolume; }
-  set MaxVolume(value) { 
+  set MaxVolume(value) {
+    let oldMaxVolume = this.maxvolume;
     this.maxvolume = Math.min(1, Math.max(0, value));
-    this.adjustPlayers(this.Quantity, this.maxvolume);
-  }
-  get Quantity() { return this.quantity; }
-  set Quantity(value) { 
-    this.quantity = Math.max(0, value);
-    this.adjustPlayers(this.quantity, this.MaxVolume);
+    this.adjustPlayers(this.quantity, this.maxvolume, oldMaxVolume);
   }
 
   setParams(quantity, maxvolume) {
@@ -1590,7 +1585,7 @@ class QRMGenerator {
     this.maxvolume = Math.min(1, Math.max(0, maxvolume));
     this.adjustPlayers(this.quantity, this.maxvolume);
   }
-  adjustPlayers(quantity, maxvolume) {
+  adjustPlayers(quantity, maxvolume, oldmaxvolume=this.maxvolume) {
     if (this.players.length < quantity) {
       let nbplayers = this.players.length;
       for (let i=0; i<quantity-nbplayers; i++) {
@@ -1613,7 +1608,15 @@ class QRMGenerator {
       }
     }
     this.players.forEach(p => {
-      p.Volume = maxvolume*(Math.random()/2+0.5);
+      let volume = 0;
+      if (oldmaxvolume>maxvolume) {
+        volume = Math.min(maxvolume, p.Volume);
+      } else if (oldmaxvolume<maxvolume) {
+        volume = CWPlayer.rand(oldmaxvolume, maxvolume);
+      } else {
+        volume = maxvolume*(Math.random()/2+0.5);
+      }
+      p.Volume = volume*0.85;
     });
   }
   randText(length) {
@@ -1646,7 +1649,7 @@ class QRMGenerator {
     if (!this.active || !this.players[index]) return; // si l'index n'existe plus c'est qu'on a réduit la capacité
     player.EffWPM = player.WPM = 15+20*Math.random();
     player.Tone = 300+1700*Math.random();
-    player.Volume = this.MaxVolume*(Math.random()/2+0.5);
+    player.Volume = 0.85*this.MaxVolume*(Math.random()/2+0.5);
     await player.play(text);
     if (!this.active || !this.players[index]) return;
     setTimeout(this.startPlayer.bind(this, index), 0);
