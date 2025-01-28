@@ -1524,6 +1524,9 @@ class NoiseGainNode/* extends GainNode*/ {
       }
       return nativeConnect.call(this, dstNode, inputNum, outputNum);
     };
+    if (typeof AudioParam.prototype.cancelAndHoldAtTime !== 'function') {
+      AudioParam.prototype.cancelAndHoldAtTime = AudioParam.prototype.cancelScheduledValues
+    }
   }
   get InputNode() { return this.noise; }
   get OutputNode() { return this.noise; }
@@ -1535,8 +1538,7 @@ class NoiseGainNode/* extends GainNode*/ {
     let p = this.noise.port;
     p.addEventListener('message', (e) => {
       clearTimeout(this.volto);
-      let cancelSchedule = this.volume.cancelAndHoldAtTime ?? this.volume.cancelScheduledValues;
-      cancelSchedule(this.context.currentTime);
+      this.volume.cancelAndHoldAtTime(this.context.currentTime);
       if (this.quantity.value) {
         this.volumeVar();
       } else {
@@ -1549,8 +1551,7 @@ class NoiseGainNode/* extends GainNode*/ {
     let vol = 1;
     let dly = 1;
     let prevvol = this.volume.value;
-    let cancelSchedule = this.volume.cancelAndHoldAtTime ?? this.volume.cancelScheduledValues;
-    cancelSchedule(this.context.currentTime);
+    this.volume.cancelAndHoldAtTime(this.context.currentTime);
     if (this.quantity.value) {
       vol = Math.min(1, (0.9-this.quantity.value)+Math.random());
       dly = 1+Math.random()*5*prevvol; // volume bas ==> délai court
