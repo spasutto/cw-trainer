@@ -905,7 +905,7 @@ class MorsePlayer extends HTMLElement {
     cfghtml += `<span><label for="val_Tone" title="tone (in Hertz)">Tone :</label><input id="val_Tone" type="number" min="${CWPlayer.MIN_TONE}" max="${CWPlayer.MAX_TONE}" step="100" title="tone (in Hertz)"></span><BR>`;
     cfghtml += `<span><label for="val_KeyingQuality" title="keying quality">Keying Quality :</label><input id="val_KeyingQuality" type="range" min="${CWPlayer.MIN_KEYQUAL}" max="${CWPlayer.MAX_KEYQUAL}" step="0.1" title="keying quality"></span><BR>`;
     cfghtml += `<span><label for="val_QRN" title="QRN">QRN :</label><input id="val_QRN" type="range" min="${CWPlayer.MIN_QRN}" max="${CWPlayer.MAX_QRN}" step="0.05" title="QRN"></span><BR>`;
-    cfghtml += `<span><label for="val_QRM" title="QRM">QRM :</label><input id="val_QRM" type="range" min="${MorsePlayer.MIN_QRM}" max="${MorsePlayer.MAX_QRM}" step="0.05" title="QRM"></span><BR>`;
+    cfghtml += `<span><label for="val_QRM" title="QRM (Traffic)">QRM/Traffic :</label><input id="val_QRM" type="range" min="${MorsePlayer.MIN_QRM}" max="${MorsePlayer.MAX_QRM}" step="0.05" title="QRM (Traffic)"></span><BR>`;
     cfghtml += `<span><label for="val_Volume" title="volume">Volume :</label><input id="val_Volume" type="range" min="0" max="1" step="0.01" title="volume"></span>`;
     configzonecont.innerHTML = cfghtml;
 
@@ -956,10 +956,11 @@ class MorsePlayer extends HTMLElement {
         background-color: #ccc;
         padding: 2px;
         height: 127px; /* à cause de l'élement enfant scale */
+        text-align: right;
       }
       #configzone>div {
         background-color: #f8f8f8;
-        width: 300px;
+        width: 280px;
         margin-left: auto;
         margin-right: 0;
         transform: scale(0.9);
