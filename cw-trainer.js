@@ -1394,8 +1394,8 @@ function onkeydown(e) {
     };
     Object.keys(playControls).forEach(k => {
       if (keyCode == k) {
-        if (keyCode == keycodes.space || cwplayer.Playing || document.activeElement !== cwtext) keystates[playControls[k]] = true;
-        if (cwplayer.Playing && document.activeElement === cwtext) e.preventDefault();
+        /*if (keyCode == keycodes.space || cwplayer.Playing || document.activeElement !== cwtext)*/ keystates[playControls[k]] = true;
+        if (/*cwplayer.Playing && */document.activeElement === cwtext) e.preventDefault();
       }
     });
   }

@@ -1,3 +1,9 @@
+
+// Firefox
+if (typeof AudioParam.prototype.cancelAndHoldAtTime !== 'function') {
+  AudioParam.prototype.cancelAndHoldAtTime = AudioParam.prototype.cancelScheduledValues;
+}
+
 class CWPlayer {
   static morse = {
     ' ' : '\t',
@@ -522,7 +528,7 @@ class CWPlayer {
     }
     if (this.playing) {
       this.playing = false;
-      this.gain.gain.cancelScheduledValues(this.context.currentTime);
+      this.gain.gain.cancelAndHoldAtTime(this.context.currentTime);
       this.stopSound();
       if (this.onplayend) {
         this.onplayend();
@@ -609,10 +615,10 @@ class CWPlayer {
       timefromstart = this.context.currentTime-this.starttime-this.totalpausetime;
     }
     if (startindex == 0) {
-      this.gain.gain.cancelScheduledValues(it);
+      this.gain.gain.cancelAndHoldAtTime(it);
       timefromstart-=this.stopSound();
     } else {
-      this.gain.gain.cancelScheduledValues(this.starttime+this.totalpausetime+this.itime[startindex?startindex-1:0]);
+      this.gain.gain.cancelAndHoldAtTime(this.starttime+this.totalpausetime+this.itime[startindex?startindex-1:0]);
     }
     if (this.noise) {
       this.noise.quantity.value = this.options.qrn;
@@ -1525,9 +1531,6 @@ class NoiseGainNode/* extends GainNode*/ {
       }
       return nativeConnect.call(this, dstNode, inputNum, outputNum);
     };
-    if (typeof AudioParam.prototype.cancelAndHoldAtTime !== 'function') {
-      AudioParam.prototype.cancelAndHoldAtTime = AudioParam.prototype.cancelScheduledValues
-    }
   }
   get InputNode() { return this.noise; }
   get OutputNode() { return this.noise; }
