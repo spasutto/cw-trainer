@@ -1,7 +1,19 @@
 
-// Firefox
+// Polyfill
 if (typeof AudioParam.prototype.cancelAndHoldAtTime !== 'function') {
-  AudioParam.prototype.cancelAndHoldAtTime = AudioParam.prototype.cancelScheduledValues;
+  if (typeof AudioParam.prototype.cancelValuesAndHoldAtTime !== 'function') {
+    // Firefox
+    AudioParam.prototype.cancelAndHoldAtTime = function (cancelTime) {
+      const audioParam = this;
+      const valueAtCancelTime = audioParam.getValueAtTime ? audioParam.getValueAtTime(cancelTime) : audioParam.value;
+
+      audioParam.cancelScheduledValues(cancelTime);
+      audioParam.setValueAtTime(valueAtCancelTime, cancelTime);
+    };
+  } else {
+    // Chrome <57
+    AudioParam.prototype.cancelAndHoldAtTime = AudioParam.prototype.cancelValuesAndHoldAtTime;
+  }
 }
 
 class CWPlayer {
