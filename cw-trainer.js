@@ -108,6 +108,12 @@ function reinitPMF() {
   }
   updateCDF();
 }
+function round(n, nbd=-1) {
+  nbd=Math.pow(10, Math.max(0, nbd));
+  return Math.round(n*nbd)/nbd;
+}
+var round2 = (val) => round(val, 2);
+var round3 = (val) => round(val, 3);
 function wrand() {
   let rand = Math.random();
   return els[cdf.findIndex(el => rand <= el)];
@@ -267,8 +273,8 @@ async function generateText() {
       if (cw_options.wrand) {
         wrandstat[cwgentext]++;
         let tmps = els.reduce((acc, cur) => acc += wrandstat[cur], 0);
-        console.log(`distribution (${tmps} tirages) :`, els.reduce((acc, cur) => {acc[cur]=Math.round(1000*wrandstat[cur]/tmps)/10;if(acc[cur] == 0) delete acc[cur];return acc;}, {}));
-        let penal = els.filter((e,i) => pmf[i]>1).sort((a,b) => pmf[els.indexOf(b)]-pmf[els.indexOf(a)]).map((e, i) => `\n${e} (${Math.round(100*pmf[els.indexOf(e)])/100})`);
+        console.log(`distribution (${tmps} tirages) :`, els.reduce((acc, cur) => {acc[cur]=round(100*wrandstat[cur]/tmps, 1);if(acc[cur] == 0) delete acc[cur];return acc;}, {}));
+        let penal = els.filter((e,i) => pmf[i]>1).sort((a,b) => pmf[els.indexOf(b)]-pmf[els.indexOf(a)]).map((e, i) => `\n${e} (${round2(pmf[els.indexOf(e)])})`);
         if (penal.length)  console.log('penalites : '+penal.join(''));
       }
     } else if (cw_options.lesson==LSN_PROSIGNS) {
@@ -649,7 +655,7 @@ async function verifySimple(e) {
             const min = -0.8;
             const max = 1.5;
             let penal = min+(ttime*(max-min)/maxtime);
-            console.log('réponse en', Math.round(10*ttime)/10, 's pour le symbole', cwplayer.Text[0],'==> penal =',Math.round(100*penal)/100);
+            console.log('réponse en', round(ttime, 1), 's pour le symbole', cwplayer.Text[0],'==> penal =',round2(penal));
             pmf[is] = Math.max(1, penal+pmf[is]);
             updateCDF();
           }
@@ -675,7 +681,7 @@ async function verifySimple(e) {
     window.freefirsttry = true;
   }
   
-  zoneresultfree.innerHTML = `Success rate : ${Math.round((100*(freetotal-freeerr)/freetotal)*10)/10}% (${window.freetotal-1} symbols)`;
+  zoneresultfree.innerHTML = `Success rate : ${round(100*(freetotal-freeerr)/freetotal, 1)}% (${window.freetotal-1} symbols)`;
 
   iptfree.focus();
 }
@@ -777,7 +783,7 @@ async function verifyKoch(e) { // KOCH MODE
   });
   // bug : cwplayer.Text='T5TWR DE N8LRT R FB ROBERT NICE TO MEET YOU BT THE RIG HR IS A KNWD TS-570D AT QRP 5W TO AN ATTIC RANDOM WIRE BT THE WX LITE SNOW ES 33 DEGREES HW? AR T5TWR DE N8LRT KN', cwtext.value='T5TWR DE N8LRT R FB ROBERT NICE TO MEET YOU BT THE RIG HR IS A KNWD TS-570D AT QRP 5W TO AN ATTIC RANDOM WIRE BT THE WX LITE SNOW ES 33 DEGREES HW? AR T5TWR N8LRT KN'
   let perc = (nbchars-nberr)*100/nbchars;
-  perc = Math.round(perc*10)/10;
+  perc = round(perc, 1);
   let stats = [`${nbchars-nberr}/${nbchars} characters sent`];
   let missing = results.reduce((a,c) => a+=(c.str2.match(new RegExp(emptyChar, 'g')) || []).length, 0);
   if (missing > 0) stats.push(`${missing} missing${missing>1?'s':''}`);
@@ -1003,12 +1009,6 @@ function decodeParam(val, i) {
       cw_options.qrm = Math.max(MorsePlayer.MIN_QRM, Math.min(MorsePlayer.MAX_QRM, val));
       break;
   }
-}
-function round2(val) {
-  return Math.round(100*val)/100;
-}
-function round3(val) {
-  return Math.round(1000*val)/1000;
 }
 function deferredSaveParam() {
   // permet d'éviter de freezer quand on bouge le curseur de volume. https://issues.chromium.org/issues/40113103
