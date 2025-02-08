@@ -288,14 +288,12 @@ class CWPlayer {
       this.updateTextArray();
       this.totaltime = this.getDuration();
       this.fireEvent('parameterchanged', 'Text');
-      this.fireEvent('parameterchanged', 'TextArray');
       this.Index = -1;
     } else {
       this.text = value;
       this.updateTextArray();
       this.totaltime = this.getDuration();
       this.fireEvent('parameterchanged', 'Text');
-      this.fireEvent('parameterchanged', 'TextArray');
       this.fireEvent('indexchanged', this.curti);
       if (this.playing) {
         //this.itime.findIndex(s => s >= this.context.currentTime + 0.100);
@@ -351,7 +349,11 @@ class CWPlayer {
   fireEvent(evtname, args) {
     if (!this.events[evtname]) return;
     this.events[evtname].forEach(evt => {
-      evt.func(args);
+      try {
+        evt.func(args);
+      } catch(e) {
+        console.error(e);
+      }
       if (evt.once) this.removeEventListener(evtname, evt.func);
     });
   }
@@ -543,7 +545,11 @@ class CWPlayer {
       this.gain.gain.cancelAndHoldAtTime(this.context.currentTime);
       this.stopSound();
       if (this.onplayend) {
-        this.onplayend();
+        try {
+          this.onplayend();
+        } catch(e) {
+          console.error(e);
+        }
         this.onplayend = null;
       }
       /*try {
@@ -881,6 +887,7 @@ class MorsePlayer extends HTMLElement {
     this.ConfigButton = options.configButton;
     this.DownloadButton = options.downloadButton;
     this.QRM = options.qrm;
+    this.mobile = (('ontouchstart' in window) || (navigator.maxTouchPoints > 0) || (navigator.msMaxTouchPoints > 0));
   }
   enumerateSetters() {
     this.setters = Object.entries(Object.getOwnPropertyDescriptors(Reflect.getPrototypeOf(this)))
@@ -1071,9 +1078,9 @@ class MorsePlayer extends HTMLElement {
         display: none;
         background-color: #ccc;
         overflow: hidden;
-        float:right;
         font-size: 0.8em;
         font-family: monospace;
+        user-select: none;
       }
       #clearzone td {
         background-color: #f8f8f8;
@@ -1084,7 +1091,7 @@ class MorsePlayer extends HTMLElement {
       #clearzone td:hover {
         background-color: #e8e8e8;
       }
-      .lastchar {
+      .currentchar {
         background-color: yellow !important;
       }
       .cfggear {
@@ -1193,8 +1200,13 @@ class MorsePlayer extends HTMLElement {
     });
     this.cwplayer.addEventListener('parameterchanged', (name) => {
       this.updateFields(name);
-      this.updateDisplayTime();
-      this.updateButtonsState();
+      if (['WPM', 'EffWPM', 'EWS', 'KeyingQuality', 'PreDelay', 'Text'].includes(name)) {
+        this.updateDisplayTime();
+        this.updateButtonsState();
+      }
+      if (name === 'Text') {
+        this.constructClearZone();
+      }
     });
     this.cwplayer.addEventListener('indexchanged', () => {
       if (!this.cwplayer.Playing && !this.cwplayer.Paused) this.updateDisplayTime();
@@ -1226,13 +1238,16 @@ class MorsePlayer extends HTMLElement {
       }
       return false;
     };
-    document.addEventListener("mouseup", this.mouseup.bind(this));
-    this.prgcont.addEventListener("mousedown", this.mousedown.bind(this));
-    document.addEventListener("mousemove", this.mousemove.bind(this));
-    this.prgcont.addEventListener("touchstart", this.mousedown.bind(this));
-    document.addEventListener("touchend", this.mouseup.bind(this));
-    document.addEventListener("touchcancel", this.mouseup.bind(this));
-    document.addEventListener("touchmove", this.mousemove.bind(this));
+    if (!this.mobile) {
+      document.addEventListener("mouseup", this.mouseup.bind(this));
+      this.prgcont.addEventListener("mousedown", this.mousedown.bind(this));
+      document.addEventListener("mousemove", this.mousemove.bind(this));
+    } else {
+      this.prgcont.addEventListener("touchstart", this.mousedown.bind(this));
+      document.addEventListener("touchend", this.mouseup.bind(this));
+      document.addEventListener("touchcancel", this.mouseup.bind(this));
+      document.addEventListener("touchmove", this.mousemove.bind(this));
+    }
     document.addEventListener("keyup", (e) => {
       if (e.key === 'Escape' || (e.keyCode || e.which) == 27) this.mouseup();
     });
@@ -1250,9 +1265,43 @@ class MorsePlayer extends HTMLElement {
       this.cwplayer.Text = this.innerHTML.trim();
     }
 
+    const csStartDragging = (e) => {
+      this.czDragElement = e.srcElement;
+      this.czMoves = 0;
+      this.czMouseDown = true;
+      this.czStartX = (e.pageX ?? e.touches[0]?.pageX ?? 0) - this.czwrapper.offsetLeft;
+      this.czScrollLeft = this.czwrapper.scrollLeft;
+    };
+    
+    const czStopDragging = (e) => {
+      this.czMouseDown = false;
+      if (this.czMoves > 2/* && this.czDragElement !== e.srcElement*/) this.czJustScrolled = true;
+    };
+    
+    const czMove = (e) => {
+      //e.preventDefault();
+      if(!this.czMouseDown) { return; }
+      this.czMoves++;
+      const x = (e.pageX ?? e.touches[0]?.pageX ?? 0) - this.czwrapper.offsetLeft;
+      const scroll = x - this.czStartX;
+      this.czwrapper.scrollLeft = this.czScrollLeft - scroll;
+    };
+
+    if (!this.mobile) {
+      this.czwrapper.addEventListener('mousemove', czMove, false);
+      this.czwrapper.addEventListener('mousedown', csStartDragging, false);
+      this.czwrapper.addEventListener('mouseup', czStopDragging, false);
+      this.czwrapper.addEventListener('mouseleave', czStopDragging, false);
+    } else {
+      this.czwrapper.addEventListener('touchmove', czMove, false);
+      this.czwrapper.addEventListener('touchstart', csStartDragging, false);
+      this.czwrapper.addEventListener('touchend', czStopDragging, false);
+      this.czwrapper.addEventListener('touchcancel', czStopDragging, false);
+    }
+
     this.updateDisplayTime();
     this.updateButtonsState();
-    this.updateClearZone();
+    this.constructClearZone();
     this.updateFields();
   }
   attributeChangedCallback(name, oldValue, newValue) {
@@ -1326,7 +1375,7 @@ class MorsePlayer extends HTMLElement {
   set ClearZone(value) {
     this.options.clearZone = CWPlayer.parsebool(value);
     if (this.clearzone) {
-      this.updateClearZone();
+      this.constructClearZone();
       this.clearzone.style.display = this.options.clearZone ? 'table' : 'none';
       this.cwplayer.fireEvent('parameterchanged', 'ClearZone');
     }
@@ -1430,34 +1479,45 @@ class MorsePlayer extends HTMLElement {
     applyClass(this.btnpause);
     applyClass(this.btndownload);
   }
-  updateClearZone() {
+  constructClearZone() {
     if (!this.options.clearZone) return;
-    let playing = this.cwplayer.Playing;
-    let idx = this.cwplayer.Index+1;
-    if (idx<=0) {
-      idx = this.cwplayer.TextArray.length;
-    }
     let trc = this.clearzone.rows[0];
     let trm = this.clearzone.rows[1];
     trc.innerHTML = trm.innerHTML = '';
-    let text = this.cwplayer.TextArray.slice(0, idx);
-    let title = 'set the playing to this symbol';
-    text.forEach((c,i) => {
-      let caction = (e) => {this.cwplayer.Index = e.srcElement?.dataset?.index;};
-      let lastcell = playing && i == text.length-1;
+    let title = 'set next playing symbol to this';
+    this.cwplayer.TextArray.forEach((c,i) => {
+      let caction = (e) => {
+        if (this.czJustScrolled) {
+          this.czJustScrolled = false;
+          return;
+        }
+        this.cwplayer.Index = e.srcElement?.dataset?.index;
+      };
       let cell = trc.insertCell();
       cell.title = title;
       cell.dataset.index = i;
+      cell.addEventListener('touchend', caction);
       cell.addEventListener('click', caction);
-      if (lastcell) cell.classList.add('lastchar');
       cell.innerHTML = c;
       cell = trm.insertCell();
       cell.title = title;
       cell.dataset.index = i;
+      cell.addEventListener('touchend', caction);
       cell.addEventListener('click', caction);
-      if (lastcell) cell.classList.add('lastchar');
       cell.innerHTML = CWPlayer.translate(c.length>1?`{${c}}`:c);
     });
+  }
+  updateClearZone() {
+    if (!this.options.clearZone) return;
+    [...this.shadowRoot.querySelectorAll('.currentchar')].forEach(e => e.classList.remove('currentchar'));
+    let idx = this.cwplayer.Index;
+    if (idx<0 || idx>=this.clearzone.rows[0].cells.length) {
+      return;//idx = this.cwplayer.TextArray.length;
+    }
+    let cells = [this.clearzone.rows[0].cells[idx], this.clearzone.rows[1].cells[idx]];
+    cells.forEach(c => c?.classList.add('currentchar'));
+    cells[0]?.scrollIntoView();
+    this.czwrapper.scrollLeft+=2;
   }
 }
 
