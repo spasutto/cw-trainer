@@ -683,18 +683,17 @@ async function verifySimple(e) {
   
   zoneresultfree.innerHTML = `Success rate : ${round(100*(freetotal-freeerr)/freetotal, 1)}% (${window.freetotal-1} symbols)`;
   zoneresultfree.title = 'Statistics';
-  if (cw_options.wrand || cw_options.weighlastletters) {
+  if (cw_options.wrand) {
     zoneresultfree.title += ' & recents/mistaken symbols probability to occur';
     let lpmf = pmf.map((v,i) => ({'l':els[i], 'p':v})).filter(v => v.p>1).sort((a,b) => b.p-a.p);
     if (lpmf.length > 10) {
       zoneresultfree.title += ` (${lpmf.length-10} not shown)`;
     }
     lpmf = lpmf.slice(0, 10);
-    let t = lpmf[0]?.p;
     let color = (q) => `rgb(${round(255*q)},${round(255*(0.75-q/2))},0)`;
     let h = lpmf.map((l,i) => {
-      let q = l.p/t;
-      return `<span class="histocdf" style="height: ${18*q}px; background:${color(q)}">&nbsp;</span>${l.l} `;
+      let p = Math.min(6, l.p);
+      return `<span class="histocdf" style="height: ${3*p}px; background:${color(p/6)}">&nbsp;</span>${l.l} `;
     }).join('');
     zoneresultfree.innerHTML += `<div>${h}</div>`;
   }
