@@ -40,7 +40,8 @@ var cw_options = {
   keyqual: 1,
   qrn: 0,
   qrm: 0,
-  customset: KOCHCARS.join('')
+  customset: KOCHCARS.join(''),
+  displaystatistics: false
 };
 var QSOs = [
   //http://lidscw.org/resources/cq-qso-template
@@ -680,16 +681,12 @@ async function verifySimple(e) {
     window.freetotal++;
     window.freefirsttry = true;
   }
-  
+
   zoneresultfree.innerHTML = `Success rate : ${round(100*(freetotal-freeerr)/freetotal, 1)}% (${window.freetotal-1} symbols)`;
-  zoneresultfree.title = 'Statistics';
-  if (cw_options.wrand) {
-    zoneresultfree.title += ' & recents/mistaken symbols probability to occur';
+  if (cw_options.wrand && cw_options.displaystatistics) {
     let lpmf = pmf.map((v,i) => ({'l':els[i], 'p':v})).filter(v => v.p>1).sort((a,b) => b.p-a.p);
-    if (lpmf.length > 10) {
-      zoneresultfree.title += ` (${lpmf.length-10} not shown)`;
-    }
-    lpmf = lpmf.slice(0, 10);
+    const maxitems = 140;
+    lpmf = lpmf.slice(0, maxitems);
     let color = (q) => `rgb(${round(255*q)},${round(255*(0.75-q/2))},0)`;
     let h = lpmf.map((l,i) => {
       let p = Math.min(6, l.p);
@@ -1279,6 +1276,16 @@ window.addEventListener("load", async () => {
     synth.onvoiceschanged = tryPopulateVoices;
   }
   tryPopulateVoices();
+  zoneresultfree.addEventListener('dblclick', (e) => {
+    cw_options.displaystatistics=!cw_options.displaystatistics;
+    zoneresultfree.title = 'Statistics';
+    if (cw_options.displaystatistics) {
+      zoneresultfree.title += ' & recents/mistaken symbols probability to occur';
+    }
+    if (zoneresultfree.firstElementChild) {
+      zoneresultfree.firstElementChild.style.display = cw_options.displaystatistics?'block':'none';
+    }
+  });
 });
 window.addEventListener("error", (e) => {
   let err = e;
