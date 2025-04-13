@@ -192,51 +192,38 @@ async function getUrl(url, bypass_cache=false, binary=false) {
 async function generateFreeText(minlength = 60, maxlength = 150) {
   // on peut appeler plusieurs fois les URL, normalement elles sont cachées
   loading();
-  let text = window.freetext ?? (await getUrl(FREETEXT_URL));
-  loading(false);
-  window.freetext = text;
-  let startoftext = 'CHAPTER I';
-  let startidx = text?.indexOf(startoftext);
-  if (startidx>=0) {
-    startidx += startoftext.length;
-    text = text.substring(startidx).trim();
-  }
-  if (typeof text !== 'string' || text.length <= minlength) {
-    alert('Unable to load free text (no internet connection ?)');
-    window.freetext = null;
-    return null;
-  }
-  text = text.replaceAll(/Mr(s)?\./g, 'Mr$1');
-  let gentext = '';
-  const uselength = text.lastIndexOf('.') - 1;
-  let nbtry = 0;
-  const regclean = /^\s*'\s*[^\w]/g;
-  let startind = 0, prvptid = 0, nxtptid = 0, tmpnxtptid = 0;
-  do {
-    startind = irand(uselength);
-    prvptid = text.lastIndexOf('.', startind);
-    if (prvptid == -1 || text.length-prvptid<=minlength) continue;
-    do {
-      nxtptid = text.indexOf('.', startind);
-      tmpnxtptid = text.indexOf('?', startind);
-      if (tmpnxtptid > -1 && tmpnxtptid<nxtptid) nxtptid = tmpnxtptid;
-      tmpnxtptid = text.indexOf('!', startind);
-      if (tmpnxtptid > -1 && tmpnxtptid<nxtptid) nxtptid = tmpnxtptid;
-      if (nxtptid == -1) nxtptid = text.length;
-      else if (nxtptid-prvptid < minlength) {
-        startind = nxtptid + 1;
-      }
-    } while (nxtptid-prvptid < minlength);
-    gentext = text.substring(prvptid+1, nxtptid+1)
-        .replaceAll(/\r?\n/g, ' ')
-        .replaceAll(/\s+/g, ' ')
-        .replaceAll(/^["']+\s*(["'])*/g, '$1').trim();
-    if (text[nxtptid+1] == '"') gentext += '"';
-    while (regclean.test(gentext)) {
-      gentext = gentext.replaceAll(regclean, '\'');
+  if (!window.freephrases) {
+    let text = window.freetext ?? (await getUrl(FREETEXT_URL));
+    let startoftext = 'CHAPTER I';
+    let startidx = text?.indexOf(startoftext);
+    if (startidx>=0) {
+      startidx += startoftext.length;
+      text = text.substring(startidx).trim();
     }
-  } while ((gentext.length<minlength || gentext.length>maxlength) && ++nbtry<80);
-  return gentext;
+    if (typeof text !== 'string' || text.length <= minlength) {
+      alert('Unable to load free text (no internet connection ?)');
+      window.freetext = null;
+      return null;
+    }
+    text = text.replaceAll(/Mr(s)?\./g, 'Mr$1');
+    window.freephrases = text
+        .replaceAll(/(\r?\n)+/g, ' ')
+        .replaceAll(/\s+/g, ' ')
+        .replaceAll(/\."/g, '".')
+        .replaceAll(/^["']+\s*(["'])*/g, '$1')
+        .split('.').map(t => t.trim())
+        .filter(t => t.length >= minlength && t.length <= maxlength)
+        .map(t => {
+          const regclean = /^\s*'\s*[^\w]/g;
+          while (regclean.test(t)) {
+            t = t.replaceAll(regclean, '\'');
+          }
+          if (t.split('"').length%2 == 0) t += '"';
+          return t.replaceAll(/"\s*"/g, '');
+        });
+  }
+  loading(false);
+  return freephrases[irand(freephrases.length)];
 }
 async function generateText() {
   if (!cwplayer || cw_options.learn_mode) return;
@@ -686,6 +673,9 @@ async function verifySimple(e) {
   if (cw_options.wrand && cw_options.displaystatistics) {
     let lpmf = pmf.map((v,i) => ({'l':els[i], 'p':v})).filter(v => v.p>1).sort((a,b) => b.p-a.p);
     const maxitems = 140;
+    if (lpmf.length > maxitems) {
+      //zoneresultfree.title += ` (${lpmf.length-maxitems} not shown)`;
+    }
     lpmf = lpmf.slice(0, maxitems);
     let color = (q) => `rgb(${round(255*q)},${round(255*(0.75-q/2))},0)`;
     let h = lpmf.map((l,i) => {
