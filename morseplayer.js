@@ -1516,7 +1516,7 @@ class MorsePlayer extends HTMLElement {
     }
     let cells = [this.clearzone.rows[0].cells[idx], this.clearzone.rows[1].cells[idx]];
     cells.forEach(c => c?.classList.add('currentchar'));
-    cells[0]?.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+    cells[0]?.scrollIntoView({ block: 'nearest' });
     this.czwrapper.scrollLeft+=2;
   }
 }
