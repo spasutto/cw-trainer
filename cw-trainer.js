@@ -1350,10 +1350,10 @@ function displayMorseCode(e) {
       }
     });
     morsefilt.addEventListener('keyup', event => {
-      let symbol = morsefilt.value;
+      let symbol = morsefilt.value.trim();
       let method = '';
       mletters.forEach(mletter => {
-        method = mletter.style.display = (mletter.innerText.indexOf(symbol) < 0) ? 'remove' : 'add';
+        method = (!symbol.length || mletter.innerText.indexOf(symbol) < 0) ? 'remove' : 'add';
         mletter.previousElementSibling.classList[method]('filtered');
         mletter.classList[method]('filtered');
       });
