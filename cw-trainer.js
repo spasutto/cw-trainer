@@ -1330,6 +1330,31 @@ function displayMorseCode(e) {
       };
       elms.forEach(td => td.addEventListener('click', plcl));
     });
+    if (!window.mletters) {
+      window.mletters = [...document.querySelectorAll('td.mletter')];
+    }
+    morsefilt.addEventListener('keydown', event => {
+      let e = event || window.event;
+      let key = e.keyCode || e.which;
+      let valid = (key > 47 && key < 58)   || // number keys
+        key == 32 || key == 13   || // spacebar & return key(s) (if you want to allow carriage returns)
+        (key > 64 && key < 91)   || // letter keys
+        (key > 95 && key < 112)  || // numpad keys
+        (key > 185 && key < 193) || // ;=,-./` (in order)
+        (key > 218 && key < 223);   // [\]' (in order)
+      let dotdash = [54, 109, 110, 190];
+      if (valid && dotdash.indexOf(key) < 0) { //if it is not '.' or '-'
+          //Prevent default action, which is inserting character
+          if (e.preventDefault) e.preventDefault(); //normal browsers
+          e.returnValue = false; //IE
+      }
+    });
+    morsefilt.addEventListener('keyup', event => {
+      let symbol = morsefilt.value;
+      mletters.forEach(mletter => {
+        mletter.previousElementSibling.style.display = mletter.style.display = (mletter.innerText.indexOf(symbol) < 0) ? 'none' : '';
+      });
+    });
   }
   let lessonletters = [];
   let isActive = (l) => lessonletters.includes(l);

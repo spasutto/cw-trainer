@@ -136,12 +136,20 @@ a[name="modes"].active {
   border-bottom: solid 1px black;
   margin-bottom: 10px;
 }
-#morseclosebtn {
+#csmorse input, #csmorse span {
   position: absolute;
   z-index: 1;
+}
+#morseclosebtn {
   top: 0;
   right: 0;
   margin: 5px;
+}
+#morsefilt {
+  bottom: 0;
+  right: 0;
+  margin: 5px;
+  width: 50px;
 }
 #csmorse td {
   cursor: pointer;
