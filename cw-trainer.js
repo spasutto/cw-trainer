@@ -1351,8 +1351,11 @@ function displayMorseCode(e) {
     });
     morsefilt.addEventListener('keyup', event => {
       let symbol = morsefilt.value;
+      let method = '';
       mletters.forEach(mletter => {
-        mletter.previousElementSibling.style.display = mletter.style.display = (mletter.innerText.indexOf(symbol) < 0) ? 'none' : '';
+        method = mletter.style.display = (mletter.innerText.indexOf(symbol) < 0) ? 'remove' : 'add';
+        mletter.previousElementSibling.classList[method]('filtered');
+        mletter.classList[method]('filtered');
       });
     });
   }

@@ -132,9 +132,12 @@ a[name="modes"].active {
   margin: 2px;
   user-select: none;
 }
+#csmorse table {
+  border-collapse: collapse;
+}
 #csmorse table:not(:last-child) {
-  border-bottom: solid 1px black;
-  margin-bottom: 10px;
+  border-bottom: solid 1px #ccc;
+  margin-bottom: 12px;
 }
 #csmorse input, #csmorse span {
   position: absolute;
@@ -154,9 +157,15 @@ a[name="modes"].active {
 #csmorse td {
   cursor: pointer;
 }
+#csmorse td.filtered {
+  background-color: #59ff14ab;
+}
 .mletter {
   width: 30px;
   font-family: monospace;
+}
+.mletter:not(:last-child) {
+  border-right: solid 1px #ccc;
 }
 #csmorse td:not(.mletter) {
   padding: 0px 3px;
