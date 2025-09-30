@@ -1333,22 +1333,27 @@ function displayMorseCode(e) {
     if (!window.mletters) {
       window.mletters = [...document.querySelectorAll('td.mletter')];
     }
-    morsefilt.addEventListener('keydown', event => {
-      let e = event || window.event;
-      let key = e.keyCode || e.which;
-      let valid = (key > 47 && key < 58)   || // number keys
-        key == 32 || key == 13   || // spacebar & return key(s) (if you want to allow carriage returns)
-        (key > 64 && key < 91)   || // letter keys
-        (key > 95 && key < 112)  || // numpad keys
-        (key > 185 && key < 193) || // ;=,-./` (in order)
-        (key > 218 && key < 223);   // [\]' (in order)
-      let dotdash = [54, 109, 110, 190];
-      if (valid && dotdash.indexOf(key) < 0) { //if it is not '.' or '-'
-          //Prevent default action, which is inserting character
+    if (window.mobile) {
+      morsefilt.addEventListener('input', e => {
+        morsefilt.value = morsefilt.value.replaceAll(/[^.\-]/g, '');
+      });
+    } else {
+      morsefilt.addEventListener('keydown', event => {
+        let e = event || window.event;
+        let key = e.keyCode || e.which;
+        let valid = (key > 47 && key < 58)   || // number keys
+          key == 32 || key == 13   || // spacebar & return key(s) (if you want to allow carriage returns)
+          (key > 64 && key < 91)   || // letter keys
+          (key > 95 && key < 112)  || // numpad keys
+          (key > 185 && key < 193) || // ;=,-./` (in order)
+          (key > 218 && key < 223);   // [\]' (in order)
+        let dotdash = [54, 109, 110, 190];
+        if (valid && dotdash.indexOf(key) < 0) {
           if (e.preventDefault) e.preventDefault(); //normal browsers
           e.returnValue = false; //IE
-      }
-    });
+        }
+      });
+    }
     morsefilt.addEventListener('keyup', event => {
       let symbol = morsefilt.value.trim();
       let method = '';
