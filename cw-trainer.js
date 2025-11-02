@@ -19,8 +19,9 @@ const LSN_NUMBERS = 42;
 const LSN_SYMBOLS = 43;
 const LSN_CUSTOM = 44;
 const LSN_PROSIGNS = 45;
-const LSN_QSO = 46;
-const LSN_FREE_TEXT = 47;
+const LSN_SIMPLE_PHRASES = 46;
+const LSN_QSO = 47;
+const LSN_FREE_TEXT = 48;
 var cwchecking = false;
 var maxlessons = -1;
 var cw_options = {
@@ -78,6 +79,11 @@ var QSOs = [
   '%IND1% DE %IND2% R R GM DR %NAME1% ES TNX FER RST UR RST RST RST IS 599 599 5NN FB MY QTH QTH QTH IS %QTH2% %QTH2% %QTH2% MY NAME IS %NAME2% %NAME2% %NAME2% HW ? %IND1% DE %IND2% {KN}',
   '%IND2% DE %IND1% FB DR %NAME2% IN %QTH2% HR RTX IS TS50 TS50 PWR IS %PWR1%W %PWR1%W ANT IS VERT VERT WX WX IS CLOUDY CLOUDY TEMP 15C = NW QRU QRU TNX FER NICE QSO = PSE QSL MY QSL SURE VIA BURO 73 73 ES CUAGN CIAO %IND2% DE %IND1% {SK} {SK}  I',
   '%IND1% DE %IND2% R R OK DR %NAME1% FB HR RTX IS YAESU FT920 FT920 ANT IS DIPOLE DIPOLE WX WX FINE TEMP 30C TNX FER FB QSO QSL OK OK 73 73 GL GB %IND1% DE %IND2% {SK} {SK} I'
+  ];
+var SIMPLEPHRASES = [
+    ['MY', 'THE', 'THIS', 'UR', 'A', 'SOME', 'HIS', 'HER'],
+    ['OLD', 'RED', 'NEW', 'BLUE'],
+    ['CAR', 'TREE', 'BOOK', 'TRX', 'BYCYCLE', 'ANTENNA', 'CABLE', "AMP"]
   ];
 var keystates = {
   'playpause': false,
@@ -190,6 +196,15 @@ async function getUrl(url, bypass_cache=false, binary=false) {
   }
   return rep;
 }
+async function generateSimplePhrase() {
+  let phrase = '';
+  let rsp = (idx) => SIMPLEPHRASES[idx][irand(SIMPLEPHRASES[idx].length-1)];
+  for (let i=0; i<cw_options.groupsnb; i++) {
+    if (i>0) phrase += '  ';
+    phrase += rsp(0) + ' ' + rsp(1) + ' ' + rsp(2);
+  }
+  return phrase;
+}
 async function generateFreeText(minlength = 60, maxlength = 150) {
   // on peut appeler plusieurs fois les URL, normalement elles sont cachées
   loading();
@@ -268,6 +283,8 @@ async function generateText() {
       }
     } else if (cw_options.lesson==LSN_PROSIGNS) {
       cwgentext = generateRandomText(PROSIGNS, 1, cw_options.groupsnb);
+    } else if (cw_options.lesson==LSN_SIMPLE_PHRASES) {
+      cwgentext = await generateSimplePhrase();
     } else if (cw_options.lesson==LSN_QSO) {
       let callsign1 = generateRandomCallsign();
       let callsign2 = generateRandomCallsign(callsign1);
