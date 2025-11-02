@@ -11,7 +11,14 @@ import `morseplayer.js` (in `head` or `body`)
 Instantiate the player :
 ```Javascript
 var player = new CWPlayer({wpm:25});
-player.play('Hello world !');
+// can't call play() for the first time directly from onload or arbitrary code : this must be done on a user gesture (https://developer.chrome.com/blog/autoplay/#web_audio)
+//player.play('Hello world !');
+```
+**&#9888; : as stated above, the first call to a playing method (such as `play` or setting `AutoPlay` attribute to true) must be initiated from a user gesture on the page** (https://developer.chrome.com/blog/autoplay/#web_audio). Subsequent calls can be done without condition
+
+Then try it :
+```HTML
+<a href="#" onclick="player.play('Hello world !')">click me!</a>
 ```
 
 ## CWPlayer instance's properties
@@ -36,6 +43,7 @@ player.Text = "VE3YYY de F8XXX {AS}";
 ```
  - **TextArray** : get an array of the current text, including prosigns. Each element is either a *letter/number/punctuation* or a *prosign*.
  - **Index** : get or set the playing's index (**in the TextArray property !**)
+ - **AutoPlay** : set to true automatically starts playing when `Text` changes
  - **HPFix** : set to true if you experience truncation of symbols while using USB/Bluetooth headphones on Android devices
 
 ## Methods
