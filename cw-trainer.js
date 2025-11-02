@@ -123,10 +123,6 @@ function round(n, nbd=-1) {
 }
 var round2 = (val) => round(val, 2);
 var round3 = (val) => round(val, 3);
-function wrand() {
-  let rand = Math.random();
-  return els[cdf.findIndex(el => rand <= el)];
-}
 function irand(start, end) {
   if (arguments.length < 2) {
     end = start;
@@ -171,6 +167,10 @@ function generateRandomRST() {
   else t = Math.random()>0.8 ? 8 : 9;
   if (s < 8) r = 4;
   return ''+r+s+t;
+}
+function generateWRandomChar() {
+  let rand = Math.random();
+  return els[cdf.findIndex(el => rand <= el)];
 }
 function generateRandomString(chars, len) {
   return Array.apply(null, Array(len)).map(() => {
@@ -274,7 +274,7 @@ async function generateText() {
           reinitPMF();
         }
       }
-      cwgentext = cw_options.wrand ? wrand() : generateRandomString(els, 1);
+      cwgentext = cw_options.wrand ? generateWRandomChar() : generateRandomString(els, 1);
       if (cw_options.wrand) {
         wrandstat[cwgentext]++;
         let tmps = els.reduce((acc, cur) => acc += wrandstat[cur], 0);
