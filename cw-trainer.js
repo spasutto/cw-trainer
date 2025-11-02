@@ -83,7 +83,7 @@ var QSOs = [
 var SIMPLEPHRASES = [
     ['MY', 'THE', 'THIS', 'UR', 'A', 'SOME', 'HIS', 'HER'],
     ['OLD', 'RED', 'NEW', 'BLUE'],
-    ['CAR', 'TREE', 'BOOK', 'TRX', 'BYCYCLE', 'ANTENNA', 'CABLE', "AMP"]
+    ['CAR', 'TREE', 'BOOK', 'TRX', 'BICYCLE', 'ANTENNA', 'CABLE', "AMP"]
   ];
 var keystates = {
   'playpause': false,
