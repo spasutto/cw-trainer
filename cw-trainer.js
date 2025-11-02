@@ -1433,6 +1433,7 @@ function displayMorseCode(e) {
     csmwcnt = morsecscnt.getBoundingClientRect().width;
     if (mobile) csmwcnt+=5;
   } while (csmwcnt > csmw && cmpt++ < 80);
+  morsefilt.focus();
   return false;
 }
 function onmouseup(e) {
