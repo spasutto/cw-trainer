@@ -14,7 +14,7 @@ var player = new CWPlayer({wpm:25});
 // can't call play() for the first time directly from onload or arbitrary code : this must be done on a user gesture (https://developer.chrome.com/blog/autoplay/#web_audio)
 //player.play('Hello world !');
 ```
-**&#9888; : as stated above, the first call to a playing method (such as `play` or setting `AutoPlay` attribute to true) must be initiated from a user gesture on the page** (https://developer.chrome.com/blog/autoplay/#web_audio). Subsequent calls can be done without condition
+**&#9888; : as stated above, the first call to a playing method (such as `play` or setting `AutoPlay` attribute to true) must be initiated from a user gesture on the page** ([explanation](https://developer.chrome.com/blog/autoplay/#web_audio)). Subsequent calls can be done without condition
 
 Then try it :
 ```html

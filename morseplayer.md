@@ -20,7 +20,7 @@ window.addEventListener("load", (event) => {
   mp.Text = 'Hello world !';
 });
 ```
-**&#9888; : the first call to a playing method (such as play or setting `autoplay` attribute to true) must be initiated from a user gesture on the page** (https://developer.chrome.com/blog/autoplay/#web_audio). Subsequent calls can be done without condition
+**&#9888; : the first call to a playing method (such as play or setting `autoplay` attribute to true) must be initiated from a user gesture on the page** ([explanation](https://developer.chrome.com/blog/autoplay/#web_audio)). Subsequent calls can be done without condition
 
 ### Styling
 By default `morse-player` stretches and use full width. However you can define a specific width :
