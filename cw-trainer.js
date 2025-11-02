@@ -108,6 +108,7 @@ function updateCDF() {
 }
 function reinitPMF() {
   window.wrandstat = els.reduce((acc, cur) => {acc[cur]=0;return acc;}, {});
+  window.wrandtimes = [];
   pmf = Array(els.length).fill(1);
   if (cw_options.weighlastletters) {
     for (let i=pmf.length-1; i>=0&&i>=pmf.length-3; i--) {
@@ -640,7 +641,8 @@ async function verifySimple(e) {
       if (cw_options.wrand) {
         let is = els.indexOf(cwplayer.Text[0]);
         if (is > -1) {
-          pmf[is]++;
+          // si on s'est trompé on incrémente la probabilité de tomber sur cette lettre (seulement à la première erreur)
+          pmf[is]+=2;
           updateCDF();
         }
       }
@@ -649,20 +651,29 @@ async function verifySimple(e) {
   } else {
     if (window.freefirsttry) {
       if (cw_options.wrand) {
-        let is = els.indexOf(cwplayer.Text[0]);
-        if (is > -1) {
-          const maxtime = 4;
-          let ttime = 0;
-          if (simplemode_starttime>0) {
-            ttime = Math.min(maxtime, (new Date() - simplemode_starttime)/1000);
+        const maxtime = 4;
+        let ttime = 0;
+        if (simplemode_starttime>0) {
+          ttime = (new Date() - simplemode_starttime)/1000;
+          // on ne tient pas compte des temps de réponses trop long pour le calcul de la moyenne
+          if (ttime < maxtime) {
+            window.wrandtimes.push(ttime);
           }
-          if (ttime > 0) {
-            // coef € [-0.8;1.5] pour ttime € [0;maxtime]
-            const min = -0.8;
-            const max = 1.5;
-            let penal = min+(ttime*(max-min)/maxtime);
-            console.log('réponse en', round(ttime, 1), 's pour le symbole', cwplayer.Text[0],'==> penal =',round2(penal));
-            pmf[is] = Math.max(1, penal+pmf[is]);
+        }
+        // on attend 5 tirages significatifs avant de calculer les probabilités basées sur les temps de réponse
+        if (ttime > 0 && window.wrandtimes.length > 5) {
+          let is = els.indexOf(cwplayer.Text[0]);
+          if (is > -1) {
+            let mtime = window.wrandtimes.reduce((a,c) => a+c)/window.wrandtimes.length;
+            let diff = ttime - mtime;
+            if (diff < 0) {
+              // si on répond plus vite que d'habitude on baisse d'1/4 la probabilité de tomber sur cette lettre (sans descendre sous 1)
+              pmf[is] -= round3(pmf[is]*0.25);
+              pmf[is] = Math.max(1, pmf[is]);
+            } else {
+              // sinon on l'augmente d'autant qu'on est lent (mais on plafonne pour ne pas trop augmenter drastiquement d'un coup)
+              pmf[is] += Math.min(2, diff);
+            }
             updateCDF();
           }
         }
