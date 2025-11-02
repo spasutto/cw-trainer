@@ -36,6 +36,7 @@ player.Text = "VE3YYY de F8XXX {AS}";
 ```
  - **TextArray** : get an array of the current text, including prosigns. Each element is either a *letter/number/punctuation* or a *prosign*.
  - **Index** : get or set the playing's index (**in the TextArray property !**)
+ - **HPFix** : set to true if you experience truncation of symbols while using USB/Bluetooth headphones on Android devices
 
 ## Methods
 ### _constructor(options)_

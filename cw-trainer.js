@@ -41,7 +41,8 @@ var cw_options = {
   qrn: 0,
   qrm: 0,
   customset: KOCHCARS.join(''),
-  displaystatistics: false
+  displaystatistics: false,
+  headphone_fix: false
 };
 var QSOs = [
   //http://lidscw.org/resources/cq-qso-template
@@ -953,7 +954,7 @@ function setMinMax() {
 }
 function decodeParam(val, i) {
   // hormis le cumstomset tout est en numerique
-  if (i < 14) {
+  if (i != 14) {
     val = parseFloat(val);
     if (isNaN(val)) return;
   }
@@ -1010,6 +1011,9 @@ function decodeParam(val, i) {
     case 16:
       cw_options.qrm = Math.max(MorsePlayer.MIN_QRM, Math.min(MorsePlayer.MAX_QRM, val));
       break;
+    case 17:
+      cw_options.headphone_fix = val === 1;
+      break;
   }
 }
 function deferredSaveParam() {
@@ -1018,7 +1022,25 @@ function deferredSaveParam() {
   window.timeoutSaveParams = window.setTimeout(saveParams, 250);
 }
 function saveParams() {
-  let params = encodeURIComponent(sellesson.value+HASHSEP+selwpm.value+HASHSEP+seleffwpm.value+HASHSEP+grplen.value+HASHSEP+groupsnb.value+HASHSEP+cw_options.tone+HASHSEP+round2(selews.value)+HASHSEP+(cw_options.simple_mode?1:0)+HASHSEP+(cw_options.freelisten?1:0)+HASHSEP+(cw_options.weighlastletters?1:0)+HASHSEP+round2(cw_options.keyqual)+HASHSEP+round2(cw_options.volume)+HASHSEP+(cw_options.learn_mode?1:0)+HASHSEP+(cw_options.wrand?1:0)+HASHSEP+(cw_options.customset)+HASHSEP+round3(cw_options.qrn)+HASHSEP+round3(cw_options.qrm));
+  let params = [sellesson.value,
+  	selwpm.value,
+  	seleffwpm.value,
+  	grplen.value,
+  	groupsnb.value,
+  	cw_options.tone,
+  	round2(selews.value),
+  	(cw_options.simple_mode?1:0),
+  	(cw_options.freelisten?1:0),
+  	(cw_options.weighlastletters?1:0),
+  	round2(cw_options.keyqual),
+  	round2(cw_options.volume),
+  	(cw_options.learn_mode?1:0),
+  	(cw_options.wrand?1:0),
+  	(cw_options.customset),
+  	round3(cw_options.qrn),
+  	round3(cw_options.qrm),
+  	(cw_options.headphone_fix?1:0)];
+	params = encodeURIComponent(params.join(HASHSEP));
   try {
     window.name = params;
     localStorage.setItem("params", params);
@@ -1150,6 +1172,9 @@ window.addEventListener("load", async () => {
       saveParams();
     } else if (arg == 'EWS') {
       selews.value = cw_options.ews = cwplayer.EWS;
+      saveParams();
+    } else if (arg == 'HPFix') {
+      cw_options.headphone_fix = cwplayer.HPFix;
       saveParams();
     }
   });
@@ -1509,6 +1534,7 @@ async function updateValues() {
   cwplayer.KeyingQuality = cw_options.keyqual;
   cwplayer.QRN = cw_options.qrn;
   cwplayer.QRM = cw_options.qrm;
+  cwplayer.HPFix = cw_options.headphone_fix;
   // on remet à jour les contrôles si'il y'a eu des bornages
   sellesson.value = cw_options.lesson;
   selwpm.value = cw_options.wpm = cwplayer.WPM;

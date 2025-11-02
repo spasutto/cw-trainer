@@ -73,6 +73,7 @@ player.Text = "VE3YYY de F8XXX {AS}";
  - **ClearZone** : display/hide the clear text zone (currently playing)
  - **ConfigButton** : display/hide the settings button
  - **DownloadButton** : display/hide the download button
+ - **HPFix** : set to true if you experience truncation of symbols while using USB/Bluetooth headphones on Android devices
 
 ## Methods
 ### _constructor(options)_

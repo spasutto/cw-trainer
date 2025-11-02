@@ -87,7 +87,8 @@ class CWPlayer {
     autoplay : false,
     volume : 1,
     qrn: 0,
-    no_noise: false
+    no_noise: false,
+    headphone_fix: false
   };
   elperiod = 0.06; // 20WPM.
   spperiod = 0.06;
@@ -121,6 +122,7 @@ class CWPlayer {
     this.KeyingQuality = options.keyqual;
     this.QRN = options.qrn;
     this.options.no_noise = !!options.no_noise;
+    this.options.headphone_fix = !!options.headphone_fix;
   }
 
   /*CONSTANTES*/
@@ -245,6 +247,16 @@ class CWPlayer {
       this.noise.quantity.value = value;
     }
     this.fireEvent('parameterchanged', 'QRN');
+  }
+  get HPFix() { return this.options.headphone_fix; }
+  set HPFix(value) {
+    value = CWPlayer.parsebool(value);
+    this.options.headphone_fix = value;
+    try {
+      if (this.playing) this.stop();
+      if (this.context) this.initAudio();
+    } catch (e) {this.context=null;} // si action non utilisateur
+    this.fireEvent('parameterchanged', 'HPFix');
   }
   get PreDelay() { return this.options.predelay; }
   set PreDelay(value) {
@@ -487,6 +499,25 @@ class CWPlayer {
     }
     this.gain.gain.value = 0;
     this.osc.frequency.value = this.options.tone;
+    
+    try {
+      if (this.osccont) this.osccont.stop();
+    } catch (e) {}
+    if (!offline && this.options.headphone_fix) {
+      // oscillateur permettant d'empêcher les bugs de coupures des casques usb/bluetooth sur les smartphones android
+      this.osccont = this.context.createOscillator();
+      let gaincont = this.context.createGain();
+      let gaincontmaster = this.context.createGain();
+      this.osccont.frequency.value = 17000;
+      gaincont.gain.value = 0.05;
+      gaincontmaster.gain.value = 0.95;
+      this.osccont.start();
+      this.osccont.connect(gaincont);
+      gaincont.connect(gaincontmaster);
+      termnode.connect(gaincontmaster);
+      termnode = gaincontmaster;
+    }
+    
     if (!offline) {
       this.master = this.context.createGain();
       this.setMasterVolume();
@@ -496,6 +527,9 @@ class CWPlayer {
       termnode.connect(this.context.destination);
     }
     this.osc.start();
+    if (!offline && this.options.headphone_fix && this.options.predelay < 0.1) {
+      await CWPlayer.delay(0.1-this.options.predelay);
+    }
   }
   async playBoop() {
     if (this.recording) return;
@@ -927,6 +961,7 @@ class MorsePlayer extends HTMLElement {
     let cfghtml = `<span><label for="val_WPM" title="speed (in words per minute)">WPM :</label><input id="val_WPM" type="number" min="${CWPlayer.MIN_WPM}" max="${CWPlayer.MAX_WPM}" step="1" title="speed (in words per minute)"></span>`;
     cfghtml += `<span><label for="val_EffWPM" title="effective (Farnsworth) speed (in words per minute)">Eff WPM :</label><input id="val_EffWPM" type="number" min="${CWPlayer.MIN_WPM}" max="${CWPlayer.MAX_WPM}" step="1" title="effective (Farnsworth) speed (in words per minute)"></span><BR>`;
     cfghtml += `<span><label for="val_EWS" title="extra space between words (in seconds)">Extra Word Space :</label><input id="val_EWS" type="number" min="${CWPlayer.MIN_EWS}" max="${CWPlayer.MAX_EWS}" step="0.1" title="extra space between words (in seconds)"></span><BR>`;
+    cfghtml += `<span><label for="val_HPFix" title="Android USB/BT headphone fix (activate if keying seems truncated)">Headphone fix :</label><input id="val_HPFix" type="checkbox" title="Android USB/BT headphone fix (activate if keying seems truncated)"></span>`;
     cfghtml += `<span><label for="val_Tone" title="tone (in Hertz)">Tone :</label><input id="val_Tone" type="number" min="${CWPlayer.MIN_TONE}" max="${CWPlayer.MAX_TONE}" step="100" title="tone (in Hertz)"></span><BR>`;
     cfghtml += `<span><label for="val_KeyingQuality" title="keying quality">Keying Quality :</label><input id="val_KeyingQuality" type="range" min="${CWPlayer.MIN_KEYQUAL}" max="${CWPlayer.MAX_KEYQUAL}" step="0.1" title="keying quality"></span><BR>`;
     cfghtml += `<span><label for="val_QRN" title="QRN">QRN :</label><input id="val_QRN" type="range" min="${CWPlayer.MIN_QRN}" max="${CWPlayer.MAX_QRN}" step="0.05" title="QRN"></span><BR>`;
@@ -1004,6 +1039,9 @@ class MorsePlayer extends HTMLElement {
       }
       #val_Tone {
         width: 45px !important;
+      }
+      #val_HPFix {
+        margin-right: 10px;
       }
       #btnconfig, #btndownload {
         margin-left: 1px;
@@ -1253,7 +1291,12 @@ class MorsePlayer extends HTMLElement {
     });
     Object.keys(this.configfields).forEach(k => {
       let evttype = ['Volume', 'QRN'].includes(k) ? 'input' : 'change';
-      this.configfields[k].addEventListener(evttype, () => { this[k] = this.configfields[k].value; });
+      let fname = 'value';
+      if (this.configfields[k].type === 'checkbox') fname = 'checked';
+      this.configfields[k].addEventListener(evttype, () => {
+        //console.log(k, evttype, fname, this.configfields[k][fname]);
+        this[k] = this.configfields[k][fname];
+      });
     });
 
     if (!this.options.progressBar) this.prgcont.style.display='none';
@@ -1351,6 +1394,8 @@ class MorsePlayer extends HTMLElement {
     }
     this.cwplayer.fireEvent('parameterchanged', 'QRM');
   }
+  get HPFix() { return this.cwplayer.HPFix; }
+  set HPFix(value) { this.cwplayer.HPFix = value; }
   get PreDelay() { return this.cwplayer.PreDelay; }
   set PreDelay(value) { this.cwplayer.PreDelay = value; }
   get TextArray() { return this.cwplayer.TextArray; }
@@ -1448,12 +1493,15 @@ class MorsePlayer extends HTMLElement {
     if (this.cwplayer.Playing || this.cwplayer.Paused) requestAnimationFrame(this.updateDisplayTime.bind(this));
   }
   updateFields(name=null) {
+    let aff = (k) => {
+      let fname = 'value';
+      if (this.configfields[k].type === 'checkbox') fname = 'checked';
+      this.configfields[k][fname] = this[k];
+    };
     if (!name) {
-      Object.keys(this.configfields).forEach(k => {
-        this.configfields[k].value = this[k];
-      });
+      Object.keys(this.configfields).forEach(aff);
     } else if (this.configfields[name]) {
-      this.configfields[name].value = this[name];
+      aff(name);
     }
   }
   updateButtonsState(en_stop, en_play, en_pause) {
