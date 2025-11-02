@@ -64,6 +64,7 @@ The `CWPlayer` constructor accepts options as an `Object` in which keys can be :
 ```javascript
 await player.play('test');
 await player.play('this text is read after the first has finished');
+```
 
 ### async renderToFile(text)
 `renderToFile` method render the morse representation of the text and save it to a .wav file. The text can be passed as parameter otherwise `Text` property will be used. Text is cleaned. The method returns a promise wich is fulfilled at the end of the conversion to .wav file.
