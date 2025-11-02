@@ -5,15 +5,15 @@ Demonstrations and samples [here](https://spasutto.github.io/cw-trainer/samples.
 ## Usage
 
 import `morseplayer.js` (in `head` or `body`)
-```HTML
+```html
 <script src="morseplayer.js"></script>
 ```
 Insert the player
-```HTML
+```html
 <morse-player>cq cq cq de F8XYZ</morse-player>
 ```
 **Or**, in JS :
-```Javascript
+```javascript
 window.addEventListener("load", (event) => {
   let mp = new MorsePlayer({wpm:25});
   document.body.appendChild(mp);
@@ -24,7 +24,7 @@ window.addEventListener("load", (event) => {
 
 ### Styling
 By default `morse-player` stretches and use full width. However you can define a specific width :
-```HTML
+```html
 <style>
 morse-player {
     width: 380px;
@@ -60,13 +60,13 @@ The `morse-player` tag accept some attributes (case insensitive) :
  - **KeyingQuality** : get or set the keying quality (between 50% : bad and 100% : perfect)
  - **PreDelay** : get or set the delay before playing firs symbol
  - **Text** : get or set the text to play. Text is "cleaned" :
-```Javascript
+```javascript
 player.Text = "StrÀngé ïnpùt tèxt";
 console.log(player.Text);
 // 'STRANGE INPUT TEXT'
 ```
 Prosigns can be entered between `{` and `}` and will be played as prosigns :
-```Javascript
+```javascript
 player.Text = "VE3YYY de F8XXX {AS}";
 ```
  - **TextArray** : get an array of the current text, including prosigns. Each element is either a *letter/number/punctuation* or a *prosign*.
@@ -83,7 +83,7 @@ player.Text = "VE3YYY de F8XXX {AS}";
 
 ### async play(text)
 `play` method start the morse playing of the text. The text can be passed in parameter otherwise it's come from `Text` property and is cleaned. The method returns a promise wich is fulfilled at the first pause or at the end of the playing.
-```Javascript
+```javascript
 await player.play('test');
 await player.play('this text is read after the first has finished');
 ```
@@ -100,7 +100,7 @@ play a 'boop' sound (used for wrong entry in simple mode)
 
 ### addEventListener(event_name, func)
 Register an event listener
-```Javascript
+```javascript
 player.addEventListener('play', () => {
     console.log('CW Time !');
 });
@@ -119,7 +119,7 @@ player.addEventListener('parameterchanged', (param) => {
 
 ### on(event_name, func)
 Register an event listener, **triggered only once**
-```Javascript
+```javascript
 player.on('play', () => {
     // this message will appear only once even if play is called multiple times
     console.log('CW Time !');

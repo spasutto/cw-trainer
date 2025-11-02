@@ -5,11 +5,11 @@ Demonstrations and samples [here](https://spasutto.github.io/cw-trainer/samples.
 ## Usage
 
 import `morseplayer.js` (in `head` or `body`)
-```HTML
+```html
 <script src="morseplayer.js"></script>
 ```
 Instantiate the player :
-```Javascript
+```javascript
 var player = new CWPlayer({wpm:25});
 // can't call play() for the first time directly from onload or arbitrary code : this must be done on a user gesture (https://developer.chrome.com/blog/autoplay/#web_audio)
 //player.play('Hello world !');
@@ -17,7 +17,7 @@ var player = new CWPlayer({wpm:25});
 **&#9888; : as stated above, the first call to a playing method (such as `play` or setting `AutoPlay` attribute to true) must be initiated from a user gesture on the page** (https://developer.chrome.com/blog/autoplay/#web_audio). Subsequent calls can be done without condition
 
 Then try it :
-```HTML
+```html
 <a href="#" onclick="player.play('Hello world !')">click me!</a>
 ```
 
@@ -32,13 +32,13 @@ Then try it :
  - **KeyingQuality** : get or set the keying quality (between 50% : bad and 100% : perfect)
  - **PreDelay** : get or set the delay before playing firs symbol
  - **Text** : get or set the text to play. Text is "cleaned" :
-```Javascript
+```javascript
 player.Text = "StrÀngé ïnpùt tèxt";
 console.log(player.Text);
 // 'STRANGE INPUT TEXT'
 ```
 Prosigns can be entered between `{` and `}` and will be played as prosigns :
-```Javascript
+```javascript
 player.Text = "VE3YYY de F8XXX {AS}";
 ```
  - **TextArray** : get an array of the current text, including prosigns. Each element is either a *letter/number/punctuation* or a *prosign*.
@@ -61,13 +61,13 @@ The `CWPlayer` constructor accepts options as an `Object` in which keys can be :
 
 ### async play(text)
 `play` method start the morse playing of the text. The text can be passed as parameter otherwise `Text` property will be used. Text is cleaned. The method returns a promise wich is fulfilled at the first pause or at the end of the playing.
-```Javascript
+```javascript
 await player.play('test');
 await player.play('this text is read after the first has finished');
 
 ### async renderToFile(text)
 `renderToFile` method render the morse representation of the text and save it to a .wav file. The text can be passed as parameter otherwise `Text` property will be used. Text is cleaned. The method returns a promise wich is fulfilled at the end of the conversion to .wav file.
-```Javascript
+```javascript
 await player.renderToFile();
 ```
 
@@ -82,7 +82,7 @@ play a 'boop' sound (used for wrong entry in simple mode)
 
 ### addEventListener(event_name, func)
 Register an event listener
-```Javascript
+```javascript
 player.addEventListener('play', () => {
     console.log('CW Time !');
 });
@@ -101,7 +101,7 @@ player.addEventListener('parameterchanged', (param) => {
 
 ### on(event_name, func)
 Register an event listener, **triggered only once**
-```Javascript
+```javascript
 player.on('play', () => {
     // this message will appear only once even if play is called multiple times
     console.log('CW Time !');
@@ -113,7 +113,7 @@ Remove the event listener. If no `func` is provided, remove all the listeners. I
 
 ### static translate(text)
 Translate to Morse the specified text :
-```Javascript
+```javascript
 let translated = CWPlayer.translate("Bonjour");
 console.log(translated);
 // '-... --- -. .--- --- ..- .-.'
@@ -126,7 +126,7 @@ console.log(translated);
 
 ### static cleanText(text)
 Used to clean the provided text.
-```Javascript
+```javascript
 let cleaned = CWPlayer.cleanText("StrÀngé ïnpùt tèxt");
 console.log(cleaned);
 // 'STRANGE INPUT TEXT'
