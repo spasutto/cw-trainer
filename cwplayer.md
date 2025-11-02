@@ -44,7 +44,7 @@ player.Text = "VE3YYY de F8XXX {AS}";
  - **TextArray** : get an array of the current text, including prosigns. Each element is either a *letter/number/punctuation* or a *prosign*.
  - **Index** : get or set the playing's index (**in the TextArray property !**)
  - **AutoPlay** : set to true automatically starts playing when `Text` changes
- - **HPFix** : set to true if you experience truncation of symbols while using USB/Bluetooth headphones on Android devices
+ - **HPFix** : set it to true if you experience truncation of symbols while using USB/Bluetooth headphones on Android devices
 
 ## Methods
 ### _constructor(options)_
@@ -58,6 +58,7 @@ The `CWPlayer` constructor accepts options as an `Object` in which keys can be :
  - **keyingquality** : get or set the keying quality (between 50% : bad and 100% : perfect)
  - **predelay** (_default to 0 s_) : a time in seconds before playing the first symbol
  - **autoplay** (_default to false_) : if set to "true", a change in the text automatically starts playing
+ - **hpfix** (_default to false_) : set it to true if you experience truncation of symbols while using USB/Bluetooth headphones on Android devices
 
 ### async play(text)
 `play` method start the morse playing of the text. The text can be passed as parameter otherwise `Text` property will be used. Text is cleaned. The method returns a promise wich is fulfilled at the first pause or at the end of the playing.

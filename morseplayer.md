@@ -48,6 +48,7 @@ The `morse-player` tag accept some attributes (case insensitive) :
  - **clearzone** (_default to false_) : if set to true, a zone under the player displays the currently playing symbols
  - **configbutton** (_default to true_) : if set to true, add a settings zone
  - **downloadbutton** (_default to false_) : if set to true, add a "download to .wav" button
+ - **hpfix** (_default to false_) : set it to true if you experience truncation of symbols while using USB/Bluetooth headphones on Android devices
 
 ## MorsePlayer instance's properties
  - **Playing** : the player is currently playing
@@ -75,7 +76,7 @@ player.Text = "VE3YYY de F8XXX {AS}";
  - **ClearZone** : display/hide the clear text zone (currently playing)
  - **ConfigButton** : display/hide the settings button
  - **DownloadButton** : display/hide the download button
- - **HPFix** : set to true if you experience truncation of symbols while using USB/Bluetooth headphones on Android devices
+ - **HPFix** : set it to true if you experience truncation of symbols while using USB/Bluetooth headphones on Android devices
 
 ## Methods
 ### _constructor(options)_
