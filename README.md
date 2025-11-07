@@ -40,7 +40,7 @@ Type a letter/symbol and it will be played in morse, displayed in dots and dashe
 
 ## Reuse
 
-The `CWPlayer` and `MorsePlayer` classes (defined in [morseplayer.js](morseplayer.js)) can be reused :
+The `CWPlayer` and `MorsePlayer` classes (defined in [morseplayer.js](https://github.com/spasutto/cw-trainer/blob/main/morseplayer.js)) can be reused :
 
 ### CWPlayer
 More infos [here](cwplayer.md) & [samples here](https://spasutto.github.io/cw-trainer/samples.html)
