@@ -1013,18 +1013,23 @@ class MorsePlayer extends HTMLElement {
       }
       #configzone {
         display: none;
+        position: absolute;
+        top: 27px;
+        right: 0px;
         background-color: #ccc;
         padding: 2px;
-        height: 127px; /* à cause de l'élement enfant scale */
         text-align: right;
+        border-radius: 0 0 5px 5px;
+        border: solid 1px #aaa;
+        border-top: 0px;
+        transform: scale(0.95);
+        transform-origin: top right;
       }
       #configzone>div {
         background-color: #f8f8f8;
         width: 280px;
         margin-left: auto;
         margin-right: 0;
-        transform: scale(0.9);
-        transform-origin: top right;
       }
       #configzone span, input {
         margin: 0 0 0 5px;
@@ -1049,9 +1054,11 @@ class MorsePlayer extends HTMLElement {
         border-top-left-radius: 5px;
         border-top-right-radius: 5px;
         margin-top: 1px;
+        border: solid 1px #00000000;
       }
       #btnconfig.opened {
         background-color: #ccc;
+        border: solid 1px #aaa;
       }
       #btnconfig:hover .cfggear {
         fill: orange;
@@ -1140,7 +1147,6 @@ class MorsePlayer extends HTMLElement {
     // Attach the created elements to the shadow dom
     shadow.appendChild(style);
     shadow.appendChild(wrapper);
-    shadow.appendChild(configzone);
     shadow.appendChild(czwrapper);
     wrapper.innerHTML = `
       <div>
@@ -1207,6 +1213,7 @@ class MorsePlayer extends HTMLElement {
           </g>
         </svg>
       </a>`;
+    wrapper.appendChild(configzone);
     this.btnstop = this.shadowRoot.getElementById('btnstop');
     this.btnplay = this.shadowRoot.getElementById('btnplay');
     this.btnpause = this.shadowRoot.getElementById('btnpause');
@@ -1265,11 +1272,7 @@ class MorsePlayer extends HTMLElement {
       }
       return false;
     };
-    this.btnconfig.onclick = () => {
-      this.configzone.style.display = this.configzone.style.display == 'block' ? 'none' : 'block';
-      this.btnconfig.classList.toggle('opened');
-      return false;
-    };
+    this.btnconfig.onclick = this.displayConfig.bind(this);
     this.btndownload.onclick = () => {
       if (this.TotalTime > 0) {
         this.cwplayer.renderToFile();
@@ -1460,8 +1463,16 @@ class MorsePlayer extends HTMLElement {
   on(evtname, cb) { this.cwplayer.on(evtname, cb); }
   removeEventListener(evtname, cb=null) { this.cwplayer.removeEventListener(evtname, cb); }
 
-  mouseup() {
+  mouseup(e) {
     this.progresschanging = false;
+    if (this.configzone.style.display === 'block' && typeof e?.composedPath === 'function') {
+      try {
+        if (!e.composedPath().some(elm => elm instanceof Node && (this.configzone.contains(elm) || this.btnconfig.contains(elm))))
+          return this.displayConfig();
+      } catch(err) {
+        console.error(err);
+      }
+    }
   }
   mousedown(e) {
     let elem = (e.target || e.srcElement);
@@ -1477,6 +1488,11 @@ class MorsePlayer extends HTMLElement {
     let clientX = e.clientX ?? (e?.touches?.length>0?e.touches[0].clientX:0);
     let perc = Math.min(this.prgcontrect.width, Math.max(0, clientX - this.prgcontrect.left))/this.prgcontrect.width;
     this.cwplayer.CurrentTime = perc * this.cwplayer.TotalTime;
+  }
+  displayConfig() {
+    this.configzone.style.display = this.configzone.style.display == 'block' ? 'none' : 'block';
+    this.btnconfig.classList.toggle('opened');
+    return false;
   }
 
   formatTime(t) {
