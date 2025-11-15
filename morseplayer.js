@@ -1022,7 +1022,7 @@ class MorsePlayer extends HTMLElement {
         border-radius: 0 0 5px 5px;
         border: solid 1px #aaa;
         border-top: 0px;
-        transform: scale(0.95);
+        transform: scale(0.9);
         transform-origin: top right;
       }
       #configzone>div {
@@ -1030,10 +1030,11 @@ class MorsePlayer extends HTMLElement {
         width: 280px;
         margin-left: auto;
         margin-right: 0;
+        padding: 5px;
       }
       #configzone span, input {
         margin: 0 0 0 5px;
-        padding: 0;
+        padding: 1px;
         white-space: nowrap;
       }
       #configzone input[type="number"] {
