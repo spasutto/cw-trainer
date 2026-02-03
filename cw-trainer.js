@@ -301,7 +301,9 @@ async function generateText() {
           .replaceAll('%RST1%', generateRandomRST())
           .replaceAll('%RST2%', generateRandomRST())
           .replaceAll('%PWR1%', ''+irand(1, 10)*10)
-          .replaceAll('%PWR2%', ''+irand(1, 10)*10);
+          .replaceAll('%PWR2%', ''+irand(1, 10)*10)
+          .replaceAll('%QTH1%', qth1)
+          .replaceAll('%QTH2%', qth2);
     } else if (cw_options.lesson==LSN_FREE_TEXT) {
       cwgentext = await generateFreeText();
     } else {
