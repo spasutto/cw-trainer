@@ -82,7 +82,7 @@ var QSOs = [
   ];
 var SIMPLEPHRASES = [
     ['MY', 'THE', 'THIS', 'UR', 'A', 'SOME', 'HIS', 'HER'],
-    ['OLD', 'RED', 'NEW', 'BLUE'],
+    ['OLD', 'RED', 'NEW', 'BLUE', 'YELLOW'],
     ['CAR', 'TREE', 'BOOK', 'TRX', 'BICYCLE', 'ANTENNA', 'CABLE', "AMP"]
   ];
 var keystates = {
@@ -732,8 +732,8 @@ async function verifyKoch(e) { // KOCH MODE
   if (cw_options.lesson <= LSN_PROSIGNS) {
     extractfn = (t) => cleanText(t).split(' ').filter(e => e.length > 0);
   }
-  let inpt = extractfn(cwtext.value);
-  let verif = extractfn(cwplayer.Text);
+  let inpt = extractfn(cwtext.value).map(e => e.replaceAll(/\s+/g, ' '));
+  let verif = extractfn(cwplayer.Text).map(e => e.replaceAll(/\s+/g, ' '));
   let results = verif.map((a, i) => comparefn(a, inpt[i] ?? ''));
   let nbchars = verif.reduce((acc, cur) => acc+cur.length, 0);
   let nberr = results.reduce((acc, cur) => acc+cur.errors, 0);
@@ -1223,6 +1223,7 @@ window.addEventListener("load", async () => {
     iptfree.addEventListener("focusout", hideKeyboard);
     iptlearn.addEventListener("focusout", hideKeyboard);
   }
+  cwtext.addEventListener("focusout", () => {cwtext.value=CWPlayer.cleanText(cwtext.value);});
   modelinks.forEach(a => {
     a.addEventListener('click', (e) => {
       e.preventDefault();
