@@ -204,7 +204,7 @@ async function generateSimplePhrase() {
     if (i>0) phrase += '  ';
     let art = rsp(0);
     let adj = rsp(1);
-    if (art == 'A' && ['A','E','I','O','U','Y'].indexOf(adj[0])>-1)
+    if (art == 'A' && ['A','E','I','O','U'/*,'Y'*/].indexOf(adj[0])>-1)
       art = 'AN';
     phrase += art + ' ' + adj + ' ' + rsp(2);
   }
