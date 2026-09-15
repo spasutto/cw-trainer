@@ -96,6 +96,7 @@ var els = [];
 var pmf = [];
 var cdf = [];
 var simplemode_starttime = 0;
+var lastkey = null;
 var getElements = (e) => [...document.querySelectorAll(e)];
 function updateCDF() {
   let lpmf = pmf;
@@ -598,7 +599,15 @@ async function verifyLearn(e) {
     cwchecking = false;
     return;
   }
+  if (e.keyCode == 0x20 && CWPlayer.cleanText(lastkey ?? '').length) {
+    // espace : on rejoue
+    iptlearn.value = lastkey;
+  }
   let cwcar = CWPlayer.cleanText(iptlearn.value);
+  if (!cwcar.length) {
+    cwchecking = false;
+    return;
+  }
   iptlearn.classList.add('blue', 'nocarret');
   iptlearnmorse.innerHTML = '';
   await cwplayer.stop();
@@ -1308,6 +1317,8 @@ window.addEventListener("load", async () => {
   iptlearn.addEventListener("keydown", _ => {
     if (cwchecking) return false;
     iptlearn.value='';
+    if (_.key.length == 1 && _.key != ' ')
+      lastkey = _.key;
   });
   iptlearn.addEventListener("keyup", verifyCW);
   cwtitle.addEventListener("dblclick", () => {
