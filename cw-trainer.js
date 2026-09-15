@@ -1247,6 +1247,9 @@ window.addEventListener("load", async () => {
   updateValues();
   cheatsheet.addEventListener("click", displayMorseCode);
   morseclosebtn.addEventListener("click", displayMorseCode);
+  morsehidesmbcb.addEventListener("click", (e => {
+    morsehidesmbcb.checked ? csmorse.classList.add('hidesmb') : csmorse.classList.remove('hidesmb');
+  }));
   selfdl.addEventListener("click", selfDownload);
   selfdl.style.visibility = window.location.href.toLowerCase().startsWith('http') ? 'visible' : 'hidden';
   document.addEventListener("mouseup",  onmouseup);

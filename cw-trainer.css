@@ -139,7 +139,7 @@ a[name="modes"].active {
   border-bottom: solid 1px #ccc;
   margin-bottom: 12px;
 }
-#csmorse input, #csmorse span {
+#csmorse input, #csmorse span, #morsehidesmb {
   position: absolute;
   z-index: 1;
 }
@@ -153,6 +153,14 @@ a[name="modes"].active {
   right: 0;
   margin: 5px;
   width: 50px;
+}
+#morsehidesmb {
+  bottom: 0;
+  left: 0;
+  margin: 5px;
+}
+#morsehidesmbcb {
+  position: initial !important;
 }
 #csmorse td {
   cursor: pointer;
@@ -169,6 +177,12 @@ a[name="modes"].active {
 }
 #csmorse td:not(.mletter) {
   padding: 0px 3px;
+}
+#csmorse.hidesmb td:not(.mletter) {
+  width: 60px;
+}
+#csmorse.hidesmb .mletter {
+  display: none;
 }
 #csmorse td.listening {
   text-shadow: 0 0 1px #00ff2b, 0 0 2px #00ff2b, 0 0 3px #00ff2b, 0 0 4px #00ff2b, 0 0 5px #00ff2b, 0 0 6px #00ff2b, 0 0 7px #00ff2b;
