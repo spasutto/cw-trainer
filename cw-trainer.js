@@ -472,6 +472,7 @@ function key(value) {
     verifyCW();
   } else if (cw_options.learn_mode) {
     iptlearn.value=value;
+    lastkey = value;
     iptlearn.focus();
     verifyCW();
   } else {
@@ -599,7 +600,7 @@ async function verifyLearn(e) {
     cwchecking = false;
     return;
   }
-  if (e.keyCode == 0x20 && CWPlayer.cleanText(lastkey ?? '').length) {
+  if (e?.keyCode == 0x20 && CWPlayer.cleanText(lastkey ?? '').length) {
     // espace : on rejoue
     iptlearn.value = lastkey;
   }
