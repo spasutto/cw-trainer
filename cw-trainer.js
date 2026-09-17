@@ -741,7 +741,8 @@ async function verifyKoch(e) { // KOCH MODE
   }
   if (cwplayer.Playing) cwplayer.stop();
   cwsbm.disabled = true;
-  let comparefn = cw_options.lesson == LSN_PROSIGNS ? compareProsigns : compareStrings;
+  let prosign = cw_options.lesson == LSN_PROSIGNS;
+  let comparefn = prosign ? compareProsigns : compareStrings;
   let cleanText = (t) => CWPlayer.cleanText(t.trim()).replaceAll('\t', ' ').replaceAll(/[{}]/g, '');
   let extractfn = (t) => [cleanText(t)];
   // hormis pour les QSOs et le texte libre on travaille par mot => on recompare mot par mot
@@ -751,7 +752,7 @@ async function verifyKoch(e) { // KOCH MODE
   let inpt = extractfn(cwtext.value).map(e => e.replaceAll(/\s+/g, ' '));
   let verif = extractfn(cwplayer.Text).map(e => e.replaceAll(/\s+/g, ' '));
   let results = verif.map((a, i) => comparefn(a, inpt[i] ?? ''));
-  let nbchars = verif.reduce((acc, cur) => acc+cur.length, 0);
+  let nbchars = prosign ? verif.length : verif.reduce((acc, cur) => acc+cur.length, 0);
   let nberr = results.reduce((acc, cur) => acc+cur.errors, 0);
   let maxerrs = nberr;
   if (inpt.length < verif.length) {
