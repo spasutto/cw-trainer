@@ -600,7 +600,7 @@ async function verifyLearn(e) {
     cwchecking = false;
     return;
   }
-  if (e?.keyCode == 0x20 && CWPlayer.cleanText(lastkey ?? '').length) {
+  if (iptlearn.value == " " && CWPlayer.cleanText(lastkey ?? '').length) {
     // espace : on rejoue
     iptlearn.value = lastkey;
   }
@@ -1315,12 +1315,22 @@ window.addEventListener("load", async () => {
     cwplayer.Text = cwtext.value;
   });
   iptfree.addEventListener("keyup", verifyCW);
-  iptlearn.addEventListener("keydown", _ => {
-    if (cwchecking) return false;
-    iptlearn.value='';
-    if (_.key.length == 1 && _.key != ' ')
-      lastkey = _.key;
-  });
+  if (window.mobile) {
+    // pas de key ou keyCode sur Android dans keydown...
+    iptlearn.addEventListener("input", _ => {
+      if (cwchecking) return false;
+      let key = _.data == null ? '' : _.data
+      if (key.length == 1 && key != ' ')
+        lastkey = key;
+    });
+  } else {
+    iptlearn.addEventListener("keydown", _ => {
+      if (cwchecking) return false;
+      iptlearn.value='';
+      if (_.key.length == 1 && _.key != ' ')
+        lastkey = _.key;
+    });
+  }
   iptlearn.addEventListener("keyup", verifyCW);
   cwtitle.addEventListener("dblclick", () => {
     cwplayer.ClearZone = !cwplayer.ClearZone;
