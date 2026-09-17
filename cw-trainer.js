@@ -597,6 +597,7 @@ async function verifyCW(e) {
 }
 async function verifyLearn(e) {
   if (e?.keyCode == 16 || (e?.key.length>1 && e?.key != 'Unidentified')) { // shift et autres touches non imprimables
+    if (mobile) iptlearn.value='';
     cwchecking = false;
     return;
   }
@@ -606,6 +607,7 @@ async function verifyLearn(e) {
   }
   let cwcar = CWPlayer.cleanText(iptlearn.value);
   if (!cwcar.length) {
+    if (mobile) iptlearn.value='';
     cwchecking = false;
     return;
   }
@@ -614,6 +616,7 @@ async function verifyLearn(e) {
   await cwplayer.stop();
   await cwplayer.play(cwcar);
   await Promise.race([trySpeak(cwcar), CWPlayer.delay(2)]);
+  if (mobile) iptlearn.value='';
   cwchecking = false;
   let tr = CWPlayer.translate(cwcar).split('').filter(s => ['.','-'].includes(s)).map(s => s == '.' ? DIT_SYMBOL : DAH_SYMBOL).join('');;
   iptlearnmorse.innerHTML = `<a href="#" onclick="verifyCW();return false;" title="replay">${tr}</a>`;
