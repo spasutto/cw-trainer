@@ -597,7 +597,6 @@ async function verifyCW(e) {
 }
 async function verifyLearn(e) {
   if (e?.keyCode == 16 || (e?.key.length>1 && e?.key != 'Unidentified')) { // shift et autres touches non imprimables
-    if (mobile) iptlearn.value='';
     cwchecking = false;
     return;
   }
