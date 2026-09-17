@@ -134,6 +134,7 @@ a[name="modes"].active {
 }
 #csmorse table {
   border-collapse: collapse;
+  width: 100%;
 }
 #csmorse table:not(:last-child) {
   border-bottom: solid 1px #ccc;
