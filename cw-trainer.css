@@ -343,6 +343,7 @@ a {
 textarea {
   width: 360px;
   resize: none;
+  text-transform: uppercase;
 }
 small {
   color: #a0a0a0;
