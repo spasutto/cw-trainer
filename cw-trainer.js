@@ -180,8 +180,7 @@ function generateRandomString(chars, len) {
 }
 function generateRandomText(chars, grouplen, groupsnb) {
   if (grouplen != -1) grouplen = Math.max(1, Math.min(8, grouplen));
-  else grouplen = irand(1, 8);
-  return Array.apply(null, Array(groupsnb)).map(() => generateRandomString(chars, grouplen)).join(' ');
+  return Array.apply(null, Array(groupsnb)).map(() => generateRandomString(chars, grouplen<0?irand(1, 8):grouplen)).join(' ');
 }
 async function getUrl(url, bypass_cache=false, binary=false) {
   let rep = null;
