@@ -600,13 +600,12 @@ async function verifyLearn(e) {
     cwchecking = false;
     return;
   }
-  if (iptlearn.value == " " && CWPlayer.cleanText(lastkey ?? '').length) {
+  if (iptlearn.value == ' ' && CWPlayer.cleanText(lastkey ?? '').length) {
     // espace : on rejoue
     iptlearn.value = lastkey;
   }
   let cwcar = CWPlayer.cleanText(iptlearn.value);
   if (!cwcar.length) {
-    if (mobile) iptlearn.value='';
     cwchecking = false;
     return;
   }
@@ -615,7 +614,6 @@ async function verifyLearn(e) {
   await cwplayer.stop();
   await cwplayer.play(cwcar);
   await Promise.race([trySpeak(cwcar), CWPlayer.delay(2)]);
-  if (mobile) iptlearn.value='';
   cwchecking = false;
   let tr = CWPlayer.translate(cwcar).split('').filter(s => ['.','-'].includes(s)).map(s => s == '.' ? DIT_SYMBOL : DAH_SYMBOL).join('');;
   iptlearnmorse.innerHTML = `<a href="#" onclick="verifyCW();return false;" title="replay">${tr}</a>`;
@@ -1325,6 +1323,10 @@ window.addEventListener("load", async () => {
       let key = _.data == null ? '' : _.data
       if (key.length == 1 && key != ' ')
         lastkey = key;
+    });
+    iptlearn.addEventListener("beforeinput", _ => {
+      if (cwchecking) return false;
+      iptlearn.value='';
     });
   } else {
     iptlearn.addEventListener("keydown", _ => {
