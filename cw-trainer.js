@@ -1400,9 +1400,15 @@ function displayMorseCode(e) {
   if (morsecscnt.innerText.trim().length <= 0) {
     //ALPHA NUMBERS SYMBOLS
     let cs = '';
-    [[ALPHA,6], [NUMBERS,5], [SYMBOLS,6]].forEach(([cscl,nbrows]) => {
+    [
+      [ALPHA,6],
+      [NUMBERS,5],
+      [SYMBOLS,6],
+      // Certains prosignes sont en double, ils sont donc triés par représentation en morse
+      [PROSIGNS.sort((a, b) => CWPlayer.translate(a).localeCompare(CWPlayer.translate(b))).join(), 3]
+    ].forEach(([cscl,nbrows], ikcl) => {
       cs += '<table><tbody><tr>';
-      cscl.split('').forEach((s, i) => {
+      cscl.split(ikcl==3?',':'').forEach((s, i) => {
         if (i && i%nbrows == 0) cs += '</tr><tr>';
         cs += `<td>${s}</td><td class="mletter">${CWPlayer.translate(s)}</td>`;
       });
@@ -1486,17 +1492,9 @@ function displayMorseCode(e) {
     };
     elms.forEach(classSelector);
   });
-
-  let scale = 1.0101010101010102; // *0.99 ~= 1
-  let csmwcnt = 0, csmw=0, cmpt = 0;
-  morsecscnt.style.transform = '';
-  csmw = csmorse.getBoundingClientRect().width;
-  do {
-    scale *= 0.99;
-    morsecscnt.style.transform = `scale(${scale})`;
-    csmwcnt = morsecscnt.getBoundingClientRect().width;
-    if (mobile) csmwcnt+=5;
-  } while (csmwcnt > csmw && cmpt++ < 80);
+  if (mobile) {
+    morsecscnt.classList.add('mobile');
+  }
   return false;
 }
 function onmouseup(e) {

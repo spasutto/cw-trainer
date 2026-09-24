@@ -135,6 +135,16 @@ a[name="modes"].active {
   transform: translate(-50%, -50%);
   user-select: none;
 }
+#morsecscnt {
+  overflow-y: auto;
+  scrollbar-width: thin;
+  max-height: 230px;
+  position: absolute;
+  top: 10px;
+}
+#morsecscnt.mobile {
+  transform: scale(0.95);
+}
 #csmorse table {
   border-collapse: collapse;
   width: 100%;
