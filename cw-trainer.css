@@ -310,7 +310,7 @@ h2+a {
   line-height: 28px;
   margin: 0 10px;
 }
-#zoneresult span {
+#zoneresult table span {
   word-wrap: break-word;
   white-space: break-spaces;
   letter-spacing: 1px;
@@ -454,6 +454,15 @@ input[type="range"] {
 .blue {
   background-color: #037bfc;
   color: white;
+}
+.error-text {
+  color: #d00 !important;
+}
+.warning-text {
+  color: #fa0 !important;
+}
+.ok-text {
+  color: green;
 }
 #zoneresult .active {
   background-color: #fcff43;

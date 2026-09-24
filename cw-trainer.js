@@ -835,7 +835,8 @@ async function verifyKoch(e) { // KOCH MODE
   let missing = results.reduce((a,c) => a+=(c.str2.match(new RegExp(emptyChar, 'g')) || []).length, 0);
   if (missing > 0) stats.push(`${missing} missing${missing>1?'s':''}`);
   if (nberr > missing) stats.push(`${nberr-missing} error${nberr-missing>1?'s':''}`);
-  zonerestext.innerHTML = `<h5>${perc}% success rate</h5><small>(${stats.join(', ')})</small><BR>`;
+  zonerestext.innerHTML = `<h5><span id="scoreperc">${perc}%</span> success rate</h5><small>(${stats.join(', ')})</small><BR>`;
+  getElements('#scoreperc')[0].classList.add(perc<80?'error-text':perc<90?'warning-text':'ok-text');
   let restable = '<table><th>original</th><th>input</th><th>errors</th>'
   results.forEach(r => {
     restable += `<tr><td><span><a href="#" title="listen" name="listen" onclick="listen('${r.str1.replaceAll('<BR>', ' ').replaceAll('\'', '\\\'').replaceAll('"', '&quot;')}', this);">${r.str1}</a></span></td>`;
@@ -1439,6 +1440,7 @@ function displayMorseCode(e) {
         morsefilt.value = morsefilt.value.replaceAll(/[^.\-]/g, '');
       });
     } else {
+      morsefilt.addEventListener('focus', _ => morsefilt.select());
       morsefilt.addEventListener('keydown', event => {
         let e = event || window.event;
         let key = e.keyCode || e.which;
