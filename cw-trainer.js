@@ -1401,16 +1401,18 @@ function displayMorseCode(e) {
     //ALPHA NUMBERS SYMBOLS
     let cs = '';
     [
-      [ALPHA,6],
-      [NUMBERS,5],
-      [SYMBOLS,6],
+      [ALPHA,6, 'alpha'],
+      [NUMBERS,5, 'numbers'],
+      [SYMBOLS,6, 'symbols'],
       // Certains prosignes sont en double, ils sont donc triés par représentation en morse
-      [PROSIGNS.sort((a, b) => CWPlayer.translate(a).localeCompare(CWPlayer.translate(b))).join(), 3]
-    ].forEach(([cscl,nbrows], ikcl) => {
-      cs += '<table><tbody><tr>';
+      [PROSIGNS.sort((a, b) => CWPlayer.translate(a).localeCompare(CWPlayer.translate(b))).join(), 3, 'prosigns']
+    ].forEach(([cscl,nbrows, sclass], ikcl) => {
+      cs += `<table id="csmorse-${sclass}"><tbody><tr>`;
       cscl.split(ikcl==3?',':'').forEach((s, i) => {
         if (i && i%nbrows == 0) cs += '</tr><tr>';
-        cs += `<td>${s}</td><td class="mletter">${CWPlayer.translate(s)}</td>`;
+        let symbol = s;
+        if (ikcl==3) symbol = symbol.replaceAll(/[{}]/g, '');
+        cs += `<td>${symbol}</td><td class="mletter">${CWPlayer.translate(s)}</td>`;
       });
       cs += '</tr></tbody></table>';
     });
@@ -1420,7 +1422,11 @@ function displayMorseCode(e) {
       let plcl = async e => {
         if (window.player2?.Playing === true) return;//await player2.stop();
         elms.forEach(td => td.classList.add('listening'));
-        await playLetter(td.innerText);
+        let symbol = td.innerText;
+        if (td.closest('table').id == 'csmorse-prosigns') {
+          symbol = `{${symbol}}`;
+        }
+        await playLetter(symbol);
         elms.forEach(td => td.classList.remove('listening'));
       };
       elms.forEach(td => td.addEventListener('click', plcl));

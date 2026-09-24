@@ -192,6 +192,9 @@ a[name="modes"].active {
 #csmorse td:not(.mletter) {
   padding: 0px 3px;
 }
+#csmorse table:nth-child(4) td:not(.mletter) {
+  text-decoration-line: overline;
+}
 #csmorse.hidesmb td:not(.mletter) {
   width: 60px;
 }
