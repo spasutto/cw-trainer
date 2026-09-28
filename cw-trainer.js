@@ -19,6 +19,7 @@ const LSN_NUMBERS = 42;
 const LSN_SYMBOLS = 43;
 const LSN_CUSTOM = 44;
 const LSN_PROSIGNS = 45;
+const LSN_CALLSIGNS = 49;
 const LSN_SIMPLE_PHRASES = 46;
 const LSN_QSO = 47;
 const LSN_FREE_TEXT = 48;
@@ -288,6 +289,8 @@ async function generateText() {
       }
     } else if (cw_options.lesson==LSN_PROSIGNS) {
       cwgentext = generateRandomText(PROSIGNS, 1, cw_options.groupsnb);
+    } else if (cw_options.lesson==LSN_CALLSIGNS) {
+      cwgentext = Array.apply(null, Array(cw_options.groupsnb)).map(generateRandomCallsign).join(' ');
     } else if (cw_options.lesson==LSN_SIMPLE_PHRASES) {
       cwgentext = await generateSimplePhrase();
     } else if (cw_options.lesson==LSN_QSO) {
