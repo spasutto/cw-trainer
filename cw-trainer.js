@@ -14,39 +14,7 @@ const SYMBOLS = "/+=.,\"$'()[]-:;@_!?¶&";
 //https://www.qsl.net/ae0q/prosign.htm  https://m0juw.co.uk/prosigns-in-morse-code/  https://www.radioqth.net/morsecode https://www.kent-engineers.com/prosigns.htm
 // https://www.kb6nu.com/cw-geeks-no-nonsense-guide-to-having-fun-with-morse-code-prosigns/
 const PROSIGNS = ['{AR}', '{AS}', '{BK}', '{BT}', '{CL}', '{CT}', '{KN}', '{SK}', '{SN}', '{VA}', '{VE}', '{EEEEEEEE}'];
-const LSN_LETTERS = 41;
-const LSN_NUMBERS = 42;
-const LSN_SYMBOLS = 43;
-const LSN_CUSTOM = 44;
-const LSN_PROSIGNS = 45;
-const LSN_CALLSIGNS = 46;
-const LSN_SIMPLE_PHRASES = 47;
-const LSN_QSO = 48;
-const LSN_FREE_TEXT = 49;
-var cwchecking = false;
-var maxlessons = -1;
-var cw_options = {
-  lesson : 1,
-  grouplen : 5,
-  groupsnb : 10,
-  simple_mode : false,
-  learn_mode : false,
-  freelisten: false,
-  weighlastletters: false,
-  wrand: true,
-  wpm : 25,
-  eff : 17,
-  ews : 0,
-  tone : 800,
-  volume : 1,
-  keyqual: 1,
-  qrn: 0,
-  qrm: 0,
-  customset: KOCHCARS.join(''),
-  displaystatistics: false,
-  headphone_fix: false
-};
-var QSOs = [
+const QSOs = [
   //http://lidscw.org/resources/cq-qso-template
   'CQ CQ CQ DE %IND1% %IND1% %IND1% PSE K',
   '%IND1% DE %IND2% %IND2% %IND2% {KN}',
@@ -81,11 +49,43 @@ var QSOs = [
   '%IND2% DE %IND1% FB DR %NAME2% IN %QTH2% HR RTX IS TS50 TS50 PWR IS %PWR1%W %PWR1%W ANT IS VERT VERT WX WX IS CLOUDY CLOUDY TEMP 15C = NW QRU QRU TNX FER NICE QSO = PSE QSL MY QSL SURE VIA BURO 73 73 ES CUAGN CIAO %IND2% DE %IND1% {SK} {SK}  I',
   '%IND1% DE %IND2% R R OK DR %NAME1% FB HR RTX IS YAESU FT920 FT920 ANT IS DIPOLE DIPOLE WX WX FINE TEMP 30C TNX FER FB QSO QSL OK OK 73 73 GL GB %IND1% DE %IND2% {SK} {SK} I'
   ];
-var SIMPLEPHRASES = [
+const SIMPLEPHRASES = [
     ['MY', 'THE', 'THIS', 'UR', 'A', 'SOME', 'HIS', 'HER'],
     ['OLD', 'RED', 'NEW', 'BLUE', 'YELLOW', 'USED', 'BIG', 'BROKEN'],
     ['CAR', 'TREE', 'BOOK', 'TRX', 'BICYCLE', 'ANTENNA', 'CABLE', 'AMP', 'DESK', 'BOX', 'HEADPHONE', 'KEYER', 'MICROPHONE']
   ];
+const LSN_LETTERS = 41;
+const LSN_NUMBERS = 42;
+const LSN_SYMBOLS = 43;
+const LSN_CUSTOM = 44;
+const LSN_PROSIGNS = 45;
+const LSN_CALLSIGNS = 46;
+const LSN_SIMPLE_PHRASES = 47;
+const LSN_QSO = 48;
+const LSN_FREE_TEXT = 49;
+var cwchecking = false;
+var maxlessons = -1;
+var cw_options = {
+  lesson : 1,
+  grouplen : 5,
+  groupsnb : 10,
+  simple_mode : false,
+  learn_mode : false,
+  freelisten: false,
+  weighlastletters: false,
+  wrand: true,
+  wpm : 25,
+  eff : 17,
+  ews : 0,
+  tone : 800,
+  volume : 1,
+  keyqual: 1,
+  qrn: 0,
+  qrm: 0,
+  customset: KOCHCARS.join(''),
+  displaystatistics: false,
+  headphone_fix: false
+};
 var keystates = {
   'playpause': false,
   'backtostart': false,
