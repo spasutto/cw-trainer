@@ -118,7 +118,7 @@ a[name="modes"].active {
     border: 0px;
   }
 }
-#cheatsheet {
+#lnkzone {
   float: left;
   font-size: 0.8em;
 }
@@ -365,7 +365,7 @@ textarea {
 small {
   color: #a0a0a0;
 }
-select, input[type="button"]:not(#cwsbm) {
+select, #zonetrainer input[type="button"]:not(#cwsbm) {
   font-family: monospace;
   font-size: medium;
   height: 21px;
