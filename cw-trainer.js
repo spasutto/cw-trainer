@@ -585,13 +585,13 @@ function updateStatus() {
     time = Math.round(sessiontime);
     time += ` second${time>1?'s':''}`;
   }
-  let statushtml = ` | <span id="sessionelm" title="Session time : ${time} (${Math.trunc(perc)}% with a 15 minutes/day goal)">&#x231A;`;
+  let statushtml = ` | <span id="sessionelm" title="Session time : ${time} (${Math.trunc(perc)}% of a 15 minutes/day goal)">&#x231A;`;
   perc = Math.min(100, perc);
   let r = Math.trunc(255-(perc*2.55));
   let g = Math.trunc(127+(perc*1.28));
-  let color = `rgb(${r} ${g} 0);`;
+  let color = `rgb(${r} ${g} 0 / ${Math.trunc(50+perc/2)}%)`;
   statushtml += `<span style="border:solid 1px black;padding:0px;display: inline-block;width: 20px;">
-    <span style="background-color: ${color};height: 8px;width:${perc}%;display: inline-block;float: left;"></span></span>
+    <span style="background-color: ${color};height: 8px;width:${Math.round(perc*10)/10}%;display: inline-block;float: left;"></span></span>
   </span>`;
   sessionstatus.innerHTML = statushtml;
   getElements('#sessionelm')[0].addEventListener("click", getSessionsStats);
