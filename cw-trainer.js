@@ -98,9 +98,9 @@ var pmf = [];
 var cdf = [];
 var simplemode_starttime = 0;
 var lastkey = null;
-var newexercice = true;
 var sessions = {};
 var sessiontime = 0;
+var lastplaystart = 0;
 var getElements = (e) => [...document.querySelectorAll(e)];
 function updateCDF() {
   let lpmf = pmf;
@@ -621,15 +621,6 @@ async function verifyCW(e) {
   } else {
     await verifyKoch(e);
   }
-  if (newexercice) {
-    sessiontime += cwplayer.TotalTime - cwplayer.PreDelay;
-    try {
-      sessions[new Date().toISOString().substring(0, 10)] = {'time': sessiontime};
-      if (window.localStorage) localStorage.setItem('sessions', JSON.stringify(sessions));
-    } catch(err){}
-  }
-  newexercice = false;
-  updateStatus();
 }
 async function verifyLearn(e) {
   if (e?.keyCode == 16 || (e?.key.length>1 && e?.key != 'Unidentified')) { // shift et autres touches non imprimables
@@ -1223,7 +1214,21 @@ window.addEventListener("load", async () => {
     if (!cw_options.simple_mode && !cw_options.learn_mode && !cw_options.freelisten && !getElements('a[name="listen"].active').length && cwplayer.CurrentTime < 0.5) {
       cwtext.focus();
     }
+    lastplaystart = new Date().getTime()/1000 + (cwplayer.CurrentTime<cwplayer.PreDelay ? cwplayer.PreDelay-cwplayer.CurrentTime : 0);
   });
+  let stopsessiontime = () => {
+    let timeplayed = new Date().getTime()/1000 - lastplaystart;
+    if (timeplayed<0 || lastplaystart<=0) return;
+    lastplaystart = 0;
+    sessiontime += timeplayed;
+    updateStatus();
+    try {
+      sessions[new Date().toISOString().substring(0, 10)] = {'time': sessiontime};
+      if (window.localStorage) localStorage.setItem('sessions', JSON.stringify(sessions));
+    } catch(err){}
+  };
+  cwplayer.addEventListener('pause', stopsessiontime);
+  cwplayer.addEventListener('stop', stopsessiontime);
   cwplayer.addEventListener('record', () => {
     cwplayer.on('stop', _ => loading(false));
     loading();
