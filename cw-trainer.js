@@ -1295,9 +1295,6 @@ window.addEventListener("load", async () => {
       cw_options.learn_mode = mode == 'learn';
       // sinon provoque des incompréhensions en changeant d'onglet
       cw_options.freelisten = chkfreelisten.checked = false;
-      if (mode == 'simple') {
-        cw_options.wrand = chkwrand.checked = true;
-      }
       updateValues();
       return false;
     })
