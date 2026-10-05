@@ -99,7 +99,7 @@ var cdf = [];
 var simplemode_starttime = 0;
 var lastkey = null;
 var sessions = {};
-var sessiontime = 0;
+var session = {'time': 0};
 var lastplaystart = 0;
 var getElements = (e) => [...document.querySelectorAll(e)];
 function updateCDF() {
@@ -578,11 +578,11 @@ async function trySpeak(letter) {
   });
 }
 function updateStatus() {
-  let perc = sessiontime/9; // 15'=900s
-  let time = Math.round(sessiontime/60);
+  let perc = session.time/9; // 15'=900s
+  let time = Math.round(session.time/60);
   if (time) time += ` minute${time>1?'s':''}`;
   else {
-    time = Math.round(sessiontime);
+    time = Math.round(session.time);
     time += ` second${time>1?'s':''}`;
   }
   let statushtml = ` | <span id="sessionelm" title="Session time : ${time} (${Math.trunc(perc)}% of a 15 minutes/day goal)">&#x231A;`;
@@ -598,6 +598,12 @@ function updateStatus() {
 }
 function getSessionsStats() {
   console.log('sessions', sessions);
+}
+function saveSession() {
+  try {
+    sessions[new Date().toISOString().substring(0, 10)] = session;
+    if (window.localStorage) localStorage.setItem('sessions', JSON.stringify(sessions));
+  } catch(err){}
 }
 function compareProsigns(ps1, ps2) {
   let cleanText = t => (t??'').replaceAll(/[^A-Z]/g, '');
@@ -1220,12 +1226,9 @@ window.addEventListener("load", async () => {
     let timeplayed = new Date().getTime()/1000 - lastplaystart;
     if (timeplayed<0 || lastplaystart<=0) return;
     lastplaystart = 0;
-    sessiontime += timeplayed;
+    session.time += timeplayed;
     updateStatus();
-    try {
-      sessions[new Date().toISOString().substring(0, 10)] = {'time': sessiontime};
-      if (window.localStorage) localStorage.setItem('sessions', JSON.stringify(sessions));
-    } catch(err){}
+    saveSession();
   };
   cwplayer.addEventListener('pause', stopsessiontime);
   cwplayer.addEventListener('stop', stopsessiontime);
@@ -1415,10 +1418,11 @@ window.addEventListener("load", async () => {
       let tmpsessions = JSON.parse(localStorage.getItem("sessions"));
       if (tmpsessions && typeof tmpsessions === 'object') {
         sessions = tmpsessions;
-        let session = sessions[new Date().toISOString().substring(0, 10)];
-        if (session && session.time) {
-          sessiontime = session.time;
+        session = sessions[new Date().toISOString().substring(0, 10)];
+        if (session && typeof session.time === 'number') {
           updateStatus();
+        } else {
+          session = {'time' : 0};
         }
       }
     } catch(err){}
