@@ -1584,7 +1584,7 @@ function onkeydown(e) {
     e.preventDefault();
   } else if (!e.ctrlKey && keyCode === keycodes.f5) {
       e.preventDefault();
-      if (confirm('Warning, current test will be reseted !')) updateValues();
+      if (confirm('Warning, current test will be reset !')) updateValues();
   } else if (keyCode !== keycodes.control && !cw_options.simple_mode && !cw_options.learn_mode && isPlayKeybCtrlOk) {
     let playControls = {
       [keycodes.space] : 'playpause', 
