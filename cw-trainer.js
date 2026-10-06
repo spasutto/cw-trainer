@@ -98,6 +98,9 @@ var pmf = [];
 var cdf = [];
 var simplemode_starttime = 0;
 var lastkey = null;
+var sessions = {};
+var session = {'time': 0};
+var lastplaystart = 0;
 var getElements = (e) => [...document.querySelectorAll(e)];
 function updateCDF() {
   let lpmf = pmf;
@@ -580,6 +583,34 @@ async function trySpeak(letter) {
       res();
     }
   });
+}
+function updateStatus() {
+  let perc = session.time/9; // 15'=900s
+  let time = Math.round(session.time/60);
+  if (time) time += ` minute${time>1?'s':''}`;
+  else {
+    time = Math.round(session.time);
+    time += ` second${time>1?'s':''}`;
+  }
+  let statushtml = ` | <span id="sessionelm" title="Session time : ${time} (${Math.trunc(perc)}% of a 15 minutes/day goal)">&#x231A;`;
+  perc = Math.min(100, perc);
+  let r = Math.trunc(255-(perc*2.55));
+  let g = Math.trunc(127+(perc*1.28));
+  let color = `rgb(${r} ${g} 0 / ${Math.trunc(50+perc/2)}%)`;
+  statushtml += `<span style="border:solid 1px black;padding:0px;display: inline-block;width: 20px;">
+    <span style="background-color: ${color};height: 8px;width:${Math.round(perc*10)/10}%;display: inline-block;float: left;"></span></span>
+  </span>`;
+  sessionstatus.innerHTML = statushtml;
+  getElements('#sessionelm')[0].addEventListener("click", getSessionsStats);
+}
+function getSessionsStats() {
+  console.log('sessions', sessions);
+}
+function saveSession() {
+  try {
+    sessions[new Date().toISOString().substring(0, 10)] = session;
+    if (window.localStorage) localStorage.setItem('sessions', JSON.stringify(sessions));
+  } catch(err){}
 }
 function compareProsigns(ps1, ps2) {
   let cleanText = t => (t??'').replaceAll(/[^A-Z]/g, '');
@@ -1193,10 +1224,21 @@ window.addEventListener("load", async () => {
   selews.value = cw_options.ews;
   cwplayer.addEventListener('play', () => {
     // on ne focus le texte que si on vient de démarrer la lecture, qu'on est en mode normal et qu'on est pas en train d'écouter un résultat
-    if (!cw_options.simple_mode && !cw_options.learn_mode && !cw_options.freelisten && !document.querySelectorAll('a[name="listen"].active').length && cwplayer.CurrentTime < 0.5) {
+    if (!cw_options.simple_mode && !cw_options.learn_mode && !cw_options.freelisten && !getElements('a[name="listen"].active').length && cwplayer.CurrentTime < 0.5) {
       cwtext.focus();
     }
+    lastplaystart = new Date().getTime()/1000 + (cwplayer.CurrentTime<cwplayer.PreDelay ? cwplayer.PreDelay-cwplayer.CurrentTime : 0);
   });
+  let stopsessiontime = () => {
+    let timeplayed = new Date().getTime()/1000 - lastplaystart;
+    if (timeplayed<0 || lastplaystart<=0) return;
+    lastplaystart = 0;
+    session.time += timeplayed;
+    updateStatus();
+    saveSession();
+  };
+  cwplayer.addEventListener('pause', stopsessiontime);
+  cwplayer.addEventListener('stop', stopsessiontime);
   cwplayer.addEventListener('record', () => {
     cwplayer.on('stop', _ => loading(false));
     loading();
@@ -1231,6 +1273,8 @@ window.addEventListener("load", async () => {
     } else if (arg == 'HPFix') {
       cw_options.headphone_fix = cwplayer.HPFix;
       saveParams();
+    } else if (arg == 'Text') {
+      newexercice = true;
     }
   });
   // sur les périphériques à clavier virtuel on rajoute un autre clavier pour les touches spéciales
@@ -1258,9 +1302,6 @@ window.addEventListener("load", async () => {
       cw_options.learn_mode = mode == 'learn';
       // sinon provoque des incompréhensions en changeant d'onglet
       cw_options.freelisten = chkfreelisten.checked = false;
-      if (mode == 'simple') {
-        cw_options.wrand = chkwrand.checked = true;
-      }
       updateValues();
       return false;
     })
@@ -1376,6 +1417,20 @@ window.addEventListener("load", async () => {
       zoneresultfree.firstElementChild.style.display = cw_options.displaystatistics?'block':'none';
     }
   });
+  if (window.localStorage) {
+    try {
+      let tmpsessions = JSON.parse(localStorage.getItem("sessions"));
+      if (tmpsessions && typeof tmpsessions === 'object') {
+        sessions = tmpsessions;
+        session = sessions[new Date().toISOString().substring(0, 10)];
+        if (session && typeof session.time === 'number') {
+          updateStatus();
+        } else {
+          session = {'time' : 0};
+        }
+      }
+    } catch(err){}
+  }
 });
 window.addEventListener("error", (e) => {
   let err = e;
@@ -1443,7 +1498,7 @@ function displayMorseCode(e) {
       elms.forEach(td => td.addEventListener('click', plcl));
     });
     if (!window.mletters) {
-      window.mletters = [...document.querySelectorAll('td.mletter')];
+      window.mletters = getElements('td.mletter');
     }
     if (window.mobile) {
       morsefilt.addEventListener('input', e => {
@@ -1523,7 +1578,7 @@ function onkeydown(e) {
   if (!cwplayer) return;
   e = e || window.event;
   let keyCode = e.charCode || e.keyCode || e.which,
-      keycodes = {control: 17, escape: 27, space: 32, scrollend: 35, scrolltop: 36, left: 37, up: 38, right: 39, down: 40, f1: 112 },
+      keycodes = {control: 17, escape: 27, space: 32, scrollend: 35, scrolltop: 36, left: 37, up: 38, right: 39, down: 40, f1: 112, f5: 116 },
       keynames = {'ControlLeft': keycodes.control, 'ControlRight': keycodes.control,
       'Escape': keycodes.escape, 'Esc': keycodes.escape, 'Space' : keycodes.space,
       'End' : keycodes.scrollend, 'Home' : keycodes.scrolltop,
@@ -1534,6 +1589,9 @@ function onkeydown(e) {
   if (keyCode == keycodes.escape || keyCode == keycodes.f1) {
     displayMorseCode(keyCode == keycodes.f1);
     e.preventDefault();
+  } else if (!e.ctrlKey && keyCode === keycodes.f5) {
+      e.preventDefault();
+      if (confirm('Warning, current test will be reset !')) updateValues();
   } else if (keyCode !== keycodes.control && !cw_options.simple_mode && !cw_options.learn_mode && isPlayKeybCtrlOk) {
     let playControls = {
       [keycodes.space] : 'playpause', 
