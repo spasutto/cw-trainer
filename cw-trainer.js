@@ -604,7 +604,11 @@ function updateStatus() {
   getElements('#sessionelm')[0].addEventListener("click", getSessionsStats);
 }
 function getSessionsStats() {
-  console.log('sessions', sessions);
+  if (window.mobile) {
+    alert(getElements('#sessionelm')[0].title);
+  } else {
+    console.log('sessions', sessions);
+  }
 }
 function saveSession() {
   try {
