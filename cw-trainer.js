@@ -411,8 +411,15 @@ https://stackoverflow.com/a/34807141
       sequences.splice(j, 1);
     }
     // suppression des chaines qui chevauchent d'autres chaines ex 'IVNVV', 'IVVV'
+    // la partie qui ne chevauche pas est conservée si elle n'entre pas en conflit avec une autre chaine ex 'KLLRQ', 'KLRQ' => 'KL', 'RQ'
     while ((j = sequences.findIndex((s2, i2) => i2 > i && (s.idst+s.text.length>s2.idst || s.isrc+s.text.length>s2.isrc))) > -1) {
-      sequences.splice(j, 1);
+      let s2 = sequences[j];
+      let cut = Math.max(s.idst+s.text.length-s2.idst, s.isrc+s.text.length-s2.isrc);
+      let t = {'isrc' : s2.isrc+cut, 'idst' : s2.idst+cut, 'text' : s2.text.slice(cut)};
+      let conflict = sequences.some((s3, i3) => i3 > i && i3 !== j &&
+        ((s3.isrc < t.isrc+t.text.length && t.isrc < s3.isrc+s3.text.length) || (s3.idst < t.idst+t.text.length && t.idst < s3.idst+s3.text.length)));
+      if (cut >= s2.text.length || conflict) sequences.splice(j, 1);
+      else sequences[j] = t;
     }
   }
   return {'str1':str1, 'str2':str2, 'errors':str1.length-sequences.reduce((acc, cur) => acc+=cur.text.length, 0), 'sequences': sequences};
