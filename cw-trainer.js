@@ -99,7 +99,6 @@ var cdf = [];
 var simplemode_starttime = 0;
 var lastkey = null;
 var sessions = {};
-var session = {'time': 0};
 var lastplaystart = 0;
 var getElements = (e) => [...document.querySelectorAll(e)];
 function updateCDF() {
@@ -585,6 +584,7 @@ async function trySpeak(letter) {
   });
 }
 function updateStatus() {
+  let session = getSession();
   let perc = session.time/9; // 15'=900s
   let time = Math.round(session.time/60);
   if (time) time += ` minute${time>1?'s':''}`;
@@ -610,9 +610,20 @@ function getSessionsStats() {
     console.log('sessions', sessions);
   }
 }
+function getSession() {
+  if (typeof sessions !== 'object') {
+    sessions = {};
+  }
+  let session = sessions[new Date().toISOString().substring(0, 10)];
+  if (typeof session !== 'object' || typeof session.time !== 'number') {
+    session = {'time' : 0};
+    sessions[new Date().toISOString().substring(0, 10)] = session;
+    saveSession();
+  }
+  return session;
+}
 function saveSession() {
   try {
-    sessions[new Date().toISOString().substring(0, 10)] = session;
     if (window.localStorage) localStorage.setItem('sessions', JSON.stringify(sessions));
   } catch(err){}
 }
@@ -1237,7 +1248,7 @@ window.addEventListener("load", async () => {
     let timeplayed = new Date().getTime()/1000 - lastplaystart;
     if (timeplayed<0 || lastplaystart<=0) return;
     lastplaystart = 0;
-    session.time += timeplayed;
+    getSession().time += timeplayed;
     updateStatus();
     saveSession();
   };
@@ -1426,15 +1437,11 @@ window.addEventListener("load", async () => {
       let tmpsessions = JSON.parse(localStorage.getItem("sessions"));
       if (tmpsessions && typeof tmpsessions === 'object') {
         sessions = tmpsessions;
-        session = sessions[new Date().toISOString().substring(0, 10)];
-        if (session && typeof session.time === 'number') {
-          updateStatus();
-        } else {
-          session = {'time' : 0};
-        }
       }
     } catch(err){}
   }
+  getSession(); // force l'éventuelle création de la session du jour
+  updateStatus();
 });
 window.addEventListener("error", (e) => {
   let err = e;
