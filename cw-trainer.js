@@ -583,6 +583,18 @@ async function trySpeak(letter) {
     }
   });
 }
+function percColor_og(perc) {
+  let op = Math.trunc(50+perc/2);
+  perc/=100;
+  let r = Math.trunc(255-perc*255);
+  let g = Math.trunc(127+perc*128);
+  return `rgb(${r} ${g} 0 / ${op}%)`;
+}
+function coefColor_rg(coef, opacity) {
+  let r = Math.trunc(Math.min(255, 510-coef*510));
+  let g = Math.trunc(coef*200);
+  return `rgb(${r} ${g} 0 / ${opacity})`;
+}
 function updateStatus() {
   let session = getSession();
   let perc = session.time/9; // 15'=900s
@@ -594,9 +606,7 @@ function updateStatus() {
   }
   let statushtml = ` | <span id="sessionelm" title="Session time : ${time} (${Math.trunc(perc)}% of a 15 minutes/day goal)">&#x231A;`;
   perc = Math.min(100, perc);
-  let r = Math.trunc(255-(perc*2.55));
-  let g = Math.trunc(127+(perc*1.28));
-  let color = `rgb(${r} ${g} 0 / ${Math.trunc(50+perc/2)}%)`;
+  let color = percColor_og(perc);
   statushtml += `<span style="border:solid 1px black;padding:0px;display: inline-block;width: 20px;">
     <span style="background-color: ${color};height: 8px;width:${Math.round(perc*10)/10}%;display: inline-block;float: left;"></span></span>
   </span>`;
@@ -872,6 +882,16 @@ async function verifyKoch(e) { // KOCH MODE
     }
   }
   results.forEach(r => {
+    r.kqual = 1;
+    if (r.errors) {
+      r.kqual = (!r.errors || !r.str1.length) ? 1 : (1 - r.errors / Math.max(r.str1.length, 1));
+      /* la fonction de comparaison fonctionne mal pour les chaines encodées
+      // on compte l'éloignement des symboles : C n'est pas très loin de Y
+      let rsymb = compareStrings(CWPlayer.translate(r.str1), CWPlayer.translate(r.str2));
+      rsymb.errors = Math.min(rsymb.errors, rsymb.str1.length);
+      r.kqual = (!rsymb.errors || !rsymb.str1.length) ? 1 : (1 - rsymb.errors / Math.max(rsymb.str1.length, 1));
+      */
+    }
     let str2bk = r.str2;
     // hormis pour les QSOs on travaille par mot
     if (cw_options.lesson <= LSN_CUSTOM) {
@@ -893,11 +913,13 @@ async function verifyKoch(e) { // KOCH MODE
   if (nberr > missing) stats.push(`${nberr-missing} error${nberr-missing>1?'s':''}`);
   zonerestext.innerHTML = `<h5><span id="scoreperc">${perc}%</span> success rate</h5><small>(${stats.join(', ')})</small><BR>`;
   getElements('#scoreperc')[0].classList.add(perc<80?'error-text':perc<90?'warning-text':'ok-text');
-  let restable = '<table><th>original</th><th>input</th><th>errors</th>'
+  let restable = '<table><th>original</th><th>input</th><th>errors</th>';
   results.forEach(r => {
     restable += `<tr><td><span><a href="#" title="listen" name="listen" onclick="listen('${r.str1.replaceAll('<BR>', ' ').replaceAll('\'', '\\\'').replaceAll('"', '&quot;')}', this);">${r.str1}</a></span></td>`;
     restable += `<td><a href="#" title="listen" name="listen" onclick="listen('${r.str2bk.replaceAll('\'', '\\\'').replaceAll('"', '&quot;')}', this);">${r.str2}</a></td>`;
-    restable += `<td>${r.errors}</td></tr>`;
+    let color = coefColor_rg(r.kqual, 0.3);
+    let kqual = Math.round(r.kqual*100);
+    restable += `<td title="${kqual}% copy"><div style="width: ${kqual}%;background-color: ${color};">&nbsp;</div>${r.errors}</td></tr>`;
   });
   restable += '</table>';
   zonerestext.innerHTML += restable;

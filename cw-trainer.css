@@ -103,6 +103,17 @@ a[name="modes"].active {
   width: 75%;
   background-color: #eee;
 }
+#zoneresult td:nth-child(3) {
+  position: relative;
+}
+#zoneresult td:nth-child(3) div {
+  position: absolute;
+  z-index: -1;
+  left: 0;
+  /*margin-left: auto;
+  margin-right: auto;
+  right: 0;*/
+}
 @media (max-width: 400px) {
   body {
     width: 380px;
