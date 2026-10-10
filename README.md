@@ -5,7 +5,7 @@ The tool is available to use online :  [[cw-trainer]](https://spasutto.github.io
 
 Just hit the "play" button and try to write the letters you copy. When the player stop  click "verify". If your score is > 90% you can go to the next lesson.
 <p align="center">
-  <a href="images/screenshot.png"><img src="images/screenshot.png" style="max-height: 600px" title="screenshot"></a>
+  <a href="images/screenshot.png"><img src="images/screenshot.png" style="max-height: 320px" title="screenshot"></a>
 </p>
 
 ## Use
