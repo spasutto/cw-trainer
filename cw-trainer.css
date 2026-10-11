@@ -105,11 +105,13 @@ a[name="modes"].active {
 }
 #zoneresult td:nth-child(3) {
   position: relative;
+  z-index: -1;
 }
 #zoneresult td:nth-child(3) div {
   position: absolute;
-  z-index: -1;
+  z-index: -2;
   left: 0;
+  min-width: 1%;
   /*margin-left: auto;
   margin-right: auto;
   right: 0;*/
