@@ -1143,6 +1143,9 @@ class MorsePlayer extends HTMLElement {
       .cfggear {
         fill: #ddd;
       }
+      .prosign {
+        text-decoration-line: overline;
+      }
     `;
 
     // Attach the created elements to the shadow dom
@@ -1564,6 +1567,7 @@ class MorsePlayer extends HTMLElement {
       cell.addEventListener('touchend', caction);
       cell.addEventListener('click', caction);
       cell.innerHTML = c;
+      if (c.length > 1) cell.classList.add('prosign');
       cell = trm.insertCell();
       cell.title = title;
       cell.dataset.index = i;
