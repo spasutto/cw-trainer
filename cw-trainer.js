@@ -16,7 +16,7 @@ const SYMBOLS = "/+=.,\"$'()[]-:;@_!?¶&";
 const PROSIGNS = ['{AR}', '{AS}', '{BK}', '{BT}', '{CL}', '{CT}', '{KN}', '{SK}', '{SN}', '{VA}', '{VE}', '{EEEEEEEE}'];
 const QSOs = [
   //http://lidscw.org/resources/cq-qso-template
-  'CQ CQ CQ DE %IND1% %IND1% %IND1% PSE K',
+  'CQ CQ %TYPQSO% DE %IND1% %IND1% %IND1% PSE K',
   '%IND1% DE %IND2% %IND2% %IND2% {KN}',
   '%IND2% DE %IND1% = GA ES TNX FER CALL = UR RST %RST1% %RST1% = NAME IS %NAME1% %NAME1% QTH %QTH1% %QTH1% = HW? {AR} %IND2% DE %IND1% {KN}',
   '%IND1% DE %IND2% = GA %NAME1% TNX FB RPT UR RST %RST2% %RST2% = OP %NAME2% %NAME2% ES QTH %QTH2% %QTH2% = HW? {AR} %IND1% DE %IND2% {KN}',
@@ -25,7 +25,7 @@ const QSOs = [
   '%IND2% DE %IND1% = MNI TNX INFO ES FB QSO = PSE QSL VIA BURO = 73 ES CUAGN {AR} %IND2% DE %IND1% {SK}',
   '%IND1% DE %IND2% = FB %NAME1% TNX FER NICE QSO 73 ES BCNU {AR} %IND1% DE %IND2% {SK}',
   //https://morsecode.ninja/files/Sample-Rag-Chew-QSO-v10.pdf
-  'CQ CQ de %IND1% %IND1% K',
+  'CQ %TYPQSO% de %IND1% %IND1% K',
   '%IND1% de %IND2% %IND2% K',
   '%IND2% DE %IND1% = GA ES TNX FER THE CALL = UR RST IS %RST1% %RST1% = NAME HR %NAME1% %NAME1% MY QTH IS %QTH1% %QTH1% = HW CPY? %IND2% DE %IND1% {KN}',
   '%IND1% DE %IND2% R GA %NAME1% TNX FB RPT = RST %RST2% %RST2% = OP HR %NAME2% %NAME2% ES QTH %QTH2% %QTH2% = HW? %IND1% DE %IND2% K',
@@ -57,8 +57,8 @@ const QSOs = [
   '73 TU {VA} E E'
   ];
 const SIMPLEPHRASES = [
-    ['MY', 'THE', 'THIS', 'UR', 'A', 'SOME', 'HIS', 'HER'],
-    ['OLD', 'RED', 'NEW', 'BLUE', 'YELLOW', 'USED', 'BIG', 'BROKEN'],
+    ['MY', 'THE', 'THIS', 'UR', 'A', 'SOME', 'HIS', 'HER', 'ITS', 'OUR', 'THEIR'],
+    ['OLD', 'RED', 'NEW', 'BLUE', 'YELLOW', 'USED', 'BIG', 'BROKEN', 'NOISY', 'BROWN', 'SMALL', 'WIDE'],
     ['CAR', 'TREE', 'BOOK', 'TRX', 'BICYCLE', 'ANTENNA', 'CABLE', 'AMP', 'DESK', 'BOX', 'HEADPHONE', 'KEYER', 'MICROPHONE']
   ];
 const LSN_LETTERS = 41;
@@ -177,6 +177,7 @@ function generateRandomRST() {
   if (s == 9 && Math.random()>0.6) s = t = 'N';
   else t = Math.random()>0.8 ? 8 : 9;
   if (s < 8) r = 4;
+  if (r == 5 && s == 'N' && Math.random()>0.8) r = 'E';
   return ''+r+s+t;
 }
 function generateWRandomChar() {
@@ -207,7 +208,7 @@ async function getUrl(url, bypass_cache=false, binary=false) {
   }
   return rep;
 }
-async function generateSimplePhrase() {
+function generateSimplePhrase() {
   let phrase = '';
   let rsp = (idx) => SIMPLEPHRASES[idx][irand(SIMPLEPHRASES[idx].length-1)];
   for (let i=0; i<cw_options.groupsnb; i++) {
@@ -303,6 +304,7 @@ async function generateText() {
     } else if (cw_options.lesson==LSN_SIMPLE_PHRASES) {
       cwgentext = await generateSimplePhrase();
     } else if (cw_options.lesson==LSN_QSO) {
+      let typqso = Math.random()>0.6?Math.random()>0.5?'SOTA':'POTA':'CQ';
       let callsign1 = generateRandomCallsign();
       let callsign2 = generateRandomCallsign(callsign1);
       let name1 = generateRandomFirstname();
@@ -314,6 +316,7 @@ async function generateText() {
       let qth1 = generateQTH();
       let qth2 = generateQTH(qth1);
       cwgentext = QSOs[irand(QSOs.length-1)]
+          .replaceAll('%TYPQSO%', typqso)
           .replaceAll('%IND1%', callsign1)
           .replaceAll('%IND2%', callsign2)
           .replaceAll('%NAME1%', name1)
@@ -437,7 +440,7 @@ https://stackoverflow.com/a/34807141
       else sequences[j] = t;
     }
   }
-  return {'str1':str1, 'str2':str2, 'errors':str1.length-sequences.reduce((acc, cur) => acc+=cur.text.length, 0), 'sequences': sequences};
+  return {'str1':str1, 'str2':str2, 'errors':str1.replaceAll(/\s*/g, '').length-sequences.reduce((acc, cur) => acc+=cur.text.replaceAll(/\s*/g, '').length, 0), 'sequences': sequences};
 }
 const emptyChar = '&nbsp;';//'_';
 function formatTestString(ret) {
