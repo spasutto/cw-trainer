@@ -18,8 +18,8 @@ const QSOs = [
   //http://lidscw.org/resources/cq-qso-template
   'CQ CQ %TYPQSO% DE %IND1% %IND1% %IND1% PSE K',
   '%IND1% DE %IND2% %IND2% %IND2% {KN}',
-  '%IND2% DE %IND1% = GA ES TNX FER CALL = UR RST %RST1% %RST1% = NAME IS %NAME1% %NAME1% QTH %QTH1% %QTH1% = HW? {AR} %IND2% DE %IND1% {KN}',
-  '%IND1% DE %IND2% = GA %NAME1% TNX FB RPT UR RST %RST2% %RST2% = OP %NAME2% %NAME2% ES QTH %QTH2% %QTH2% = HW? {AR} %IND1% DE %IND2% {KN}',
+  '%IND2% DE %IND1% = %GREET% ES TNX FER CALL = UR RST %RST1% %RST1% = NAME IS %NAME1% %NAME1% QTH %QTH1% %QTH1% = HW? {AR} %IND2% DE %IND1% {KN}',
+  '%IND1% DE %IND2% = %GREET% %NAME1% TNX FB RPT UR RST %RST2% %RST2% = OP %NAME2% %NAME2% ES QTH %QTH2% %QTH2% = HW? {AR} %IND1% DE %IND2% {KN}',
   '%IND2% DE %IND1% = R TNX RPT ES INFO %NAME2% = RIG IS FTDX1200 PWR 100W ANT IS YAGI = WX IS SUNNY ES WARM 100F = HW? {AR} %IND2% DE %IND1% {KN}',
   '%IND1% DE %IND2% = RIG IS FT817 5W ES ANT IS DIPOLE = WX IS WET AND COLD {AR} %IND1% DE %IND2% {KN}',
   '%IND2% DE %IND1% = MNI TNX INFO ES FB QSO = PSE QSL VIA BURO = 73 ES CUAGN {AR} %IND2% DE %IND1% {SK}',
@@ -27,8 +27,8 @@ const QSOs = [
   //https://morsecode.ninja/files/Sample-Rag-Chew-QSO-v10.pdf
   'CQ %TYPQSO% de %IND1% %IND1% K',
   '%IND1% de %IND2% %IND2% K',
-  '%IND2% DE %IND1% = GA ES TNX FER THE CALL = UR RST IS %RST1% %RST1% = NAME HR %NAME1% %NAME1% MY QTH IS %QTH1% %QTH1% = HW CPY? %IND2% DE %IND1% {KN}',
-  '%IND1% DE %IND2% R GA %NAME1% TNX FB RPT = RST %RST2% %RST2% = OP HR %NAME2% %NAME2% ES QTH %QTH2% %QTH2% = HW? %IND1% DE %IND2% K',
+  '%IND2% DE %IND1% = %GREET% ES TNX FER THE CALL = UR RST IS %RST1% %RST1% = NAME HR %NAME1% %NAME1% MY QTH IS %QTH1% %QTH1% = HW CPY? %IND2% DE %IND1% {KN}',
+  '%IND1% DE %IND2% R %GREET% %NAME1% TNX FB RPT = RST %RST2% %RST2% = OP HR %NAME2% %NAME2% ES QTH %QTH2% %QTH2% = HW? %IND1% DE %IND2% K',
   '{BK} NAME? NAME? {BK}',
   '{BK} %NAME2% %NAME2% HW? {BK}',
   '%IND2% DE %IND1% = R R R TNX FER THE RPT ES INFO %NAME2% = MY RIG HR IS KX3 RUNS 100W WID AMP ES ANT IS A 4 ELE YAGI UP 76 FT = WX IS WET AND CO0L 45F = HW NW? %IND2% DE %IND1% K',
@@ -38,23 +38,25 @@ const QSOs = [
   '%IND2% DE %IND1% FB %NAME2% = GUD CPY WID MORE QSB HR = TNX FER THE INFO ES QSO = PSE QSL VIA LOTW = 73 ES HPE 2 CU AGN {SK} %IND2% DE %IND1% K',
   '%IND1% DE %IND2% = FB %NAME1% WL QSL LOTW ES TNX QSO GD 73 {AR} {SK} %IND1% DE %IND2% E E',
   //http://naqcc.info/cw_qsos.html
-  '%IND1% DE %IND2% GM TNX CALL UR %RST1% %RST1% IN %QTH1% %QTH1% NAME IS %NAME1% %NAME1% HW? {AR} %IND1% DE %IND2% K',
-  '%IND2% DE %IND1% GM %NAME1% UR %RST2% %RST2% IN %QTH2% %QTH2% NAME IS %NAME2% %NAME2% HW? {AR} %IND2% DE %IND1% {KN}',
+  '%IND1% DE %IND2% %GREET% TNX CALL UR %RST1% %RST1% IN %QTH1% %QTH1% NAME IS %NAME1% %NAME1% HW? {AR} %IND1% DE %IND2% K',
+  '%IND2% DE %IND1% %GREET% %NAME1% UR %RST2% %RST2% IN %QTH2% %QTH2% NAME IS %NAME2% %NAME2% HW? {AR} %IND2% DE %IND1% {KN}',
   '%IND1% DE %IND2% R FB %NAME2% NICE TO MEET YOU {BT} THE RIG HR IS A KNWD TS-570D AT QRP 5W TO AN ATTIC RANDOM WIRE {BT} THE WX LITE SNOW ES 33 DEGREES HW? {AR} %IND1% DE %IND2% {KN}',
-  '%IND2% DE %IND1% R FB ON ALL %NAME1% {BT} THE XYL SAYS SUPPER IS READY SO I MUST GO {BT} TNX QSO HPE CUL 73 GE {SK} %IND2% DE %IND1% K',
-  '%IND1% DE %IND2% OK %NAME2% WONT HOLD YOU TNX QSO HPE CUAGN VY 73 GE {SK} %IND1% DE %IND2% E E',
+  '%IND2% DE %IND1% R FB ON ALL %NAME1% {BT} THE XYL SAYS SUPPER IS READY SO I MUST GO {BT} TNX QSO HPE CUL 73 %GREET% {SK} %IND2% DE %IND1% K',
+  '%IND1% DE %IND2% OK %NAME2% WONT HOLD YOU TNX QSO HPE CUAGN VY 73 %GREET% {SK} %IND1% DE %IND2% E E',
   //http://www.iv3ynb.altervista.org/samplecode.htm
-  '%IND2% DE %IND1% GM DR %GENRE2% ES TNX FER CALL UR RST RST RST IS %RST1% %RST1% FB MY QTH QTH IS %QTH1% %QTH1% MY NAME NAME IS %NAME1% %NAME1% HW ? %IND2% DE %IND1% {KN}',
-  '%IND1% DE %IND2% R R GM DR %NAME1% ES TNX FER RST UR RST RST RST IS 599 599 5NN FB MY QTH QTH QTH IS %QTH2% %QTH2% %QTH2% MY NAME IS %NAME2% %NAME2% %NAME2% HW ? %IND1% DE %IND2% {KN}',
+  '%IND2% DE %IND1% %GREET% DR %GENRE2% ES TNX FER CALL UR RST RST RST IS %RST1% %RST1% FB MY QTH QTH IS %QTH1% %QTH1% MY NAME NAME IS %NAME1% %NAME1% HW ? %IND2% DE %IND1% {KN}',
+  '%IND1% DE %IND2% R R %GREET% DR %NAME1% ES TNX FER RST UR RST RST RST IS 599 599 5NN FB MY QTH QTH QTH IS %QTH2% %QTH2% %QTH2% MY NAME IS %NAME2% %NAME2% %NAME2% HW ? %IND1% DE %IND2% {KN}',
   '%IND2% DE %IND1% FB DR %NAME2% IN %QTH2% HR RTX IS TS50 TS50 PWR IS %PWR1%W %PWR1%W ANT IS VERT VERT WX WX IS CLOUDY CLOUDY TEMP 15C = NW QRU QRU TNX FER NICE QSO = PSE QSL MY QSL SURE VIA BURO 73 73 ES CUAGN CIAO %IND2% DE %IND1% {SK} {SK}  I',
   '%IND1% DE %IND2% R R OK DR %NAME1% FB HR RTX IS YAESU FT920 FT920 ANT IS DIPOLE DIPOLE WX WX FINE TEMP 30C TNX FER FB QSO QSL OK OK 73 73 GL GB %IND1% DE %IND2% {SK} {SK} I',
   //https://qrp-labs.com/qcx/cwqso.html
   '%IND1% DE %IND2% %IND2% KN',
-  '%IND2% DE %IND1% / GA TNX FER CALL / UR RST %RST1% %RST1% / OP %NAME1% %NAME1% ES QTH %QTH1% %QTH1% / HW? %IND2% DE %IND1% {KN}',
-  '%IND1% DE %IND2% / GA DR %GENRE1% %NAME1% TNX FER FB RPRT / UR RST IS %RST2% %RST2% ALSO / NAME IS %NAME2% %NAME2% QTH %QTH2% %QTH2% / OK? %IND1% DE %IND2% {KN}',
+  '%IND2% DE %IND1% / %GREET% TNX FER CALL / UR RST %RST1% %RST1% / OP %NAME1% %NAME1% ES QTH %QTH1% %QTH1% / HW? %IND2% DE %IND1% {KN}',
+  '%IND1% DE %IND2% / %GREET% DR %GENRE1% %NAME1% TNX FER FB RPRT / UR RST IS %RST2% %RST2% ALSO / NAME IS %NAME2% %NAME2% QTH %QTH2% %QTH2% / OK? %IND1% DE %IND2% {KN}',
   '%IND2% DE %IND1% / TNX DR %GENRE2% %NAME2% FER RPRT ES FB QSO / QSL SURE VIA BURO / NW 73 ES GL GB 73 TU / %IND2% DE %IND1% {KN}',
   '%IND1% DE %IND2% / OK DR %NAME1% TNX FOR NICE QSO / MY QSL OK VIA BURO / 73 ES BEST DX TU / %IND1% DE %IND2% {VA} E E',
-  '73 TU {VA} E E'
+  '73 TU {VA} E E',
+  // divers
+  'EN EN TU UR %RST1% %RST1% OR BK', // OR == Oregon
   ];
 const SIMPLEPHRASES = [
     ['MY', 'THE', 'THIS', 'UR', 'A', 'SOME', 'HIS', 'HER', 'ITS', 'OUR', 'THEIR'],
@@ -221,6 +223,37 @@ function generateSimplePhrase() {
   }
   return phrase;
 }
+function generateQSO() {
+  let tmprnd = Math.random();
+  let typqso = tmprnd>0.6?tmprnd>0.8?'SOTA':'POTA':'CQ';
+  let callsign1 = generateRandomCallsign();
+  let callsign2 = generateRandomCallsign(callsign1);
+  let name1 = generateRandomFirstname();
+  let name2 = generateRandomFirstname(name1.name);
+  let genre1 = name1.genre;
+  let genre2 = name2.genre;
+  name1 = name1.name;
+  name2 = name2.name;
+  let qth1 = generateQTH();
+  let qth2 = generateQTH(qth1);
+  tmprnd = Math.random();
+  let greet = tmprnd < 0.66 ? tmprnd < 0.33 ? 'GE' : 'GA' : 'GM';
+  return QSOs[irand(QSOs.length-1)]
+      .replaceAll('%TYPQSO%', typqso)
+      .replaceAll('%IND1%', callsign1)
+      .replaceAll('%IND2%', callsign2)
+      .replaceAll('%NAME1%', name1)
+      .replaceAll('%NAME2%', name2)
+      .replaceAll('%GENRE1%', genre1=='M'?'OM':'YL')
+      .replaceAll('%GENRE2%', genre2=='M'?'OM':'YL')
+      .replaceAll('%RST1%', generateRandomRST())
+      .replaceAll('%RST2%', generateRandomRST())
+      .replaceAll('%PWR1%', ''+irand(1, 10)*10)
+      .replaceAll('%PWR2%', ''+irand(1, 10)*10)
+      .replaceAll('%QTH1%', qth1)
+      .replaceAll('%QTH2%', qth2)
+      .replaceAll('%GREET%', greet);
+}
 async function generateFreeText(minlength = 60, maxlength = 150) {
   // on peut appeler plusieurs fois les URL, normalement elles sont cachées
   loading();
@@ -302,33 +335,9 @@ async function generateText() {
     } else if (cw_options.lesson==LSN_CALLSIGNS) {
       cwgentext = Array.apply(null, Array(cw_options.groupsnb)).map(generateRandomCallsign).join(' ');
     } else if (cw_options.lesson==LSN_SIMPLE_PHRASES) {
-      cwgentext = await generateSimplePhrase();
+      cwgentext = generateSimplePhrase();
     } else if (cw_options.lesson==LSN_QSO) {
-      let typqso = Math.random()>0.6?Math.random()>0.5?'SOTA':'POTA':'CQ';
-      let callsign1 = generateRandomCallsign();
-      let callsign2 = generateRandomCallsign(callsign1);
-      let name1 = generateRandomFirstname();
-      let name2 = generateRandomFirstname(name1.name);
-      let genre1 = name1.genre;
-      let genre2 = name2.genre;
-      name1 = name1.name;
-      name2 = name2.name;
-      let qth1 = generateQTH();
-      let qth2 = generateQTH(qth1);
-      cwgentext = QSOs[irand(QSOs.length-1)]
-          .replaceAll('%TYPQSO%', typqso)
-          .replaceAll('%IND1%', callsign1)
-          .replaceAll('%IND2%', callsign2)
-          .replaceAll('%NAME1%', name1)
-          .replaceAll('%NAME2%', name2)
-          .replaceAll('%GENRE1%', genre1=='M'?'OM':'YL')
-          .replaceAll('%GENRE2%', genre2=='M'?'OM':'YL')
-          .replaceAll('%RST1%', generateRandomRST())
-          .replaceAll('%RST2%', generateRandomRST())
-          .replaceAll('%PWR1%', ''+irand(1, 10)*10)
-          .replaceAll('%PWR2%', ''+irand(1, 10)*10)
-          .replaceAll('%QTH1%', qth1)
-          .replaceAll('%QTH2%', qth2);
+      cwgentext = generateQSO();
     } else if (cw_options.lesson==LSN_FREE_TEXT) {
       cwgentext = await generateFreeText();
     } else {
