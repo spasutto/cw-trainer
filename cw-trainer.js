@@ -1075,7 +1075,7 @@ function generateKeyboard() {
   keyboard.innerHTML = '';
   let keybhtml = '';
   Object.keys(CWPlayer.morse).forEach(c => {
-    if ((c>='A'&&c<='Z') || c==' ') return;
+    if ((c>='A'&&c<='Z') || c==' ' || c=='\u00b6') return;
     else if (c == '"') c = '&quot;';
     keybhtml += `<input type="button" value="${c}">`;
     if (c == '9') keybhtml += '<BR>';
@@ -1254,9 +1254,15 @@ function cleanCustomset(cs) {
   }
   return cs/*.sort()*/.join('');
 }
+function askForCustomSet() {
+  let csen = prompt('Enter custom set (empty to reset)', cw_options.customset);
+  if (typeof csen === 'string') {
+    cw_options.customset = cleanCustomset(csen);
+  }
+}
 function lessonchanged() {
   if (sellesson.value == LSN_CUSTOM) {
-    cw_options.customset = cleanCustomset(prompt('Enter custom set', cw_options.customset));
+    askForCustomSet();
   }
   updateValues();
 }
@@ -1401,6 +1407,7 @@ window.addEventListener("load", async () => {
     lessonchanged();
   });
   retrynxt.addEventListener("click", nxtlesson.click);
+  cfgcustom.addEventListener("click", askForCustomSet);
   chkfreelisten.addEventListener("change", (e) => {
     cw_options.freelisten = chkfreelisten.checked;
     if (cw_options.freelisten) {
@@ -1762,6 +1769,7 @@ async function updateValues() {
   zonekoch.style.display = !cw_options.simple_mode&&!cw_options.learn_mode?'block':'none';
   zonelearn.style.display = cw_options.learn_mode?'block':'none';
   zonewords.style.display = sellesson.value < LSN_QSO?'block':'none';
+  zonetrainer.classList[sellesson.value == LSN_CUSTOM ? 'add':'remove']('lessoncustom');
   grplen.disabled = sellesson.value >= LSN_PROSIGNS;
   grplen.title = grplen.disabled ? 'disabled in this mode' : '';
   grplen.previousElementSibling.title = grplen.title;

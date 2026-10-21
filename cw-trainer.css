@@ -338,6 +338,12 @@ select, option {
 #sellesson {
   width: 95px;
 }
+.lessoncustom #sellesson {
+  width: 70px;
+}
+#zonetrainer:not(.lessoncustom) #cfgcustom {
+  display: none;
+}
 #prevlesson, #nxtlesson {
   width: 23px;
   height: 22px;
