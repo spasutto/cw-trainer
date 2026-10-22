@@ -1666,7 +1666,7 @@ function onkeyup(e) {
     let prevword = cwplayer.Index;
     while (prevword > 0) {
       prevword--;
-      if (cwplayer.Index-prevword > 1 && cwplayer.Text[prevword] == ' ') {
+      if (cwplayer.Index-prevword > 1 && cwplayer.TextArray[prevword] == ' ') {
         break;
       }
     }
@@ -1677,13 +1677,13 @@ function onkeyup(e) {
   }
   if (keystates.indexinc) {
     let nextword = cwplayer.Index;
-    while (nextword < cwplayer.Text.length) {
+    while (nextword < cwplayer.TextArray.length) {
       nextword++;
-      if (cwplayer.Text[nextword] == ' ') {
+      if (cwplayer.TextArray[nextword] == ' ') {
         break;
       }
     }
-    nextword = Math.min(++nextword, cwplayer.Text.length-1);
+    nextword = Math.min(++nextword, cwplayer.TextArray.length-1);
     cwplayer.Index = nextword;
     keystates.indexinc = false;
   }
