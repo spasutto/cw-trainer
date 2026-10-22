@@ -371,32 +371,32 @@ async function generateText() {
   }
 }
 function compareStrings(str1, str2, ignorecase = true) {
-  str1 = str1.replaceAll('\r', '').replaceAll(/\s+/g, ' ');
-  str2 = str2.replaceAll('\r', '').replaceAll(/\s+/g, ' ');
+  str1 = str1.replaceAll(/\s+/g, ' ');
+  str2 = str2.replaceAll(/\s+/g, ' ');
   if (ignorecase) {
     str1 = str1.toUpperCase();
     str2 = str2.toUpperCase();
   }
 
-  // Plus longue sous-chaîne commune entre str1[a1,b1[ et str2[a2,b2[.
-  // Le "poids" d'une sous-chaîne = nombre de caractères non blancs
-  // (une sous-chaîne composée uniquement d'espaces n'est jamais retenue).
   function longestCommon(a1, b1, a2, b2) {
     const w = b2 - a2;
-    let prevLen = new Array(w + 1).fill(0), prevScore = new Array(w + 1).fill(0);
+    let prevLen = new Int32Array(w + 1), curLen = new Int32Array(w + 1);
+    let prevScore = new Int32Array(w + 1), curScore = new Int32Array(w + 1);
     let best = { score: 0, len: 0, i: 0, j: 0 };
     for (let i = a1; i < b1; i++) {
-      const curLen = new Array(w + 1).fill(0), curScore = new Array(w + 1).fill(0);
+      const c = str1[i];
+      const gain = c === ' ' ? 0 : 1;
       for (let j = a2; j < b2; j++) {
-        if (str1[i] !== str2[j]) continue;
         const k = j - a2 + 1;
+        if (c !== str2[j]) { curLen[k] = 0; curScore[k] = 0; continue; }
         curLen[k] = prevLen[k - 1] + 1;
-        curScore[k] = prevScore[k - 1] + (str1[i]==' ' ? 0 : 1);
+        curScore[k] = prevScore[k - 1] + gain;
         if (curScore[k] > best.score || (curScore[k] === best.score && best.score > 0 && curLen[k] > best.len)) {
           best = { score: curScore[k], len: curLen[k], i: i - curLen[k] + 1, j: j - curLen[k] + 1 };
         }
       }
-      prevLen = curLen; prevScore = curScore;
+      [prevLen, curLen] = [curLen, prevLen];
+      [prevScore, curScore] = [curScore, prevScore];
     }
     return best;
   }
@@ -414,7 +414,7 @@ function compareStrings(str1, str2, ignorecase = true) {
     split(b.i + b.len, b1, b.j + b.len, b2);
   })(0, str1.length, 0, str2.length);
 
-  const strip = s => s.replaceAll(/\s*/g, '');
+  const strip = s => s.replaceAll(' ', '');
   return {
     str1, str2,
     errors: strip(str1).length - sequences.reduce((acc, cur) => acc + strip(cur.text).length, 0),
