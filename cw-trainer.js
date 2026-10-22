@@ -370,86 +370,56 @@ async function generateText() {
     cwplayer.Text = cw_options.simple_mode ? iptfree.value : cw_options.learn_mode ? iptlearn.Value : cwtext.value;
   }
 }
-function compareStrings(str1, str2, ignorecase=true){
-  str1 = str1.replaceAll('\r', '').replaceAll(/\n+/g, ' ');
-  str2 = str2.replaceAll('\r', '').replaceAll(/\n+/g, ' ');
+function compareStrings(str1, str2, ignorecase = true) {
+  str1 = str1.replaceAll('\r', '').replaceAll(/\s+/g, ' ');
+  str2 = str2.replaceAll('\r', '').replaceAll(/\s+/g, ' ');
   if (ignorecase) {
     str1 = str1.toUpperCase();
     str2 = str2.toUpperCase();
   }
-/*
- Ce qui suit est un algorithme de recherche des sous-chaines communes.
- On filtre ensuite les résultats pour les besoins du moment
- Source : 
-https://stackoverflow.com/questions/28321273/how-to-find-the-most-common-part-of-a-string
-https://en.wikibooks.org/wiki/Algorithm_Implementation/Strings/Longest_common_substring#JavaScript
-https://stackoverflow.com/a/34807141
-*/
-  let sequences = {};
-  if (str1 && str2) {
-    let str1Length = str1.length,
-      str2Length = str2.length,
-      num = new Array(str1Length),
-      idx = null;
-  
-    for (let i = 0; i < str1Length; i++) {
-      let subArray = new Array(str2Length);
-      for (let j = 0; j < str2Length; j++)
-        subArray[j] = 0;
-      num[i] = subArray;
-    }
-    for (let i = 0; i < str1Length; i++)
-    {
-      for (let j = 0; j < str2Length; j++)
-      {
-        if (str1[i] !== str2[j])
-          num[i][j] = 0;
-        else
-        {
-          if ((i === 0) || (j === 0))
-            num[i][j] = 1;
-          else
-            num[i][j] = 1 + num[i - 1][j - 1];
-   
-          idx = (i - num[i][j] + 1)+","+(j - num[i][j] + 1);
-          if (typeof sequences[idx] !== 'string') sequences[idx] = '';
-          sequences[idx] += str1[i];
+
+  // Plus longue sous-chaîne commune entre str1[a1,b1[ et str2[a2,b2[.
+  // Le "poids" d'une sous-chaîne = nombre de caractères non blancs
+  // (une sous-chaîne composée uniquement d'espaces n'est jamais retenue).
+  function longestCommon(a1, b1, a2, b2) {
+    const w = b2 - a2;
+    let prevLen = new Array(w + 1).fill(0), prevScore = new Array(w + 1).fill(0);
+    let best = { score: 0, len: 0, i: 0, j: 0 };
+    for (let i = a1; i < b1; i++) {
+      const curLen = new Array(w + 1).fill(0), curScore = new Array(w + 1).fill(0);
+      for (let j = a2; j < b2; j++) {
+        if (str1[i] !== str2[j]) continue;
+        const k = j - a2 + 1;
+        curLen[k] = prevLen[k - 1] + 1;
+        curScore[k] = prevScore[k - 1] + (str1[i]==' ' ? 0 : 1);
+        if (curScore[k] > best.score || (curScore[k] === best.score && best.score > 0 && curLen[k] > best.len)) {
+          best = { score: curScore[k], len: curLen[k], i: i - curLen[k] + 1, j: j - curLen[k] + 1 };
         }
       }
+      prevLen = curLen; prevScore = curScore;
     }
+    return best;
   }
-  sequences = Object.keys(sequences).map(k => {
-    let idxs = k.split(',');
-    return {'isrc' : parseInt(idxs[0], 10), 'idst' : parseInt(idxs[1], 10), 'text' : sequences[k]};
-  });
 
-  /******************************
-  // FILTRAGE DES RESULTATS
-   *****************************/
-  // suppression des chaines communes contenues dans des chaines plus grandes
-  sequences = sequences.filter(s =>
-    !sequences.some(s2 => s2.text.length > s.text.length && ((s2.isrc <= s.isrc && s2.isrc+s2.text.length>s.isrc) || (s2.idst <= s.idst && s2.idst+s2.text.length>s.idst)))
-  );
-  let j = -1;
-  for (let i=0; i<sequences.length;i++) {
-    let s = sequences[i];
-    // suppression des chaines dans le désordre ex: '/UQ/T', '/QT'
-    while ((j = sequences.findIndex((s2, i2) => i2 > i && (s2.idst <= s.idst || s2.isrc <= s.isrc))) > -1) {
-      sequences.splice(j, 1);
-    }
-    // suppression des chaines qui chevauchent d'autres chaines ex 'IVNVV', 'IVVV'
-    // la partie qui ne chevauche pas est conservée si elle n'entre pas en conflit avec une autre chaine ex 'KLLRQ', 'KLRQ' => 'KL', 'RQ'
-    while ((j = sequences.findIndex((s2, i2) => i2 > i && (s.idst+s.text.length>s2.idst || s.isrc+s.text.length>s2.isrc))) > -1) {
-      let s2 = sequences[j];
-      let cut = Math.max(s.idst+s.text.length-s2.idst, s.isrc+s.text.length-s2.isrc);
-      let t = {'isrc' : s2.isrc+cut, 'idst' : s2.idst+cut, 'text' : s2.text.slice(cut)};
-      let conflict = sequences.some((s3, i3) => i3 > i && i3 !== j &&
-        ((s3.isrc < t.isrc+t.text.length && t.isrc < s3.isrc+s3.text.length) || (s3.idst < t.idst+t.text.length && t.idst < s3.idst+s3.text.length)));
-      if (cut >= s2.text.length || conflict) sequences.splice(j, 1);
-      else sequences[j] = t;
-    }
-  }
-  return {'str1':str1, 'str2':str2, 'errors':str1.replaceAll(/\s*/g, '').length-sequences.reduce((acc, cur) => acc+=cur.text.replaceAll(/\s*/g, '').length, 0), 'sequences': sequences};
+  // Découpage récursif : on prend la plus longue sous-chaîne commune,
+  // puis on cherche à gauche et à droite de celle-ci (dans les deux chaînes).
+  // Les séquences sont donc toujours dans le même ordre et sans chevauchement.
+  const sequences = [];
+  (function split(a1, b1, a2, b2) {
+    if (a1 >= b1 || a2 >= b2) return;
+    const b = longestCommon(a1, b1, a2, b2);
+    if (b.score === 0) return;
+    split(a1, b.i, a2, b.j);
+    sequences.push({ isrc: b.i, idst: b.j, text: str1.slice(b.i, b.i + b.len) });
+    split(b.i + b.len, b1, b.j + b.len, b2);
+  })(0, str1.length, 0, str2.length);
+
+  const strip = s => s.replaceAll(/\s*/g, '');
+  return {
+    str1, str2,
+    errors: strip(str1).length - sequences.reduce((acc, cur) => acc + strip(cur.text).length, 0),
+    sequences
+  };
 }
 const emptyChar = '&nbsp;';//'_';
 function formatTestString(ret) {
