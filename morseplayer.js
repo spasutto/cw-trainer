@@ -1429,6 +1429,7 @@ class MorsePlayer extends HTMLElement {
     if (this.clearzone) {
       this.constructClearZone();
       this.clearzone.style.display = this.options.clearZone ? 'table' : 'none';
+      this.updateClearZone();
       this.cwplayer.fireEvent('parameterchanged', 'ClearZone');
     }
   }
