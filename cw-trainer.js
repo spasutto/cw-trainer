@@ -1349,6 +1349,7 @@ window.addEventListener("load", async () => {
   morseclosebtn.addEventListener("click", displayMorseCode);
   morsehidesmbcb.addEventListener("click", (e => {
     morsehidesmbcb.checked ? csmorse.classList.add('hidesmb') : csmorse.classList.remove('hidesmb');
+    if (window.localStorage) localStorage.setItem("hidesmbcb", morsehidesmbcb.checked ? 1 : 0);
   }));
   selfdl.addEventListener("click", selfDownload);
   selfdl.style.visibility = window.location.href.toLowerCase().startsWith('http') ? 'visible' : 'hidden';
@@ -1566,6 +1567,13 @@ function displayMorseCode(e) {
         mletter.classList[method]('filtered');
       });
     });
+    if (window.localStorage) {
+      try {
+        morsehidesmbcb.checked = localStorage.getItem("hidesmbcb") == '1';
+        const event = new Event("click");
+        morsehidesmbcb.dispatchEvent(event);
+      } catch(e) {console.error(e);}
+    }
   }
   let lessonletters = [];
   let isActive = (l) => lessonletters.includes(l);
