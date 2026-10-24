@@ -260,19 +260,22 @@ async function generateFreeText(minlength = 60, maxlength = 150) {
   if (!window.freephrases) {
     let text = window.freetext ?? (await getUrl(FREETEXT_URL));
     let startoftext = 'CHAPTER I';
-    let startidx = text?.indexOf(startoftext);
-    if (startidx>=0) {
-      startidx += startoftext.length;
-      text = text.substring(startidx).trim();
+    let endoftext = '*** END OF THE '
+    let idx = text?.indexOf(startoftext);
+    if (idx>=0) {
+      idx += startoftext.length;
+      text = text.substring(idx).trim();
+    }
+    idx = text?.lastIndexOf(endoftext);
+    if (idx>=0) {
+      text = text.substring(0, idx).trim();
     }
     if (typeof text !== 'string' || text.length <= minlength) {
       alert('Unable to load free text (no internet connection ?)');
       window.freetext = null;
       return null;
     }
-    text = text.replaceAll(/Mr(s)?\./g, 'Mr$1');
-    window.freephrases = text
-        .replaceAll(/(\r?\n)+/g, ' ')
+    window.freephrases = CWPlayer.cleanText(text.replaceAll(/Mr(s)?\./g, 'Mr$1'))
         .replaceAll(/\s+/g, ' ')
         .replaceAll(/\."/g, '".')
         .replaceAll(/^["']+\s*(["'])*/g, '$1')
@@ -284,7 +287,9 @@ async function generateFreeText(minlength = 60, maxlength = 150) {
             t = t.replaceAll(regclean, '\'');
           }
           if (t.split('"').length%2 == 0) t += '"';
-          return t.replaceAll(/"\s*"/g, '');
+          return t.replaceAll(/"\s*"/g, '')
+            .replaceAll(/([?!.])([^\s"])/g, '$1 $2')
+            .replaceAll(/("[^"]*),"/g, '$1",');
         });
   }
   loading(false);
