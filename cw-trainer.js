@@ -1621,9 +1621,9 @@ function onkeydown(e) {
   if (!cwplayer) return;
   e = e || window.event;
   let keyCode = e.charCode || e.keyCode || e.which,
-      keycodes = {control: 17, escape: 27, space: 32, scrollend: 35, scrolltop: 36, left: 37, up: 38, right: 39, down: 40, f1: 112, f5: 116 },
+      keycodes = {control: 17, escape: 27, enter: 13, space: 32, scrollend: 35, scrolltop: 36, left: 37, up: 38, right: 39, down: 40, f1: 112, f5: 116 },
       keynames = {'ControlLeft': keycodes.control, 'ControlRight': keycodes.control,
-      'Escape': keycodes.escape, 'Esc': keycodes.escape, 'Space' : keycodes.space,
+      'Escape': keycodes.escape, 'Enter': keycodes.enter, 'Esc': keycodes.escape, 'Space' : keycodes.space,
       'End' : keycodes.scrollend, 'Home' : keycodes.scrolltop,
       'ArrowLeft' : keycodes.left, 'ArrowUp' : keycodes.up, 'ArrowRight' : keycodes.right, 'ArrowDown' : keycodes.down, 'F1' : keycodes.f1 };
   // on pause via ctrl-space si on est en train de saisir sinon directement space
@@ -1633,8 +1633,11 @@ function onkeydown(e) {
     displayMorseCode(keyCode == keycodes.f1);
     e.preventDefault();
   } else if (!e.ctrlKey && keyCode === keycodes.f5) {
-      e.preventDefault();
-      if (confirm('Warning, current test will be reset !')) updateValues();
+    e.preventDefault();
+    if (confirm('Warning, current test will be reset !')) updateValues();
+  } else if (e.ctrlKey && keyCode === keycodes.enter) {
+    e.preventDefault();
+    verifyCW();
   } else if (keyCode !== keycodes.control && !cw_options.simple_mode && !cw_options.learn_mode && isPlayKeybCtrlOk) {
     let playControls = {
       [keycodes.space] : 'playpause', 
