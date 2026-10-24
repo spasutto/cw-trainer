@@ -96,11 +96,11 @@ var cw_options = {
   headphone_fix: false
 };
 var keystates = {
-  'playpause': false,
-  'backtostart': false,
-  'fwdtoend': false,
-  'indexdec': false,
-  'indexinc': false
+  'playpause': {'pressed': false},
+  'backtostart': {'pressed': false},
+  'fwdtoend': {'pressed': false},
+  'indexdec': {'pressed': false},
+  'indexinc': {'pressed': false}
 };
 var els = [];
 var pmf = [];
@@ -1648,7 +1648,7 @@ function onkeydown(e) {
     };
     Object.keys(playControls).forEach(k => {
       if (keyCode == k) {
-        /*if (keyCode == keycodes.space || cwplayer.Playing || document.activeElement !== cwtext)*/ keystates[playControls[k]] = true;
+        /*if (keyCode == keycodes.space || cwplayer.Playing || document.activeElement !== cwtext)*/ keystates[playControls[k]].pressed = true;
         if (/*cwplayer.Playing && */document.activeElement === cwtext) e.preventDefault();
       }
     });
@@ -1657,47 +1657,64 @@ function onkeydown(e) {
 function onkeyup(e) {
   if (!cwplayer) return;
   if (cw_options.learn_mode || cw_options.simple_mode) {
-    Object.keys(keystates).forEach(k => keystates[k] = false);
+    Object.keys(keystates).forEach(k => keystates[k].pressed = false);
     return;
   }
-  if (keystates.playpause) {
-    if (cwplayer.Playing) cwplayer.pause();
-    else cwplayer.play();
-    keystates.playpause = false;
-  }
-  if (keystates.backtostart) {
-    cwplayer.Index = -1;
-    keystates.backtostart = false;
-  }
-  if (keystates.fwdtoend) {
-    cwplayer.Index = cwplayer.Text.length;
-    keystates.fwdtoend = false;
-  }
-  if (keystates.indexdec) {
-    let prevword = cwplayer.Index;
-    while (prevword > 0) {
-      prevword--;
-      if (cwplayer.Index-prevword > 1 && cwplayer.TextArray[prevword] == ' ') {
+  Object.keys(keystates).forEach(k => {
+    let key = keystates[k];
+    if (!key.pressed) return;
+    switch(k) {
+      case 'playpause':
+        if (cwplayer.Playing) cwplayer.pause();
+        else cwplayer.play();
         break;
-      }
-    }
-    // à moins d'être revenus au début on est sur un espace, on le saute
-    if (prevword) prevword++;
-    cwplayer.Index = prevword;
-    keystates.indexdec = false;
-  }
-  if (keystates.indexinc) {
-    let nextword = cwplayer.Index;
-    while (nextword < cwplayer.TextArray.length) {
-      nextword++;
-      if (cwplayer.TextArray[nextword] == ' ') {
+      case 'backtostart':
+        cwplayer.Index = -1;
         break;
-      }
+      case 'fwdtoend':
+        cwplayer.Index = cwplayer.TextArray.length-1;
+        break;
+      case 'indexdec':
+        let curidx = cwplayer.Index;
+        let prevword = curidx;
+        if (curidx == 0) {
+          prevword = -1;
+        } else {
+          let mingap = 1;
+          // permet d'éviter les problèmes de mots "infranchissables" (par ex 'E' à > 27WPM)
+          if (new Date().getTime()-key.lastpress < 350) {
+            mingap++;
+          }
+          while (prevword > 0) {
+            prevword = cwplayer.TextArray.lastIndexOf(' ', prevword-1);
+            if (curidx-prevword > mingap && cwplayer.TextArray[prevword] == ' ') {
+              break;
+            }
+          }
+          // à moins d'être revenus au début on est sur un espace, on le saute
+          if (prevword) prevword++;
+        }
+        cwplayer.Index = prevword;
+        break;
+      case 'indexinc':
+        let nextword = cwplayer.Index;
+        if (nextword == -1) {
+          nextword = 0;
+        } else {
+          while (nextword < cwplayer.TextArray.length) {
+            nextword++;
+            if (cwplayer.TextArray[nextword] == ' ') {
+              break;
+            }
+          }
+          nextword = Math.min(++nextword, cwplayer.TextArray.length-1);
+        }
+        cwplayer.Index = nextword;
+        break;
     }
-    nextword = Math.min(++nextword, cwplayer.TextArray.length-1);
-    cwplayer.Index = nextword;
-    keystates.indexinc = false;
-  }
+    key.pressed = false;
+    key.lastpress = new Date().getTime();
+  });
 }
 async function updateValues() {
   if (!cwplayer) return;
