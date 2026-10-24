@@ -169,7 +169,7 @@ function generateRandomCallsign(excepted=null) {
   do {
     cs = rdnchar()+(Math.random()>0.98 ?rdnchar():'')+irand(1, 9)+rdnchar()+rdnchar()+(Math.random()>0.2?rdnchar():'')+(Math.random()>0.95 ?'/'+(Math.random()>=0.5?'P':'M'):'');
   }
-  while (cs == excepted);
+  while (cs.split('/')[0] == excepted.split('/')[0]);
   return cs;
 }
 function generateRandomRST() {
