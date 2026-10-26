@@ -940,6 +940,7 @@ async function listen(text, elem) {
   cwplayer.PreDelay=0.05;
   // Prosigns
   if (cw_options.lesson == LSN_PROSIGNS) text = `{${text}}`;
+  cwplayer.Index=-1;
   cwplayer.play(text);
 }
 async function tryMinify(js) {
