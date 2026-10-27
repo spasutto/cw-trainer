@@ -1239,15 +1239,17 @@ function cleanCustomset(cs) {
   }
   return cs/*.sort()*/.join('');
 }
-function askForCustomSet() {
+function askForCustomSet(upd = true) {
+  let origvalue = cw_options.customset;
   let csen = prompt('Enter custom set (empty to reset)', cw_options.customset);
   if (typeof csen === 'string') {
     cw_options.customset = cleanCustomset(csen);
+    if (upd && origvalue != cw_options.customset) updateValues();
   }
 }
 function lessonchanged() {
   if (sellesson.value == LSN_CUSTOM) {
-    askForCustomSet();
+    askForCustomSet(false);
   }
   updateValues();
 }
