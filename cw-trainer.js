@@ -808,8 +808,8 @@ async function verifyKoch(e) { // KOCH MODE
   let comparefn = prosign ? compareProsigns : compareStrings;
   let cleanText = (t) => CWPlayer.cleanText(t.trim()).replaceAll('\t', ' ').replaceAll(/[{}]/g, '');
   let extractfn = (t) => [cleanText(t)];
-  // hormis pour les QSOs et le texte libre on travaille par mot => on recompare mot par mot
-  if (cw_options.lesson <= LSN_PROSIGNS) {
+  // hormis pour les QSOs, le texte libre et les phrases simples on travaille par mot => on recompare mot par mot
+  if (cw_options.lesson <= LSN_CALLSIGNS) {
     extractfn = (t) => cleanText(t).split(' ').filter(e => e.length > 0);
   }
   let inpt = extractfn(cwtext.value).map(e => e.replaceAll(/\s+/g, ' '));
