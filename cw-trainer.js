@@ -164,10 +164,10 @@ function generateRandomFirstname(excepted=null) {
   return {'name':fname.substring(2), 'genre':fname[0]};
 }
 function generateRandomCallsign(excepted=null) {
-  let rdnchar = () => ALPHA.charAt(irand(ALPHA.length));
+  let rndchar = () => ALPHA.charAt(irand(ALPHA.length-1));
   let cs = null;
   do {
-    cs = rdnchar()+(Math.random()>0.98 ?rdnchar():'')+irand(1, 9)+rdnchar()+rdnchar()+(Math.random()>0.2?rdnchar():'')+(Math.random()>0.95 ?'/'+(Math.random()>=0.5?'P':'M'):'');
+    cs = rndchar()+(Math.random()>0.98 ?rndchar():'')+irand(1, 9)+rndchar()+rndchar()+(Math.random()>0.3?rndchar():'')+(Math.random()>0.95 ?'/'+(Math.random()>=0.5?'P':'M'):'');
   }
   while (cs.split('/')[0] == (excepted??'').split('/')[0]);
   return cs;
@@ -293,7 +293,7 @@ async function generateFreeText(minlength = 60, maxlength = 150) {
         });
   }
   loading(false);
-  return freephrases[irand(freephrases.length)];
+  return freephrases[irand(freephrases.length-1)];
 }
 async function generateText() {
   if (!cwplayer || cw_options.learn_mode) return;
