@@ -167,7 +167,7 @@ function generateRandomCallsign(excepted=null) {
   let rndchar = () => ALPHA.charAt(irand(ALPHA.length-1));
   let cs = null;
   do {
-    cs = rndchar()+(Math.random()>0.98 ?rndchar():'')+irand(1, 9)+rndchar()+rndchar()+(Math.random()>0.3?rndchar():'')+(Math.random()>0.95 ?'/'+(Math.random()>=0.5?'P':'M'):'');
+    cs = rndchar()+(Math.random()>0.98 ?rndchar():'')+irand(1, 9)+rndchar()+rndchar()+(Math.random()>0.1?rndchar():'')+(Math.random()>0.95 ?'/'+(Math.random()>=0.5?'P':'M'):'');
   }
   while (cs.split('/')[0] == (excepted??'').split('/')[0]);
   return cs;
