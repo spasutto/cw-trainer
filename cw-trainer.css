@@ -339,7 +339,7 @@ select, option {
   width: 95px;
 }
 .lessoncustom #sellesson {
-  width: 70px;
+  width: 72px;
 }
 #zonetrainer:not(.lessoncustom) #cfgcustom {
   display: none;

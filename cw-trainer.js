@@ -110,6 +110,28 @@ var lastkey = null;
 var sessions = {};
 var lastplaystart = 0;
 var getElements = (e) => [...document.querySelectorAll(e)];
+const prosignsmap = new Map();
+const prosignsmaprev = new Map();
+var getOrAddProsign = (p) => {
+  let mr = CWPlayer.translate(p);
+  let enc = prosignsmap.get(mr);
+  if (!enc) {
+    let i = PROSIGNS.indexOf(p);
+    if (i<0) i = prosignsmap.size;
+    enc = String.fromCharCode(180+i);
+    prosignsmap.set(mr, enc);
+    prosignsmaprev.set(enc, p);
+  }
+  return enc;
+};
+PROSIGNS.forEach(getOrAddProsign);
+function encodeProsigns(s) {
+  let pros = [...s.match(/({[A-Za-z]+})/g) ?? ''];
+  return pros.reduce((acc,p,i) => acc.replaceAll(p, getOrAddProsign(p)), s);
+}
+function decodeProsigns(s) {
+  return s.split('').map(c => prosignsmaprev.get(c) ?? c).join('');
+}
 function updateCDF() {
   let lpmf = pmf;
   let t = pmf.reduce((a,c) => a+c, 0);
@@ -375,7 +397,7 @@ async function generateText() {
     cwplayer.Text = cw_options.simple_mode ? iptfree.value : cw_options.learn_mode ? iptlearn.Value : cwtext.value;
   }
 }
-function compareStrings(str1, str2, ignorecase = true) {
+function compareStrings(str1, str2, ignorecase = false) {
   str1 = str1.replaceAll(/\s+/g, ' ');
   str2 = str2.replaceAll(/\s+/g, ' ');
   if (ignorecase) {
@@ -637,18 +659,6 @@ function saveSession() {
     if (window.localStorage) localStorage.setItem('sessions', JSON.stringify(sessions));
   } catch(err){}
 }
-function compareProsigns(ps1, ps2) {
-  let cleanText = t => (t??'').replaceAll(/[^A-Z]/g, '');
-  ps1 = cleanText(ps1);
-  ps2 = cleanText(ps2);
-  let valid = CWPlayer.translate(`{${ps1}}`)==CWPlayer.translate(`{${ps2}}`);
-  return {
-    'str1':ps1,
-    'str2':ps2,
-    'errors':valid?0:1,
-    'sequences':valid?[{'isrc':0,'idst':0,'text':ps2}]:[]
-  }
-}
 async function verifyCW(e) {
   if (!cwplayer || cwchecking) return;
   cwchecking = true;
@@ -805,16 +815,16 @@ async function verifyKoch(e) { // KOCH MODE
   if (cwplayer.Playing) cwplayer.stop();
   cwsbm.disabled = true;
   let prosign = cw_options.lesson == LSN_PROSIGNS;
-  let comparefn = prosign ? compareProsigns : compareStrings;
-  let cleanText = (t) => CWPlayer.cleanText(t.trim()).replaceAll('\t', ' ').replaceAll(/[{}]/g, '');
+  let cleanText = (t) => encodeProsigns(CWPlayer.cleanText(t.trim()).replaceAll('\t', ' '));//.replaceAll(/[{}]/g, '');
   let extractfn = (t) => [cleanText(t)];
   // hormis pour les QSOs, le texte libre et les phrases simples on travaille par mot => on recompare mot par mot
   if (cw_options.lesson <= LSN_CALLSIGNS) {
     extractfn = (t) => cleanText(t).split(' ').filter(e => e.length > 0);
   }
+  if (prosign) cwtext.value = cwtext.value.replaceAll(/\s+/g, ' ').replaceAll(/[{}]/g, '').split(' ').map(v=>`{${v}}`).join(' ');
   let inpt = extractfn(cwtext.value).map(e => e.replaceAll(/\s+/g, ' '));
   let verif = extractfn(cwplayer.Text).map(e => e.replaceAll(/\s+/g, ' '));
-  let results = verif.map((a, i) => comparefn(a, inpt[i] ?? ''));
+  let results = verif.map((a, i) => compareStrings(a, inpt[i] ?? ''));
   let nbchars = prosign ? verif.length : verif.reduce((acc, cur) => acc+cur.length, 0);
   let nberr = results.reduce((acc, cur) => acc+cur.errors, 0);
   let maxerrs = nberr;
@@ -831,7 +841,7 @@ async function verifyKoch(e) { // KOCH MODE
         }
       }
       inpt = newinpts;
-      results = verif.map((a, i) => comparefn(a, inpt[i] ?? ''));
+      results = verif.map((a, i) => compareStrings(a, inpt[i] ?? ''));
       nberr = results.reduce((acc, cur) => acc+cur.errors, 0);
     }
   }
@@ -855,7 +865,7 @@ async function verifyKoch(e) { // KOCH MODE
           for (let y=0; y<nbtofill; y++) {
             inpttmp.splice(perm[y], 0, '');
           }
-          results = verif.map((a, i) => comparefn(a, inpttmp[i] ?? ''));
+          results = verif.map((a, i) => compareStrings(a, inpttmp[i] ?? ''));
           nberr = results.reduce((acc, cur) => acc+cur.errors, 0);
           if (nberr < temperr) {
             temperr = nberr;
@@ -872,7 +882,7 @@ async function verifyKoch(e) { // KOCH MODE
         for (let y=0; y<nbtofill; y++) {
           inpt.splice(minerrindice[y], 0, '');
         }
-        results = verif.map((a, i) => comparefn(a, inpt[i] ?? ''));
+        results = verif.map((a, i) => compareStrings(a, inpt[i] ?? ''));
         nberr = results.reduce((acc, cur) => acc+cur.errors, 0);
       }
     } else {
@@ -902,7 +912,9 @@ async function verifyKoch(e) { // KOCH MODE
     } else {
       r.str2 = formatTestString(r);
     }
-    r.str2bk = str2bk;
+    r.str1 = decodeProsigns(r.str1);
+    r.str2 = decodeProsigns(r.str2);
+    r.str2bk = decodeProsigns(str2bk);
   });
   // bug : cwplayer.Text='T5TWR DE N8LRT R FB ROBERT NICE TO MEET YOU BT THE RIG HR IS A KNWD TS-570D AT QRP 5W TO AN ATTIC RANDOM WIRE BT THE WX LITE SNOW ES 33 DEGREES HW? AR T5TWR DE N8LRT KN', cwtext.value='T5TWR DE N8LRT R FB ROBERT NICE TO MEET YOU BT THE RIG HR IS A KNWD TS-570D AT QRP 5W TO AN ATTIC RANDOM WIRE BT THE WX LITE SNOW ES 33 DEGREES HW? AR T5TWR N8LRT KN'
   let perc = (nbchars-nberr)*100/nbchars;
@@ -1233,7 +1245,7 @@ function message(msg='', style=null) {
   }, 1);
 }
 function cleanCustomset(cs) {
-  cs = [...new Set(CWPlayer.cleanText(typeof cs === 'string'?cs:'').replaceAll(' ', '').split(''))];
+  cs = [...new Set(CWPlayer.cleanText(typeof cs === 'string'?cs:'').replaceAll(/\s/g, '').split(''))];
   if (!cs.length) {
     cs = KOCHCARS;
   }
