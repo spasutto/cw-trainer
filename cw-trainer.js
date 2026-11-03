@@ -686,7 +686,7 @@ async function verifyLearn(e) {
   iptlearn.classList.remove('blue', 'nocarret');
 }
 async function verifySimple(e) {
-  if (e?.keyCode == 16 || (e?.key.length>1 && e?.key != 'Unidentified')) { // shift et autres touches non imprimables
+  if (e?.keyCode == 16 || (e?.key.length>1 && e?.key != 'Unidentified') || !iptfree.value.length) { // shift et autres touches non imprimables
     cwchecking = false;
     return;
   }
