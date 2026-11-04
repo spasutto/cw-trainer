@@ -454,6 +454,17 @@ input[type="range"] {
   text-decoration : line-through;
   font-weight : bold;
 }
+.invented {
+  font-style: italic;
+  color: #ff00ffa3;
+}
+.invented::after {
+  content: "?";
+  font-size: 0.7em;
+  vertical-align: super;
+  line-height: 0;
+  margin-left: -2px;
+}
 .empty {
   color: #ffb300;
   text-decoration : underline;

@@ -449,53 +449,36 @@ function compareStrings(str1, str2, ignorecase = false) {
   };
 }
 const emptyChar = '&nbsp;';//'_';
-function formatTestString(ret) {
-  let sret = '';
-  let sequences = ret.sequences, str1=ret.str1, str2=ret.str2;
-  if (!str1.length && !str2.length) return sret;
-  if (!sequences.length && str2.length) {
-    // affichage de toute la chaine de test (fausse)
-    sret += `<span class="wrong">${str2}</span>`;
-    if (str2.length <= str1.length) {
-      sret += `<span class="empty">${emptyChar.repeat(str1.length-str2.length)}</span>`;
-    }
-  } else if (!sequences.length && str1.length && !str2.length) {
-    // affichage du bon nombre de caractères vide
-    sret += `<span class="empty">${emptyChar.repeat(str1.length)}</span>`;
-  } else {
-    let i1 = 0, i2 = 0;
-    sequences.forEach(seq => {
-      // il va falloir compléter avant la séquence
-      if (seq.isrc>i1 || seq.idst>i2) {
-        if (seq.isrc-i1 > seq.idst-i2) {
-          // cas 1
-          let lenempty = (seq.isrc-i1)-(seq.idst-i2);
-          let lenwrong = (seq.isrc-i1)-lenempty;
-          if (lenwrong > 0) sret += `<span class="wrong">${str2.substring(i2, i2+lenwrong)}</span>`;
-          if (lenempty > 0) sret += `<span class="empty">${emptyChar.repeat(lenempty)}</span>`;
-        } else if (seq.isrc-i1 < seq.idst-i2) {
-          // cas 2 ==> tous les caractères sont faux
-          let lenwrong = (seq.idst-i2)-(seq.isrc-i1);
-          if (lenwrong > 0) sret += `<span class="wrong">${str2.substring(i2, i2+lenwrong)}</span>`;
-        } else {
-          // cas 3 ==> il y'a n caractères faux entre les deux séquences
-          let lenwrong = seq.idst-i2;
-          if (lenwrong > 0) sret += `<span class="wrong">${str2.substring(i2, i2+lenwrong)}</span>`;
-        }
-      }
-      sret += `<span class="right">${seq.text}</span>`;
-      i1 = seq.isrc + seq.text.length;
-      i2 = seq.idst + seq.text.length;
-    });
-    // il reste du texte en fin de str1 ou str 2 
-    if (i1 < str1.length || i2 < str2.length) {
-      let lenwrong = str2.length-(i2);
-      let lenempty = str1.length-(i1)-lenwrong;
-      if (lenwrong > 0) sret += `<span class="wrong">${str2.substring(i2, i2+lenwrong)}</span>`;
-      if (lenempty > 0) sret += `<span class="empty">${emptyChar.repeat(lenempty)}</span>`;
-    }
+function formatTestString({ str1, str2, sequences }) {
+  const emptyCharTmp = '¤3MPTY¤';
+  let escapeHtml = (s) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  const span = (cls, text) =>
+    text ? `<span class="${cls}">${escapeHtml(text).replaceAll(emptyCharTmp, emptyChar)}</span>` : "";
+
+  // Lettres manquantes : leur valeur attendue (str1), un caractère de remplacement, ou un span vide
+  const missing = (srcPart) => {
+    if (!srcPart) return "";
+    return span("empty", emptyCharTmp.repeat(srcPart.length));                 // ex. "_"
+  };
+
+  function gap(srcGap, dstGap) {
+    const n = Math.min(srcGap.length, dstGap.length);
+    return (
+      span("wrong", dstGap.slice(0, n)) +
+      missing(srcGap.slice(n)) +
+      span("invented", dstGap.slice(n))
+    );
   }
-  return sret;
+
+  let html = "", i = 0, j = 0;
+  for (const seq of sequences) {
+    html += gap(str1.slice(i, seq.isrc), str2.slice(j, seq.idst));
+    html += span("right", seq.text);
+    i = seq.isrc + seq.text.length;
+    j = seq.idst + seq.text.length;
+  }
+  html += gap(str1.slice(i), str2.slice(j));
+  return html;
 }
 function key(value) {
   if (overlayloading.style.display==='flex') return;
@@ -902,25 +885,23 @@ async function verifyKoch(e) { // KOCH MODE
       r.kqual = (!rsymb.errors || !rsymb.str1.length) ? 1 : (1 - rsymb.errors / Math.max(rsymb.str1.length, 1));
       */
     }
-    let str2bk = r.str2;
     // hormis pour les QSOs on travaille par mot
     if (cw_options.lesson <= LSN_CUSTOM) {
       r.str1 = r.str1.replaceAll(/\s/g, '\n');
       r.str2 = r.str2.replaceAll(/\s/g, '\n');
-      r.str2 = formatTestString(r).replaceAll(/\s/g, '<BR>').replaceAll('<span<BR>class="', '<span class="');
-      r.str1 = r.str1.replaceAll(/\s+/g, '<BR>');
+      r.str2html = formatTestString(r).replaceAll(/\s/g, '<BR>').replaceAll('<span<BR>class="', '<span class="');
     } else {
-      r.str2 = formatTestString(r);
+      r.str2html = formatTestString(r);
     }
     r.str1 = decodeProsigns(r.str1);
     r.str2 = decodeProsigns(r.str2);
-    r.str2bk = decodeProsigns(str2bk);
+    r.str2html = decodeProsigns(r.str2html);
   });
   // bug : cwplayer.Text='T5TWR DE N8LRT R FB ROBERT NICE TO MEET YOU BT THE RIG HR IS A KNWD TS-570D AT QRP 5W TO AN ATTIC RANDOM WIRE BT THE WX LITE SNOW ES 33 DEGREES HW? AR T5TWR DE N8LRT KN', cwtext.value='T5TWR DE N8LRT R FB ROBERT NICE TO MEET YOU BT THE RIG HR IS A KNWD TS-570D AT QRP 5W TO AN ATTIC RANDOM WIRE BT THE WX LITE SNOW ES 33 DEGREES HW? AR T5TWR N8LRT KN'
   let perc = (nbchars-nberr)*100/nbchars;
   perc = round(perc, 1);
   let stats = [`${nbchars-nberr}/${nbchars} characters sent`];
-  let missing = results.reduce((a,c) => a+=(c.str2.match(new RegExp(emptyChar, 'g')) || []).length, 0);
+  let missing = results.reduce((a,c) => a+=(c.str2html.match(new RegExp(emptyChar, 'g')) || []).length, 0);
   if (missing > 0) stats.push(`${missing} missing${missing>1?'s':''}`);
   if (nberr > missing) stats.push(`${nberr-missing} error${nberr-missing>1?'s':''}`);
   zonerestext.innerHTML = `<h5><span id="scoreperc">${perc}%</span> success rate</h5><small>(${stats.join(', ')})</small><BR>`;
@@ -928,7 +909,7 @@ async function verifyKoch(e) { // KOCH MODE
   let restable = '<table><th>original</th><th>input</th><th>errors</th>';
   results.forEach(r => {
     restable += `<tr><td><span><a href="#" title="listen" name="listen" onclick="listen('${r.str1.replaceAll('<BR>', ' ').replaceAll('\'', '\\\'').replaceAll('"', '&quot;')}', this);">${r.str1}</a></span></td>`;
-    restable += `<td><a href="#" title="listen" name="listen" onclick="listen('${r.str2bk.replaceAll('\'', '\\\'').replaceAll('"', '&quot;')}', this);">${r.str2}</a></td>`;
+    restable += `<td><a href="#" title="listen" name="listen" onclick="listen('${r.str2.replaceAll('\'', '\\\'').replaceAll('"', '&quot;')}', this);">${r.str2html}</a></td>`;
     let color = coefColor_rg(r.kqual, 0.3);
     let kqual = Math.round(r.kqual*100);
     restable += `<td title="${kqual}% copy"><div style="width: ${kqual}%;background-color: ${color};">&nbsp;</div>${r.errors}</td></tr>`;
