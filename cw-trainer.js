@@ -492,8 +492,10 @@ function key(value) {
     iptlearn.focus();
     verifyCW();
   } else {
-    cwtext.value+=value;
+    let sels = cwtext.selectionStart+1;
+    cwtext.value = cwtext.value.substring(0, cwtext.selectionStart) + value + cwtext.value.substring(cwtext.selectionEnd);
     cwtext.focus();
+    cwtext.selectionEnd = cwtext.selectionStart = sels;
   }
 }
 var fact = [];
