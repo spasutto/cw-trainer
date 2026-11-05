@@ -8,6 +8,19 @@ morse-player {
   margin-bottom: 5px;
   max-width: 372px;
 }
+.overlay {
+  display: none;
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  opacity: 0.93;
+  background-color: white;
+  z-index: 9;
+  justify-content: center;
+  align-items: center;
+}
 #zonetrainer {
   border-style: none dashed dashed none;
   border-width: 1px;
@@ -136,7 +149,7 @@ a[name="modes"].active {
   float: left;
   font-size: 0.8em;
 }
-#csmorse {
+.popup {
   font-size: 1em;
   min-height: 270px;
   max-width: 430px;
@@ -149,10 +162,10 @@ a[name="modes"].active {
   transform: translate(-50%, -50%);
   user-select: none;
 }
-#morsecscnt {
+.popup-cnt {
   overflow-y: auto;
   scrollbar-width: thin;
-  max-height: 230px;
+  max-height: 242px;
   position: absolute;
   top: 10px;
 }
@@ -167,11 +180,13 @@ a[name="modes"].active {
   border-bottom: solid 1px #ccc;
   margin-bottom: 12px;
 }
-#csmorse input, #csmorse span, #morsehidesmb {
+#csmorse input, #morsehidesmb {
   position: absolute;
   z-index: 1;
 }
-#morseclosebtn {
+.olclosebtn {
+  position: absolute;
+  z-index: 1;
   top: 0;
   right: 0;
   margin: 5px;
@@ -221,6 +236,22 @@ a[name="modes"].active {
 #csmorse td.active {
   color: #ff00dd;
 }
+#cscustom fieldset label {
+  display: inline-block;
+  margin-right:3px;
+}
+#customsettext {
+  position: absolute;
+  z-index: 1;
+  bottom: 0;
+  right: 0;
+  left: 0;
+  margin: 5px;
+  /*width: 50px;*/
+}
+#cscustom fieldset:nth-child(4)>label {
+  text-decoration-line: overline;
+}
 .bulle {
   font-size: 0.6em;
   border: solid 1px gray;
@@ -237,19 +268,6 @@ a[name="modes"].active {
 }
 .bulle:hover {
   background-color: #35bbe7;
-}
-.overlay {
-  display: none;
-  width: 100%;
-  height: 100%;
-  position: absolute;
-  top: 0;
-  left: 0;
-  opacity: 0.93;
-  background-color: white;
-  z-index: 9;
-  justify-content: center;
-  align-items: center;
 }
 #loadingzone {
   display: none;

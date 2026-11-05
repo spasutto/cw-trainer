@@ -16,11 +16,16 @@
     <div class="overlay" id="overlayloading">
       <div id="loadingzone">Loading...</div>
     </div>
-    <div id="csmorse" class="overlay hidesmb">
-      <span id="morseclosebtn" class="bulle" title="close">X</span>
-      <div id="morsecscnt"></div>
+    <div id="csmorse" class="overlay popup hidesmb">
+      <span id="morseclosebtn" class="bulle olclosebtn" title="close">X</span>
+      <div id="morsecscnt" class="popup-cnt"></div>
       <input type="text" id="morsefilt" pattern="[.\-]*" title="filter symbols">
       <div id="morsehidesmb"><input type="checkbox" id="morsehidesmbcb" title="hide morse representation" checked><label for="morsehidesmbcb">hide morse representation</label></div>
+    </div>
+    <div id="cscustom" class="overlay popup">
+      <span id="customsetclosebtn" class="bulle olclosebtn" title="close">X</span>
+      <div id="customsetcnt" class="popup-cnt"></div>
+      <input type="text" id="customsettext" title="Resulting symbols" disabled>
     </div>
     <div id="zonemain">
       <table>

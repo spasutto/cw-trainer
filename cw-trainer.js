@@ -72,6 +72,8 @@ const LSN_CALLSIGNS = 46;
 const LSN_SIMPLE_PHRASES = 47;
 const LSN_QSO = 48;
 const LSN_FREE_TEXT = 49;
+const prosignsmap = new Map();
+const prosignsmaprev = new Map();
 var cwchecking = false;
 var maxlessons = -1;
 var cw_options = {
@@ -110,15 +112,24 @@ var lastkey = null;
 var sessions = {};
 var lastplaystart = 0;
 var getElements = (e) => [...document.querySelectorAll(e)];
-const prosignsmap = new Map();
-const prosignsmaprev = new Map();
+var current_customset = '';
+Array.prototype.Distinct = function(key) {
+  if (typeof key !== 'function') {
+    key = (k) => k;
+  }
+  const seen = new Set();
+  return this.filter(item => {
+    const k = key(item);
+    return seen.has(k) ? false : seen.add(k);
+  });
+};
 var getOrAddProsign = (p) => {
   let mr = CWPlayer.translate(p);
   let enc = prosignsmap.get(mr);
   if (!enc) {
     let i = PROSIGNS.indexOf(p);
     if (i<0) i = prosignsmap.size;
-    enc = String.fromCharCode(180+i);
+    enc = String.fromCharCode(183+i);
     prosignsmap.set(mr, enc);
     prosignsmaprev.set(enc, p);
   }
@@ -331,7 +342,7 @@ async function generateText() {
       } else if (cw_options.lesson == LSN_SYMBOLS) {
         els = SYMBOLS.split('');
       } else if (cw_options.lesson == LSN_CUSTOM) {
-        els = cw_options.customset.split('');
+        els = cw_options.customset.split('').map(decodeProsigns).filter(v => v.length==1); // on ne veut pas des prosigns en mode simple
       } else {
         let maxlesson = Math.min(KOCHCARS.length-1, cw_options.lesson);
         els = KOCHCARS.slice(0, maxlesson+1);
@@ -376,7 +387,7 @@ async function generateText() {
       } else if (cw_options.lesson == LSN_SYMBOLS) {
         letters = SYMBOLS.split('');
       } else if (cw_options.lesson == LSN_CUSTOM) {
-        letters = cw_options.customset.split('');
+        letters = cw_options.customset.split('').map(decodeProsigns);
       }  else {
         let maxlesson = Math.min(KOCHCARS.length-1, cw_options.lesson);
         letters = KOCHCARS.slice(0, maxlesson+1);
@@ -1122,6 +1133,11 @@ function decodeParam(val, i) {
       cw_options.wrand = val === 1;
       break;
     case 14:
+      try {
+        val = atob(val);
+      } catch(e) {
+        val = null;
+      }
       cw_options.customset = cleanCustomset(val);
       break;
     case 15:
@@ -1155,11 +1171,11 @@ function saveParams() {
   	round2(cw_options.volume),
   	(cw_options.learn_mode?1:0),
   	(cw_options.wrand?1:0),
-  	(cw_options.customset),
+  	btoa(cw_options.customset),
   	round3(cw_options.qrn),
   	round3(cw_options.qrm),
   	(cw_options.headphone_fix?1:0)];
-	params = encodeURIComponent(params.join(HASHSEP));
+  params = encodeURIComponent(params.join(HASHSEP));
   try {
     window.name = params;
     localStorage.setItem("params", params);
@@ -1228,23 +1244,106 @@ function message(msg='', style=null) {
   }, 1);
 }
 function cleanCustomset(cs) {
-  cs = [...new Set(CWPlayer.cleanText(typeof cs === 'string'?cs:'').replaceAll(/\s/g, '').split(''))];
+  cs = [...new Set(encodeProsigns(CWPlayer.cleanText(typeof cs === 'string'?decodeProsigns(cs):'')).replaceAll(/\s/g, '').split(''))];
   if (!cs.length) {
-    cs = KOCHCARS;
+    cs = Array.from(KOCHCARS);
   }
-  return cs/*.sort()*/.join('');
+  return cs.sort().join('');
 }
-function askForCustomSet(upd = true) {
-  let origvalue = cw_options.customset;
-  let csen = prompt('Enter custom set (empty to reset)', cw_options.customset);
-  if (typeof csen === 'string') {
-    cw_options.customset = cleanCustomset(csen);
-    if (upd && origvalue != cw_options.customset) updateValues();
+function displayCustomSet(e) {
+  let display = cscustom.style.display != 'flex';
+  if (typeof e == 'boolean') display = e;
+  let closing = cscustom.style.display == 'flex' && !display;
+  cscustom.style.display = display?'flex':'none';
+  overlayloading.style.display = display?'flex':'none';
+  if (!display) {
+    if (closing && current_customset.length && current_customset != cw_options.customset) {
+      cw_options.customset = current_customset;
+      updateValues();
+    }
+    return;
   }
+  let cats = [
+    [ALPHA.split(''),'Alpha'],
+    [NUMBERS.split(''),'Numbers'],
+    [SYMBOLS.split(''),'Symbols'],
+    // Certains prosigns sont en double, ils sont donc triés par représentation en morse
+    [PROSIGNS.sort((a, b) => CWPlayer.translate(a).localeCompare(CWPlayer.translate(b))).map(p => p.replaceAll(/[{}]/g, '')), 'Prosigns']
+  ];
+  if (customsetcnt.innerText.trim().length <= 0) {
+    let updateCustomSetFromCb = () => {
+      let customsetvals = [];
+      cats.forEach(([cscl,csclass], ikcl) => {
+        let gclassname = `cb-customset-${csclass.toUpperCase()}`;
+        if (document.getElementById(gclassname).checked) {
+          if (ikcl == 3) cscl = cscl.map(s => encodeProsigns(`{${s}}`));
+          customsetvals.push(...cscl);
+        } else {
+          cscl.forEach((s, i) => {
+            if (document.getElementById(`${gclassname}-${i}`).checked) {
+              if (ikcl == 3) s = encodeProsigns(`{${s}}`);
+              customsetvals.push(s);
+            }
+          });
+        }
+      });
+      current_customset=cleanCustomset(customsetvals.join(''));
+      customsettext.value=decodeProsigns(current_customset);
+    };
+    let cs = '';
+    cats.forEach(([cscl,csclass], ikcl) => {
+      let gclassname = `cb-customset-${csclass.toUpperCase()}`;
+      cs += `<fieldset id="fs-customset-${csclass.toUpperCase()}"><legend><label><input type="checkbox" id="${gclassname}"/>${csclass}</label></legend>`;
+      cscl.forEach((s, i) => {
+        let sm = s;
+        if (s.length > 1) sm = `{${s}}`;
+        cs += `<label title="${CWPlayer.translate(sm).split('').join(' ')}"><input type="checkbox" name="${gclassname}" id="${gclassname}-${i}"/>${s}</label>`;
+      });
+      cs += '</fieldset>';
+    });
+    customsetcnt.innerHTML = cs;
+    cats.forEach(([cscl,csclass], ikcl) => {
+      let gclassname = `cb-customset-${csclass.toUpperCase()}`;
+      let cbg=document.getElementById(gclassname);
+      cbg.addEventListener('click', (e) => {
+        cscl.forEach((v,i) => {
+          document.getElementById(`${gclassname}-${i}`).checked = cbg.checked;
+        });
+        updateCustomSetFromCb();
+      });
+      cscl.forEach((v,i) => {
+        let cb=document.getElementById(`${gclassname}-${i}`);
+        cb.addEventListener('click', e => {
+          cbg.checked = ![...document.getElementsByName(gclassname)].some(cbt => !cbt.checked);
+          updateCustomSetFromCb();
+        });
+      });
+    });
+    /*let customsettextchange = (e) => {
+      console.log('change', customsettext.value);
+    };
+    customsettext.addEventListener('change', customsettextchange);
+    customsettext.addEventListener('keyup', customsettextchange);*/
+  }
+  let csvalues = cleanCustomset(cw_options.customset).split('');
+  cats.forEach(([cscl,csclass], ikcl) => {
+    let allchecked = true;
+    cscl.forEach((v,i) => {
+      if (ikcl == 3) v = encodeProsigns(`{${v}}`);
+      let checked = csvalues.includes(v);
+      document.getElementById(`cb-customset-${csclass.toUpperCase()}-${i}`).checked = checked;
+      if (!checked) {
+        allchecked = false;
+        return;
+      }
+    });
+    document.getElementById('cb-customset-'+csclass.toUpperCase()).checked = allchecked;
+  });
+  customsettext.value=decodeProsigns(cw_options.customset);
 }
 function lessonchanged() {
   if (sellesson.value == LSN_CUSTOM) {
-    askForCustomSet(false);
+    displayCustomSet();
   }
   updateValues();
 }
@@ -1354,6 +1453,7 @@ window.addEventListener("load", async () => {
     morsehidesmbcb.checked ? csmorse.classList.add('hidesmb') : csmorse.classList.remove('hidesmb');
     if (window.localStorage) localStorage.setItem("hidesmbcb", morsehidesmbcb.checked ? 1 : 0);
   }));
+  customsetclosebtn.addEventListener("click", displayCustomSet);
   selfdl.addEventListener("click", selfDownload);
   selfdl.style.visibility = window.location.href.toLowerCase().startsWith('http') ? 'visible' : 'hidden';
   document.addEventListener("mouseup",  onmouseup);
@@ -1390,7 +1490,7 @@ window.addEventListener("load", async () => {
     lessonchanged();
   });
   retrynxt.addEventListener("click", nxtlesson.click);
-  cfgcustom.addEventListener("click", askForCustomSet);
+  cfgcustom.addEventListener("click", displayCustomSet);
   chkfreelisten.addEventListener("change", (e) => {
     cw_options.freelisten = chkfreelisten.checked;
     if (cw_options.freelisten) {
@@ -1506,14 +1606,14 @@ function displayMorseCode(e) {
     //ALPHA NUMBERS SYMBOLS
     let cs = '';
     [
-      [ALPHA,6, 'alpha'],
-      [NUMBERS,5, 'numbers'],
-      [SYMBOLS,6, 'symbols'],
-      // Certains prosignes sont en double, ils sont donc triés par représentation en morse
-      [PROSIGNS.sort((a, b) => CWPlayer.translate(a).localeCompare(CWPlayer.translate(b))).join(), 3, 'prosigns']
+      [ALPHA.split(''),6, 'alpha'],
+      [NUMBERS.split(''),5, 'numbers'],
+      [SYMBOLS.split(''),6, 'symbols'],
+      // Certains prosigns sont en double, ils sont donc triés par représentation en morse
+      [PROSIGNS.sort((a, b) => CWPlayer.translate(a).localeCompare(CWPlayer.translate(b))), 3, 'prosigns']
     ].forEach(([cscl,nbrows, sclass], ikcl) => {
       cs += `<table id="csmorse-${sclass}"><tbody><tr>`;
-      cscl.split(ikcl==3?',':'').forEach((s, i) => {
+      cscl.forEach((s, i) => {
         if (i && i%nbrows == 0) cs += '</tr><tr>';
         let symbol = s;
         if (ikcl==3) symbol = symbol.replaceAll(/[{}]/g, '');
@@ -1579,7 +1679,10 @@ function displayMorseCode(e) {
     }
   }
   let lessonletters = [];
-  let isActive = (l) => lessonletters.includes(l);
+  let isActive = (l) => {
+    let idx = lessonletters.map(CWPlayer.translate).indexOf(CWPlayer.translate(l));
+    return idx>-1 && l.length == lessonletters[idx].length;
+  }
   if (cw_options.learn_mode || cw_options.lesson > LSN_CUSTOM) {
     isActive = (l) => false;
   } else if (cw_options.lesson < LSN_LETTERS) {
@@ -1591,11 +1694,11 @@ function displayMorseCode(e) {
   } else if (cw_options.lesson == LSN_SYMBOLS) {
     lessonletters = SYMBOLS;
   } else if (cw_options.lesson == LSN_CUSTOM) {
-    lessonletters = cw_options.customset;
+    lessonletters = cw_options.customset.split('').map(decodeProsigns);//.map(v => v.replaceAll(/[{}]/g,''));
   }
   [...morsecscnt.querySelectorAll('td:not(.mletter)')].forEach(td => {
     let elms = [td, td.nextElementSibling];
-    let active = isActive(td.innerText);
+    let active = isActive(td.innerText.length>1?`{${td.innerText}}`:td.innerText);
     let classSelector = (cell) => {
       if (active) {
         cell.classList.add('active');
@@ -1617,8 +1720,8 @@ function displayMorseCode(e) {
   return false;
 }
 function onmouseup(e) {
-  if (cheatsheet.contains(e.target) || csmorse.contains(e.target)) return;
-  displayMorseCode(false);
+  if (csmorse.style.display == 'flex' && !cheatsheet.contains(e.target) && !csmorse.contains(e.target)) displayMorseCode(false);
+  if (cscustom.style.display == 'flex' && !cscustom.contains(e.target) && !sellesson.contains(e.target)) displayCustomSet(false);
 }
 function onkeydown(e) {
   if (!cwplayer) return;
@@ -1632,9 +1735,15 @@ function onkeydown(e) {
   // on pause via ctrl-space si on est en train de saisir sinon directement space
   let isPlayKeybCtrlOk = e.ctrlKey || !['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement.tagName);
   keyCode = keyCode || keynames[e.code];
-  if (keyCode == keycodes.escape || keyCode == keycodes.f1) {
-    displayMorseCode(keyCode == keycodes.f1);
+  if (keyCode == keycodes.escape) {
+    displayMorseCode(false);
+    displayCustomSet(false);
     e.preventDefault();
+  } else if (keyCode == keycodes.f1) {
+    if (cscustom.style.display !== 'flex') {
+      displayMorseCode(true);
+      e.preventDefault();
+    }
   } else if (!e.ctrlKey && keyCode === keycodes.f5) {
     e.preventDefault();
     if (confirm('Warning, current test will be reset !')) updateValues();
