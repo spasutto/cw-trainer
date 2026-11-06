@@ -431,6 +431,7 @@ class CWPlayer {
     let cwtext = '';
     let prosign = false;
     for (let i=0; i<text.length; i++) {
+      if (!prosign && i>0 && !CWPlayer.isSpace(text[i-1]) && !CWPlayer.isSpace(text[i])) cwtext += ' '; // on rajoute un espace après tout caractère (sauf si le celui-ci ou le courant est un espace)
       if (text[i] == '{') {
         prosign = true;
         continue;
@@ -438,7 +439,6 @@ class CWPlayer {
         prosign = false;
         continue;
       }
-      if (!prosign && i>0 && !CWPlayer.isSpace(text[i-1]) && !CWPlayer.isSpace(text[i])) cwtext += ' '; // on rajoute un espace après tout caractère (sauf si le celui-ci ou le courant est un espace)
       cwtext += CWPlayer.morse[text[i]] ?? CWPlayer.morse['?'];
     }
     return cwtext;
