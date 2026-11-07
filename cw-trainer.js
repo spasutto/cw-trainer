@@ -92,6 +92,7 @@ var cw_options = {
   volume : 1,
   keyqual: 1,
   qrn: 0,
+  qsb: 0,
   qrm: 0,
   customset: KOCHCARS.join(''),
   displaystatistics: false,
@@ -1149,6 +1150,9 @@ function decodeParam(val, i) {
     case 17:
       cw_options.headphone_fix = val === 1;
       break;
+    case 18:
+      cw_options.qsb = Math.max(CWPlayer.MIN_QSB, Math.min(CWPlayer.MAX_QSB, val));
+      break;
   }
 }
 function deferredSaveParam() {
@@ -1174,7 +1178,8 @@ function saveParams() {
   	btoa(cw_options.customset),
   	round3(cw_options.qrn),
   	round3(cw_options.qrm),
-  	(cw_options.headphone_fix?1:0)];
+  	(cw_options.headphone_fix?1:0),
+  	round3(cw_options.qsb)];
   params = encodeURIComponent(params.join(HASHSEP));
   try {
     window.name = params;
@@ -1397,6 +1402,9 @@ window.addEventListener("load", async () => {
       saveParams();
     } else if (arg == 'QRN') {
       cw_options.qrn = cwplayer.QRN;
+      deferredSaveParam();
+    } else if (arg == 'QSB') {
+      cw_options.qsb = cwplayer.QSB;
       deferredSaveParam();
     } else if (arg == 'QRM') {
       cw_options.qrm = cwplayer.QRM;
@@ -1863,6 +1871,7 @@ async function updateValues() {
   cwplayer.Volume = cw_options.volume;
   cwplayer.KeyingQuality = cw_options.keyqual;
   cwplayer.QRN = cw_options.qrn;
+  cwplayer.QSB = cw_options.qsb;
   cwplayer.QRM = cw_options.qrm;
   cwplayer.HPFix = cw_options.headphone_fix;
   // on remet à jour les contrôles si'il y'a eu des bornages
@@ -1874,6 +1883,7 @@ async function updateValues() {
   cw_options.volume = cwplayer.Volume;
   cw_options.keyqual = cwplayer.KeyingQuality;
   cw_options.qrn = cwplayer.QRN;
+  cw_options.qsb = cwplayer.QSB;
   cw_options.qrm = cwplayer.QRM;
   chkwrand.checked = cw_options.wrand;
   if (cw_options.wrand && cw_options.simple_mode) reinitPMF();

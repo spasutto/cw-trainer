@@ -87,6 +87,7 @@ class CWPlayer {
     autoplay : false,
     volume : 1,
     qrn: 0,
+    qsb: 0,
     no_noise: false,
     headphone_fix: false
   };
@@ -121,6 +122,7 @@ class CWPlayer {
     this.Volume = options.volume;
     this.KeyingQuality = options.keyqual;
     this.QRN = options.qrn;
+    this.QSB = options.qsb;
     this.options.no_noise = !!options.no_noise;
     this.options.headphone_fix = !!options.headphone_fix;
   }
@@ -136,6 +138,8 @@ class CWPlayer {
   static get MAX_KEYQUAL() { return 1; }
   static get MIN_QRN() { return 0; }
   static get MAX_QRN() { return NoiseGainNode.MAX_NOISE; }
+  static get MIN_QSB() { return 0; }
+  static get MAX_QSB() { return 1; }
   /*FIN CONSTANTES*/
 
   get Options() { return {...this.options}; }
@@ -247,6 +251,17 @@ class CWPlayer {
       this.noise.quantity.value = value;
     }
     this.fireEvent('parameterchanged', 'QRN');
+  }
+  get QSB() { return this.options.qsb; }
+  set QSB(value) {
+    value = CWPlayer.parsefloat(value);
+    value = Math.min(CWPlayer.MAX_QSB, Math.max(CWPlayer.MIN_QSB, value));
+    if (value == this.options.qsb) return;
+    this.options.qsb = value;
+    if (this.context && this.playing) {
+      this.scheduleQSB();
+    }
+    this.fireEvent('parameterchanged', 'QSB');
   }
   get HPFix() { return this.options.headphone_fix; }
   set HPFix(value) {
@@ -488,16 +503,19 @@ class CWPlayer {
     }
     this.osc = this.context.createOscillator();
     this.gain = this.context.createGain();
+    this.gainqsb = this.context.createGain();
     this.osc.connect(this.gain);
-    let termnode = this.gain;
+    this.gain.connect(this.gainqsb);
+    let termnode = this.gainqsb;
     if (!this.options.no_noise) {
       this.noise = new NoiseGainNode(this.context);
       await this.noise.initAudio();
       this.noise.quantity.value = 0;
       termnode = this.noise;
-      this.gain.connect(this.noise);
+      this.gainqsb.connect(this.noise);
     }
     this.gain.gain.value = 0;
+    this.gainqsb.gain.value = 1;
     this.osc.frequency.value = this.options.tone;
     
     try {
@@ -539,6 +557,9 @@ class CWPlayer {
       await this.initAudio();
     }
     this.booping = true;
+
+    // on stoppe le QSB
+    this.scheduleQSB(true);
 
     let initTime = this.context.currentTime;
     let t = initTime+0.05;
@@ -654,6 +675,26 @@ class CWPlayer {
     this.lastpausetime = now;
     this.schedule(time);
   }
+  scheduleQSB(cancelqsb = false) {
+    if (!this.stime.length) return;
+    let ct = this.context.currentTime, et = ct+this.stime[this.stime.length-1];
+    this.gainqsb.gain.cancelAndHoldAtTime(ct);
+    if (cancelqsb || this.options.qsb == 0) {
+      this.gainqsb.gain.linearRampToValueAtTime(1, ct+this.rampperiod);
+      return;
+    }
+    let i=0, v=0;
+    while (ct<et) {
+      if (i++%2==0) {
+        v = 0.75+0.25*Math.random();
+      } else {
+        v = 0.4-0.4*this.options.qsb*Math.random();
+      }
+      //v = 1-this.options.qsb*Math.random();
+      ct += 1+Math.random()*2; // Min 1 seconde
+      this.gainqsb.gain.linearRampToValueAtTime(v, ct);
+    }
+  }
   async schedule(timefromstart, startindex) {
     if (!this.context || (!this.playing && !this.recording)) return;
     let it = this.context.currentTime;
@@ -675,6 +716,7 @@ class CWPlayer {
     if (this.noise) {
       this.noise.quantity.value = this.options.qrn;
     }
+    this.scheduleQSB();
     let t=0;
     for (let i=startindex; i<this.stime.length; i++) {
       t = this.stime[i] - timefromstart;
@@ -965,6 +1007,7 @@ class MorsePlayer extends HTMLElement {
     cfghtml += `<span><label for="val_Tone" title="tone (in Hertz)">Tone :</label><input id="val_Tone" type="number" min="${CWPlayer.MIN_TONE}" max="${CWPlayer.MAX_TONE}" step="100" title="tone (in Hertz)"></span><BR>`;
     cfghtml += `<span><label for="val_KeyingQuality" title="keying quality">Keying Quality :</label><input id="val_KeyingQuality" type="range" min="${CWPlayer.MIN_KEYQUAL}" max="${CWPlayer.MAX_KEYQUAL}" step="0.1" title="keying quality"></span><BR>`;
     cfghtml += `<span><label for="val_QRN" title="QRN">QRN :</label><input id="val_QRN" type="range" min="${CWPlayer.MIN_QRN}" max="${CWPlayer.MAX_QRN}" step="0.05" title="QRN"></span><BR>`;
+    cfghtml += `<span><label for="val_QSB" title="QSB (fading)">QSB :</label><input id="val_QSB" type="range" min="${CWPlayer.MIN_QSB}" max="${CWPlayer.MAX_QSB}" step="0.05" title="QSB (fading)"></span><BR>`;
     cfghtml += `<span><label for="val_QRM" title="QRM (Traffic)">QRM/Traffic :</label><input id="val_QRM" type="range" min="${MorsePlayer.MIN_QRM}" max="${MorsePlayer.MAX_QRM}" step="0.05" title="QRM (Traffic)"></span><BR>`;
     cfghtml += `<span><label for="val_Volume" title="volume">Volume :</label><input id="val_Volume" type="range" min="0" max="1" step="0.01" title="volume"></span>`;
     configzonecont.innerHTML = cfghtml;
@@ -972,6 +1015,8 @@ class MorsePlayer extends HTMLElement {
     // Create some CSS to apply to the shadow dom
     const style = document.createElement("style");
 
+    // css
+    {
     style.textContent = `
       :host {
         display: block;
@@ -1147,11 +1192,14 @@ class MorsePlayer extends HTMLElement {
         text-decoration-line: overline;
       }
     `;
+    }
 
     // Attach the created elements to the shadow dom
     shadow.appendChild(style);
     shadow.appendChild(wrapper);
     shadow.appendChild(czwrapper);
+    // html layout
+    {
     wrapper.innerHTML = `
       <div>
         <button id="btnstop" title="stop playing" class="svg_inactif" disabled>
@@ -1217,6 +1265,7 @@ class MorsePlayer extends HTMLElement {
           </g>
         </svg>
       </a>`;
+    }
     wrapper.appendChild(configzone);
     this.btnstop = this.shadowRoot.getElementById('btnstop');
     this.btnplay = this.shadowRoot.getElementById('btnplay');
@@ -1297,7 +1346,7 @@ class MorsePlayer extends HTMLElement {
       if (e.key === 'Escape' || (e.keyCode || e.which) == 27) this.mouseup();
     });
     Object.keys(this.configfields).forEach(k => {
-      let evttype = ['Volume', 'QRN'].includes(k) ? 'input' : 'change';
+      let evttype = ['Volume', 'QRN', 'QSB'].includes(k) ? 'input' : 'change';
       let fname = 'value';
       if (this.configfields[k].type === 'checkbox') fname = 'checked';
       this.configfields[k].addEventListener(evttype, () => {
@@ -1389,6 +1438,8 @@ class MorsePlayer extends HTMLElement {
   set KeyingQuality(value) { this.cwplayer.KeyingQuality = value; }
   get QRN() { return this.cwplayer.QRN; }
   set QRN(value) { this.cwplayer.QRN = value; }
+  get QSB() { return this.cwplayer.QSB; }
+  set QSB(value) { this.cwplayer.QSB = value; }
   get QRM() { return this.options.qrm; }
   set QRM(value) {
     value = CWPlayer.parsefloat(value);
