@@ -42,6 +42,9 @@ The `morse-player` tag accept some attributes (case insensitive) :
  - **tone** (_default to 800Hz_) : the tonality
  - **volume** (_default to 1_) : the volume (from 0 to 1)
  - **keyingquality** : get or set the keying quality (between 50% : bad and 100% : perfect)
+ - **qrn** : get or set the QRN (static noises ; between 0 : no noise and 1 : mega loud noises)
+ - **qrm** : get or set the QRM (traffic : between 0 : no traffic and 1 : pile-up)
+ - **qsb** : get or set the QSB (fading : between 0 : no fading and 1 : signal can sometimes disappear)
  - **predelay** (_default to 0 s_) : a time in seconds before playing the first symbol
  - **autoplay** (_default to false_) : if set to "true", a change in the text automatically starts playing
  - **progessbar** (_default to true_) : if set to false the playing/progress bar is hidden
@@ -59,6 +62,9 @@ The `morse-player` tag accept some attributes (case insensitive) :
  - **Tone** : get or set tone's frequency
  - **Volume** : get or set volume
  - **KeyingQuality** : get or set the keying quality (between 50% : bad and 100% : perfect)
+ - **QRN** : get or set the QRN (static noises ; between 0 : no noise and 1 : mega loud noises)
+ - **QRM** : get or set the QRM (traffic : between 0 : no traffic and 1 : pile-up)
+ - **QSB** : get or set the QSB (fading : between 0 : no fading and 1 : signal can sometimes disappear)
  - **PreDelay** : get or set the delay before playing firs symbol
  - **Text** : get or set the text to play. Text is "cleaned" :
 ```javascript

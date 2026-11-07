@@ -29,7 +29,9 @@ Then try it :
  - **EWS** : get or set Extra Word Space
  - **Tone** : get or set tone's frequency
  - **Volume** : get or set volume
- - **KeyingQuality** : get or set the keying quality (between 50% : bad and 100% : perfect)
+ - **KeyingQuality** : get or set the keying quality (between 0.5 : bad and 1 : perfect)
+ - **QRN** : get or set the QRN (static noises ; between 0 : no noise and 1 : mega loud noises)
+ - **QSB** : get or set the QSB (fading : between 0 : no fading and 1 : signal can sometimes disappear)
  - **PreDelay** : get or set the delay before playing firs symbol
  - **Text** : get or set the text to play. Text is "cleaned" :
 ```javascript
@@ -55,7 +57,9 @@ The `CWPlayer` constructor accepts options as an `Object` in which keys can be :
  - **ews** (_default to 0 s_) : Extra Word Space, a space in seconds added to the normal space between words
  - **tone** (_default to 800Hz_) : the tonality
  - **volume** (_default to 1_) : the volume (from 0 to 1)
- - **keyingquality** : get or set the keying quality (between 50% : bad and 100% : perfect)
+ - **keyingquality** : get or set the keying quality (between 0.5 : bad and 1 : perfect)
+ - **qrn** : get or set the QRN (static noises ; between 0 : no noise and 1 : mega loud noises)
+ - **qsb** : get or set the QSB (fading : between 0 : no fading and 1 : signal can sometimes disappear)
  - **predelay** (_default to 0 s_) : a time in seconds before playing the first symbol
  - **autoplay** (_default to false_) : if set to "true", a change in the text automatically starts playing
  - **hpfix** (_default to false_) : set it to true if you experience truncation of symbols while using USB/Bluetooth headphones on Android devices

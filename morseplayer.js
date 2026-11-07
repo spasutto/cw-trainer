@@ -909,7 +909,7 @@ class WAV {
 class MorsePlayer extends HTMLElement {
   static get TAG() { return "morse-player"; }
   static get SVG_INACTIF() { return 'svg_inactif'; }
-  static observedAttributes = ['player', 'playing', 'paused', 'autoplay', 'currenttime', 'wpm', 'effwpm', 'ews', 'tone', 'volume', 'keyingquality', 'predelay', 'text', 'index', 'progressbar', 'clearzone', 'configbutton', 'downloadbutton', 'hpfix'];
+  static observedAttributes = ['player', 'playing', 'paused', 'autoplay', 'currenttime', 'wpm', 'effwpm', 'ews', 'tone', 'volume', 'keyingquality', 'predelay', 'text', 'index', 'progressbar', 'clearzone', 'configbutton', 'downloadbutton', 'hpfix', 'qrn', 'qsb', 'qrm'];
 
   static DEFAULT_OPTIONS = {
     progressBar : true,
