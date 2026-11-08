@@ -114,7 +114,7 @@ var sessions = {};
 var lastplaystart = 0;
 var getElements = (e) => [...document.querySelectorAll(e)];
 var current_customset = '';
-Array.prototype.Distinct = function(key) {
+Array.prototype.distinct = function(key) {
   if (typeof key !== 'function') {
     key = (k) => k;
   }
@@ -818,7 +818,7 @@ async function verifyKoch(e) { // KOCH MODE
   if (cw_options.lesson <= LSN_CALLSIGNS) {
     extractfn = (t) => cleanText(t).split(' ').filter(e => e.length > 0);
   }
-  if (prosign) cwtext.value = cwtext.value.replaceAll(/\s+/g, ' ').replaceAll(/[{}]/g, '').split(' ').map(v=>`{${v}}`).join(' ');
+  if (prosign && cwtext.value.trim().length) cwtext.value = cwtext.value.replaceAll(/\s+/g, ' ').replaceAll(/[{}]/g, '').split(' ').map(v=>`{${v}}`).join(' ');
   let inpt = extractfn(cwtext.value).map(e => e.replaceAll(/\s+/g, ' '));
   let verif = extractfn(cwplayer.Text).map(e => e.replaceAll(/\s+/g, ' '));
   let results = verif.map((a, i) => compareStrings(a, inpt[i] ?? ''));
@@ -920,13 +920,13 @@ async function verifyKoch(e) { // KOCH MODE
   if (nberr > missing) stats.push(`${nberr-missing} error${nberr-missing>1?'s':''}`);
   zonerestext.innerHTML = `<h5><span id="scoreperc">${perc}%</span> success rate</h5><small>(${stats.join(', ')})</small><BR>`;
   getElements('#scoreperc')[0].classList.add(perc<80?'error-text':perc<90?'warning-text':'ok-text');
-  let restable = '<table><th>original</th><th>input</th><th>errors</th>';
+  let restable = '<table><th>original</th><th>input</th><th>copy</th>';
   results.forEach(r => {
     restable += `<tr><td><span><a href="#" title="listen" name="listen" onclick="listen('${r.str1.replaceAll('<BR>', ' ').replaceAll('\'', '\\\'').replaceAll('"', '&quot;')}', this);">${r.str1}</a></span></td>`;
     restable += `<td><a href="#" title="listen" name="listen" onclick="listen('${r.str2.replaceAll('\'', '\\\'').replaceAll('"', '&quot;')}', this);">${r.str2html}</a></td>`;
     let color = coefColor_rg(r.kqual, 0.3);
     let kqual = Math.round(r.kqual*100);
-    restable += `<td title="${kqual}% copy"><div style="width: ${kqual}%;background-color: ${color};">&nbsp;</div>${r.errors}</td></tr>`;
+    restable += `<td title="${kqual}% copy"><div style="width: ${kqual}%;background-color: ${color};">&nbsp;</div>${r.sequences.reduce((a,c) => a+=c.text.replaceAll(' ','').length, 0)}</td></tr>`;
   });
   restable += '</table>';
   zonerestext.innerHTML += restable;
