@@ -727,12 +727,14 @@ async function verifySimple(e) {
       window.freefirsttry = false;
       window.freeerr++;
       if (cw_options.wrand) {
-        let is = els.indexOf(cwplayer.Text[0]);
-        if (is > -1) {
-          // si on s'est trompé on incrémente la probabilité de tomber sur cette lettre (seulement à la première erreur)
-          pmf[is]+=2;
-          updateCDF();
-        }
+        // si on s'est trompé on incrémente la probabilité de tomber sur les deux lettres (seulement à la première erreur)
+        [cwplayer.Text[0], cwcar.toUpperCase()].forEach(l => {
+          let is = els.indexOf(l);
+          if (is > -1) {
+            pmf[is]+=2;
+          }
+        });
+        updateCDF();
       }
     }
     iptfree.value = '';
