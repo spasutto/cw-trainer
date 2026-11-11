@@ -1059,6 +1059,7 @@ class MorsePlayer extends HTMLElement {
       }
       #configzone {
         display: none;
+        z-index: 100;
         position: absolute;
         top: 27px;
         right: 0px;
