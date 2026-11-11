@@ -491,16 +491,19 @@ class CWPlayer {
   }
   setMasterVolume() {
     // volume log
-    this.master.gain.setValueAtTime(Math.pow(this.options.volume*10, 2)/100, this.context.currentTime);
+    this.master?.gain.setValueAtTime(Math.pow(this.options.volume*10, 2)/100, this.context.currentTime);
   }
 
-  async initAudio(offline = false) {
-    if (!offline) {
+  async initAudio(offline = false, context = null) {
+    if (context != null) {
+      this.context = context;
+    } else if (!offline) {
       if (this.recording) return;
       this.context = new (window.AudioContext || window.webkitAudioContext)();
     } else {
       this.context = new OfflineAudioContext(2, 44100 * (this.totaltime+0.5), 44100);
     }
+    this.fireEvent('contextchanged', this.context);
     this.osc = this.context.createOscillator();
     this.gain = this.context.createGain();
     this.gainqsb = this.context.createGain();
@@ -683,18 +686,23 @@ class CWPlayer {
       this.gainqsb.gain.linearRampToValueAtTime(1, ct+this.rampperiod);
       return;
     }
+    let DEBUGPHRASE = '', DEBUGINTERVAL=ct;
     let i=0, v=0;
     while (ct<et) {
       if (i++%2==0) {
         v = 0.75+0.25*Math.random();
       } else {
+        //v = 0.4-0.4*this.options.qsb*Math.random();
         // 0.4 d'excursion, avec un mini entre 0 (qsb=1) et 0.5 (qsb=0)
         v = 0.2*Math.random() + (0.5-0.5*this.options.qsb);
       }
       //v = 1-this.options.qsb*Math.random();
       ct += 1+Math.random()*2+2*this.options.qsb; // Min 1 seconde
+      DEBUGPHRASE += `@t=${Math.round((ct-this.context.currentTime)*10)/10}(${Math.round((ct-DEBUGINTERVAL)*10)/10}) val=${Math.round(v*10)/10}\n`;
+      DEBUGINTERVAL=ct;
       this.gainqsb.gain.linearRampToValueAtTime(v, ct);
     }
+    console.log('scheduleQSB :  (qsb='+this.options.qsb+')\n', DEBUGPHRASE);
   }
   async schedule(timefromstart, startindex) {
     if (!this.context || (!this.playing && !this.recording)) return;
@@ -799,13 +807,13 @@ class CWPlayer {
   async renderToFile(text=null) {
     if (this.playing) this.stop();
     this.recording = true;
-    this.fireEvent('play'); // permet de déclencher les évenements
-    this.fireEvent('record');
     if (text) {
       this.Text = text;
     }
     try {
       await this.initAudio(true);
+      this.fireEvent('play'); // permet de déclencher les évenements
+      this.fireEvent('record');
       this.schedule();
       let audioBuffer = await this.context.startRendering();
 
@@ -1286,6 +1294,7 @@ class MorsePlayer extends HTMLElement {
     this.cwplayer.addEventListener('play', () => {
       this.qrmgenerator.setParams(Math.round(this.options.qrm*10), this.options.qrm);
       this.qrmgenerator.start();
+      console.log('qrmgenerator started');
       this.updateButtonsState(true);
       this.updateDisplayTime();
     });
@@ -1297,6 +1306,10 @@ class MorsePlayer extends HTMLElement {
       this.qrmgenerator.stop();
       this.updateButtonsState();
       this.updateClearZone();
+    });
+    this.cwplayer.addEventListener('contextchanged', (value) => {
+      this.qrmgenerator.Context = value;
+      console.log('qrmgenerator context updated');
     });
     this.cwplayer.addEventListener('parameterchanged', (name) => {
       this.updateFields(name);
@@ -1328,9 +1341,9 @@ class MorsePlayer extends HTMLElement {
       return false;
     };
     this.btnconfig.onclick = this.displayConfig.bind(this);
-    this.btndownload.onclick = () => {
+    this.btndownload.onclick = async () => {
       if (this.TotalTime > 0) {
-        this.cwplayer.renderToFile();
+        await this.cwplayer.renderToFile();
       }
       return false;
     };
@@ -1451,6 +1464,7 @@ class MorsePlayer extends HTMLElement {
     this.qrmgenerator.setParams(Math.round(value*10), value);
     if (this.Playing && !this.qrmgenerator.Active) {
       this.qrmgenerator.start();
+      console.log('qrmgenerator started');
     }
     this.cwplayer.fireEvent('parameterchanged', 'QRM');
   }
@@ -1757,10 +1771,11 @@ registerProcessor("NoiseGen", NoiseGen);
 
 class QRMGenerator {
   constructor(quantity=5, maxvolume=0.5) {
-    this.alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ/!+?.@"0123456789'+' '.repeat(10);
+    this.alphabet = Object.keys(CWPlayer.morse).join('')+' '.repeat(10);
     this.players = [];
     this.active = false;
     this.setParams(quantity, maxvolume);
+    this.context = null;
   }
   
   get Active() { return this.active; }
@@ -1769,6 +1784,13 @@ class QRMGenerator {
     let oldMaxVolume = this.maxvolume;
     this.maxvolume = Math.min(1, Math.max(0, value));
     this.adjustPlayers(this.quantity, this.maxvolume, oldMaxVolume);
+  }
+  get Context() { return this.context; }
+  set Context(value) {
+    this.context = value;
+    if (this.players.length) {
+      this.players.forEach(p => p.initAudio(null, value));
+    }
   }
 
   setParams(quantity, maxvolume) {
@@ -1781,6 +1803,7 @@ class QRMGenerator {
       let nbplayers = this.players.length;
       for (let i=0; i<quantity-nbplayers; i++) {
         let p = new CWPlayer({no_noise: true});
+        p.context = this.context;
         this.players.push(p);
         if (this.active) {
           this.startPlayer(i);
@@ -1812,7 +1835,6 @@ class QRMGenerator {
   }
   randText(length) {
     let result = '';
-    length = Math.trunc(length);
     while (length--) {
       let c = null;
       do {
@@ -1835,7 +1857,7 @@ class QRMGenerator {
   async startPlayer(index) {
     if (!this.players[index]) return; // si l'index n'existe plus c'est qu'on a réduit la capacité
     let player = this.players[index];
-    let text = this.randText(10+40*Math.random());
+    let text = this.randText(10+Math.trunc(40*Math.random()));
     await CWPlayer.delay(Math.random()*3);
     if (!this.active || !this.players[index]) return; // si l'index n'existe plus c'est qu'on a réduit la capacité
     player.EffWPM = player.WPM = 15+20*Math.random();
