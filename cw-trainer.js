@@ -821,6 +821,7 @@ async function verifyKoch(e) { // KOCH MODE
     extractfn = (t) => cleanText(t).split(' ').filter(e => e.length > 0);
   }
   if (prosign && cwtext.value.trim().length) cwtext.value = cwtext.value.replaceAll(/\s+/g, ' ').replaceAll(/[{}]/g, '').split(' ').map(v=>`{${v}}`).join(' ');
+  else if (cw_options.lesson == LSN_QSO) PROSIGNS.map(p => p.replaceAll(/{|}/g, '')).forEach(p => cwtext.value = cwtext.value.replaceAll(new RegExp(`(?<!\{)\\b${p}\\b(?!\})`, 'g'), `{${p}}`));
   let inpt = extractfn(cwtext.value).map(e => e.replaceAll(/\s+/g, ' '));
   let verif = extractfn(cwplayer.Text).map(e => e.replaceAll(/\s+/g, ' '));
   let results = verif.map((a, i) => compareStrings(a, inpt[i] ?? ''));
