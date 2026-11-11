@@ -157,7 +157,7 @@ function reinitPMF() {
   window.wrandstat = els.reduce((acc, cur) => {acc[cur]=0;return acc;}, {});
   window.wrandtimes = [];
   pmf = Array(els.length).fill(1);
-  if (cw_options.weighlastletters) {
+  if (cw_options.weighlastletters && cw_options.lesson < LSN_LETTERS) {
     for (let i=pmf.length-1; i>=0&&i>=pmf.length-3; i--) {
       pmf[i]=Math.max(3, els.length/5);
     }
