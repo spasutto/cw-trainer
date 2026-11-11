@@ -367,7 +367,7 @@ async function generateText() {
         let tmps = els.reduce((acc, cur) => acc += wrandstat[cur], 0);
         console.log(`distribution (${tmps} tirages) :`, els.reduce((acc, cur) => {acc[cur]=round(100*wrandstat[cur]/tmps, 1);if(acc[cur] == 0) delete acc[cur];return acc;}, {}));
         let penal = els.filter((e,i) => pmf[i]>1).sort((a,b) => pmf[els.indexOf(b)]-pmf[els.indexOf(a)]).map((e, i) => `\n${e} (${round2(pmf[els.indexOf(e)])})`);
-        if (penal.length)  console.log('penalites : '+penal.join(''));
+        if (penal.length) console.log('penalites : '+penal.join(''));
       }
     } else if (cw_options.lesson==LSN_PROSIGNS) {
       cwgentext = generateRandomText(PROSIGNS, 1, cw_options.groupsnb);
@@ -1891,7 +1891,7 @@ async function updateValues() {
   if (cw_options.wrand && cw_options.simple_mode) reinitPMF();
   chkfreelisten.checked = !cw_options.wrand && cw_options.freelisten;
   chkweightlastletters.checked = cw_options.weighlastletters;
-  sellesson.disabled = cw_options.freelisten || cw_options.learn_mode;
+  cfgcustom.disabled = sellesson.disabled = cw_options.freelisten || cw_options.learn_mode;
   nxtlesson.disabled = cw_options.lesson >= maxlessons || sellesson.disabled;
   prevlesson.disabled = cw_options.lesson <= 1 || sellesson.disabled;
   zoneresult.style.display = 'none';
