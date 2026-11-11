@@ -688,10 +688,11 @@ class CWPlayer {
       if (i++%2==0) {
         v = 0.75+0.25*Math.random();
       } else {
-        v = 0.4-0.4*this.options.qsb*Math.random();
+        // 0.4 d'excursion, avec un mini entre 0 (qsb=1) et 0.5 (qsb=0)
+        v = 0.2*Math.random() + (0.5-0.5*this.options.qsb);
       }
       //v = 1-this.options.qsb*Math.random();
-      ct += 1+Math.random()*2; // Min 1 seconde
+      ct += 1+Math.random()*2+2*this.options.qsb; // Min 1 seconde
       this.gainqsb.gain.linearRampToValueAtTime(v, ct);
     }
   }
@@ -1648,71 +1649,84 @@ class NoiseGainNode/* extends GainNode*/ {
   static get MAX_NOISE() { return 0.85; }
   static get NOISE_PROC() {
     return `
-    const randomWhite = () => Math.random() * 2 - 1;
-    class NoiseGen extends AudioWorkletProcessor {
-      constructor() {
-        super();
-        this.lastOut = 0.0;
-        this.currentQuantity=-1;
-      }
-      static get parameterDescriptors () {
-        return [{
-          name: 'quantity',
-          defaultValue: 0.5,
-          minValue: 0,
-          maxValue: `+NoiseGainNode.MAX_NOISE+`,
-          automationRate: "k-rate"
-        },{
-          name: 'volume',
-          defaultValue: 1,
-          minValue: 0,
-          maxValue: 1,
-          automationRate: "a-rate"
-        }];
-      }
-      process([inputs], [outputs], parameters) {
-        if (this.currentQuantity != parameters.quantity[0]) {
-          this.port.postMessage(parameters.quantity[0]);
-          this.currentQuantity = parameters.quantity[0];
-        }
-        let input = inputs[0];
-        let output = outputs[0];
-        if (parameters.quantity[0]) {
-          // Noise
-          for (let i = 0; i < output.length; ++i) {
-            let white = Math.random() * 2 - 1;
-            output[i] = (this.lastOut + (0.02 * white)) / 1.02;
-            this.lastOut = output[i];
-            output[i] *= 3.5; // (roughly) compensate for gain
-          }
-          // Drive
-          let drive = 0.2*parameters.quantity[0]/`+NoiseGainNode.MAX_NOISE+`;
-          let drv = Math.pow(0.05,drive);
-          for (let i = 0; i < output.length; ++i) {
-            let d=output[i];
-            if(d<0)
-              output[i]=-Math.pow(-d,drv);
-            else
-              output[i]=Math.pow(d,drv);
-          }
-          for (let c = 1; c < outputs.length; ++c) {
-            outputs[c].set(outputs[0]);
-          }
-        }
-        // Mix input
-        if (inputs.length) {
-          for (let c = 0; c < outputs.length; ++c) {
-            for (let i = 0; i < outputs[c].length; ++i) {
-              outputs[c][i] = parameters.quantity[0]*outputs[c][i] + parameters.volume[0]*(1-parameters.quantity[0])*inputs[c][i];
-            }
-          }
-        }
+const randomWhite = () => Math.random() * 2 - 1;
+class NoiseGen extends AudioWorkletProcessor {
+  constructor() {
+    super();
+    this.lastOut = 0.0;
+    this.currentQuantity = -1;
+    // état du filtre passe-haut
+    this.hpPrevIn = 0.0;
+    this.hpPrevOut = 0.0;
+  }
+  static get parameterDescriptors() {
+    return [{
+      name: 'quantity',
+      defaultValue: 0.5,
+      minValue: 0,
+      maxValue: `+NoiseGainNode.MAX_NOISE+`,
+      automationRate: "k-rate"
+    }, {
+      name: 'cutoff',          // fréquence de coupure du passe-haut (Hz)
+      defaultValue: 500,
+      minValue: 1,
+      maxValue: 5000,
+      automationRate: "k-rate"
+    }];
+  }
+  process([inputs], [outputs], parameters) {
+    if (this.currentQuantity != parameters.quantity[0]) {
+      this.port.postMessage(parameters.quantity[0]);
+      this.currentQuantity = parameters.quantity[0];
+    }
+    let input = inputs[0];
+    let output = outputs[0];
+    if (parameters.quantity[0]) {
+      // Coefficient du passe-haut : y[n] = a * (y[n-1] + x[n] - x[n-1])
+      const a = Math.exp(-2 * Math.PI * parameters.cutoff[0] / sampleRate);
 
-        return true;
+      // Noise
+      for (let i = 0; i < output.length; ++i) {
+        let white = Math.random() * 2 - 1;
+        // intégrateur (état interne non filtré)
+        this.lastOut = (this.lastOut + (0.02 * white)) / 1.02;
+        let x = this.lastOut;
+
+        // Passe-haut
+        let y = a * (this.hpPrevOut + x - this.hpPrevIn);
+        this.hpPrevIn = x;
+        this.hpPrevOut = y;
+
+        output[i] = y * 3.5; // (roughly) compensate for gain
+      }
+      // Drive
+      let drive = 0.2 * parameters.quantity[0] / `+NoiseGainNode.MAX_NOISE+`;
+      let drv = Math.pow(0.05, drive);
+      for (let i = 0; i < output.length; ++i) {
+        let d = output[i];
+        if (d < 0)
+          output[i] = -Math.pow(-d, drv);
+        else
+          output[i] = Math.pow(d, drv);
+      }
+      for (let c = 1; c < outputs.length; ++c) {
+        outputs[c].set(outputs[0]);
       }
     }
-    registerProcessor("NoiseGen", NoiseGen);
-    `;
+    // Mix input
+    if (inputs.length) {
+      for (let c = 0; c < outputs.length; ++c) {
+        for (let i = 0; i < outputs[c].length; ++i) {
+          outputs[c][i] = parameters.quantity[0] * outputs[c][i] + (1 - parameters.quantity[0]) * inputs[c][i];
+        }
+      }
+    }
+
+    return true;
+  }
+}
+registerProcessor("NoiseGen", NoiseGen);
+`;
   }
   constructor(context, options) {
     if (!context) throw new Error('NoiseGenerator : No AudioContext');
@@ -1731,30 +1745,9 @@ class NoiseGainNode/* extends GainNode*/ {
     await this.context.audioWorklet.addModule('data:text/javascript,'+encodeURI(NoiseGainNode.NOISE_PROC));
     this.noise = new AudioWorkletNode(this.context, 'NoiseGen');
     this.quantity = this.noise.parameters.get('quantity');
-    this.volume = this.noise.parameters.get('volume');
+    this.cutoff = this.noise.parameters.get('cutoff');
     let p = this.noise.port;
-    p.addEventListener('message', (e) => {
-      clearTimeout(this.volto);
-      this.volume.cancelAndHoldAtTime(this.context.currentTime);
-      if (this.quantity.value) {
-        this.volumeVar();
-      } else {
-        this.volume.value = 1;
-      }
-    });
     p.start();
-  }
-  volumeVar() {
-    let vol = 1;
-    let dly = 1;
-    let prevvol = this.volume.value;
-    this.volume.cancelAndHoldAtTime(this.context.currentTime);
-    if (this.quantity.value) {
-      vol = Math.min(1, (0.9-this.quantity.value)+Math.random());
-      dly = 1+Math.random()*5*prevvol; // volume bas ==> délai court
-    }
-    this.volume.linearRampToValueAtTime(vol, this.context.currentTime+dly);
-    this.volto = setTimeout(this.volumeVar.bind(this), dly*1000);
   }
   connect(dstNode, inputNum, outputNum) {
     return this.OutputNode.connect(dstNode, inputNum, outputNum);
