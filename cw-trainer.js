@@ -1755,9 +1755,9 @@ function onkeydown(e) {
       displayMorseCode(true);
       e.preventDefault();
     }
-  } else if (!e.ctrlKey && keyCode === keycodes.f5) {
+  } else if (e.ctrlKey && keyCode === 82) { // 82 == R
     e.preventDefault();
-    if (confirm('Warning, current test will be reset !')) updateValues();
+    updateValues();
   } else if (e.ctrlKey && keyCode === keycodes.enter) {
     e.preventDefault();
     verifyCW();
