@@ -695,6 +695,7 @@ async function verifyLearn(e) {
 async function verifySimple(e) {
   if (e?.keyCode == 16 || (e?.key.length>1 && e?.key != 'Unidentified') || !iptfree.value.length) { // shift et autres touches non imprimables
     cwchecking = false;
+    iptfree.value = '';
     return;
   }
   let cwcar = iptfree.value;
@@ -799,7 +800,7 @@ async function verifySimple(e) {
     let color = (q) => `rgb(${round(255*q)},${round(255*(0.75-q/2))},0)`;
     let h = lpmf.map((l,i) => {
       let p = Math.min(6, l.p);
-      return `<span class="histocdf" style="height: ${3*p}px; background:${color(p/6)}">&nbsp;</span>${l.l} `;
+      return `<span class="histocdf" style="height: ${3*p}px; background:${color(p/6)}" title="${Math.round(l.p*10)/10} times more likely to occur">&nbsp;</span>${l.l} `;
     }).join('');
     zoneresultfree.innerHTML += `<div>${h}</div>`;
   }
