@@ -1036,7 +1036,8 @@ async function selfDownload() {
     script = await tryMinify(script);
     if (compress) {
       let compressfn = (str) => Base64.fromUint8Array(fflate.compressSync(fflate.strToU8(str)));
-      script = `try {
+      script = `var cwt_packed=true;
+try {
   ${compressjs}
   ${base64js}
   let js='${compressfn(script)}';
@@ -1466,7 +1467,7 @@ window.addEventListener("load", async () => {
   }));
   customsetclosebtn.addEventListener("click", displayCustomSet);
   selfdl.addEventListener("click", selfDownload);
-  selfdl.style.visibility = window.location.href.toLowerCase().startsWith('http') ? 'visible' : 'hidden';
+  selfdl.style.visibility = !window.cwt_packed && window.location.href.toLowerCase().startsWith('http') ? 'visible' : 'hidden';
   document.addEventListener("mouseup",  onmouseup);
   document.body.addEventListener("keydown",  onkeydown);
   document.body.addEventListener("keyup", onkeyup);
