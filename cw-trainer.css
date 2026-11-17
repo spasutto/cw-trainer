@@ -441,6 +441,14 @@ input[type="range"] {
   color: transparent;
   text-shadow: 0 0 0 white;
 }
+#zoneresultfree.waiting {
+  animation: blinker 1s linear infinite;
+}
+@keyframes blinker {
+  50% {
+    opacity: 0;
+  }
+}
 #keyboard {
   display: none;
   margin-top : 3px;

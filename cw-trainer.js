@@ -697,8 +697,11 @@ async function verifySimple(e) {
     cwchecking = false;
     return;
   }
+  let updateStats = () => zoneresultfree.innerHTML = `Success rate : ${round(100*(freetotal-freeerr)/freetotal, 1)}% (${window.freetotal} symbols)`;
   let cwcar = iptfree.value;
   iptfree.value = '';
+  zoneresultfree.classList.remove('waiting');
+  if (zoneresultfree.innerHTML.startsWith('Press')) zoneresultfree.innerHTML = '';
   iptfree.classList.add('nocarret');
   if (cw_options.freelisten || cwcar==' ') {
     cwplayer.stop();
@@ -738,6 +741,7 @@ async function verifySimple(e) {
       }
     }
     iptfree.value = '';
+    updateStats();
   } else {
     if (window.freefirsttry) {
       if (cw_options.wrand) {
@@ -784,11 +788,11 @@ async function verifySimple(e) {
       iptfree.value = '';
       cwchecking = false;
     });
+    updateStats();
     window.freetotal++;
     window.freefirsttry = true;
   }
 
-  zoneresultfree.innerHTML = `Success rate : ${round(100*(freetotal-freeerr)/freetotal, 1)}% (${window.freetotal-1} symbols)`;
   if (cw_options.wrand && cw_options.displaystatistics) {
     let lpmf = pmf.map((v,i) => ({'l':els[i], 'p':v})).filter(v => v.p>1).sort((a,b) => b.p-a.p);
     const maxitems = 140;
@@ -1862,6 +1866,7 @@ async function updateValues() {
   }
   cwplayer.PreDelay = cw_options.learn_mode || cw_options.simple_mode || cw_options.freelisten ? 0.05 : 2;
   iptfree.value = cwtext.value = '';
+  zoneresultfree.classList.add('waiting');
   getElements("label[for='seleffwpm'], #seleffwpm").forEach(e => {
     e.disabled = cw_options.simple_mode || cw_options.learn_mode;
     let title = e.title;
