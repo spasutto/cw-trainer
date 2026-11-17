@@ -700,7 +700,7 @@ async function verifySimple(e) {
   let updateStats = () => zoneresultfree.innerHTML = `Success rate : ${round(100*(freetotal-freeerr)/freetotal, 1)}% (${window.freetotal} symbols)`;
   let cwcar = iptfree.value;
   iptfree.value = '';
-  zoneresultfree.classList.remove('waiting');
+  zoneresultfree.classList.remove('blinking');
   if (zoneresultfree.innerHTML.startsWith('Press')) zoneresultfree.innerHTML = '';
   iptfree.classList.add('nocarret');
   if (cw_options.freelisten || cwcar==' ') {
@@ -1688,11 +1688,18 @@ function displayMorseCode(e) {
     }
     morsefilt.addEventListener('keyup', event => {
       let symbol = morsefilt.value.trim();
-      let method = '';
+      let method = '', match = false;
       mletters.forEach(mletter => {
-        method = (!symbol.length || mletter.innerText.indexOf(symbol) < 0) ? 'remove' : 'add';
+        mletter.previousElementSibling.classList.remove('blinking');
+        mletter.classList.remove('blinking');
+        match = symbol.length && mletter.innerText.indexOf(symbol) > -1;
+        method = match ? 'add' : 'remove';
         mletter.previousElementSibling.classList[method]('filtered');
         mletter.classList[method]('filtered');
+        if (match && mletter.innerText == symbol) {
+          mletter.previousElementSibling.classList.add('blinking');
+          mletter.classList.add('blinking');
+        }
       });
     });
     if (window.localStorage) {
@@ -1866,7 +1873,7 @@ async function updateValues() {
   }
   cwplayer.PreDelay = cw_options.learn_mode || cw_options.simple_mode || cw_options.freelisten ? 0.05 : 2;
   iptfree.value = cwtext.value = '';
-  zoneresultfree.classList.add('waiting');
+  zoneresultfree.classList.add('blinking');
   getElements("label[for='seleffwpm'], #seleffwpm").forEach(e => {
     e.disabled = cw_options.simple_mode || cw_options.learn_mode;
     let title = e.title;

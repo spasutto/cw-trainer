@@ -441,7 +441,7 @@ input[type="range"] {
   color: transparent;
   text-shadow: 0 0 0 white;
 }
-#zoneresultfree.waiting {
+.blinking {
   animation: blinker 1s linear infinite;
 }
 @keyframes blinker {
