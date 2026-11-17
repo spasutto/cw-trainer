@@ -996,7 +996,7 @@ async function selfDownload() {
     loading(false);
     return;
   }
-  if (window.cwt_packed && window.freetext) {
+  if (!ot && window.cwt_packed && window.freetext) {
     ot = window.freetext;
   }
   if (!window.cwt_packed) {
@@ -1035,7 +1035,7 @@ async function selfDownload() {
     if (ot) {
       [compressjs, base64js] = await tryLoadFFlate();
       compress = typeof window?.fflate?.compressSync === 'function' && typeof window?.Base64?.fromUint8Array === 'function';
-      script += 'var freetext = `'+ot.replaceAll('`', '\\`')+'`;\n';
+      script += 'var cwt_freetextpacked=true;var freetext = `'+ot.replaceAll('`', '\\`')+'`;\n';
     }
     if (!compress && css.length) {
       page = page.replace('\u003c/body\u003e', '\u003cstyle\u003e\n'+css.replaceAll('$', '$$$$')+'\u003c/style\u003e\n\u003c/body\u003e\n');
@@ -1068,7 +1068,7 @@ async function selfDownload() {
       }
       page = page.replace(occ[0][0], '\u003cscript\u003e\n'+script.replaceAll('$', '$$$$')+'\u003c/script\u003e');
     }
-  } else if (ot) {
+  } else if (ot && !window.cwt_freetextpacked) {
     page = page.replace('\u003c/script\u003e', 'var freetext = `'+ot.replaceAll('`', '\\`')+'`;\n\u003c/script\u003e');
   }
   let url = window.URL.createObjectURL(new Blob([page], {type: 'text/plain'}));
