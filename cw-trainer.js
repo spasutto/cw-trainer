@@ -930,12 +930,13 @@ async function verifyKoch(e) { // KOCH MODE
   zonerestext.innerHTML = `<h5><span id="scoreperc">${perc}%</span> success rate</h5><small>(${stats.join(', ')})</small><BR>`;
   getElements('#scoreperc')[0].classList.add(perc<80?'error-text':perc<90?'warning-text':'ok-text');
   let restable = '<table><th>original</th><th>input</th><th>copy</th>';
+  let barcol = (per, col) => `<div style="width: ${per}%;background-color: ${col};">&nbsp;</div>`;
   results.forEach(r => {
     restable += `<tr><td><span><a href="#" title="listen" name="listen" onclick="listen('${r.str1.replaceAll('<BR>', ' ').replaceAll('\'', '\\\'').replaceAll('"', '&quot;')}', this);">${r.str1}</a></span></td>`;
     restable += `<td><a href="#" title="listen" name="listen" onclick="listen('${r.str2.replaceAll('\'', '\\\'').replaceAll('"', '&quot;')}', this);">${r.str2html}</a></td>`;
     let color = coefColor_rg(r.kqual, 0.3);
     let kqual = Math.round(r.kqual*100);
-    restable += `<td title="${kqual}% copy"><div style="width: ${kqual}%;background-color: ${color};">&nbsp;</div>${r.sequences.reduce((a,c) => a+=c.text.replaceAll(' ','').length, 0)}</td></tr>`;
+    restable += `<td title="${kqual}% copy">${barcol(100, coefColor_rg(r.kqual, 0.1))}${barcol(kqual, color)}${r.sequences.reduce((a,c) => a+=c.text.replaceAll(' ','').length, 0)}</td></tr>`;
   });
   restable += '</table>';
   zonerestext.innerHTML += restable;
