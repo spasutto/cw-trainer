@@ -72,6 +72,7 @@ const LSN_CALLSIGNS = 46;
 const LSN_SIMPLE_PHRASES = 47;
 const LSN_QSO = 48;
 const LSN_FREE_TEXT = 49;
+const MAX_GROUP_LEN = 11;
 const prosignsmap = new Map();
 const prosignsmaprev = new Map();
 var cwchecking = false;
@@ -226,13 +227,13 @@ function generateRandomString(chars, len) {
   }).join('');
 }
 function generateRandomText(chars, grouplen, groupsnb) {
-  if (grouplen != -1) grouplen = Math.max(1, Math.min(8, grouplen));
-  return Array.apply(null, Array(groupsnb)).map(() => generateRandomString(chars, grouplen<0?irand(1, 8):grouplen)).join(' ');
+  if (grouplen != -1) grouplen = Math.max(1, Math.min(MAX_GROUP_LEN, grouplen));
+  return Array.apply(null, Array(groupsnb)).map(() => generateRandomString(chars, grouplen<0?irand(1, MAX_GROUP_LEN):grouplen)).join(' ');
 }
 async function getUrl(url, bypass_cache=false, binary=false) {
   let rep = null;
   try {
-    rep = await fetch(url, {'cache': bypass_cache?'reload':'force-cache'});
+    rep = await fetch(url, {'cache': window.navigator.onLine&&bypass_cache?'reload':'force-cache'});
     if (rep.status < 200 || rep.status >= 300) throw new Error();
     if (!binary) {
       rep = await rep.text();
@@ -240,6 +241,7 @@ async function getUrl(url, bypass_cache=false, binary=false) {
       rep = await rep.arrayBuffer();
     }
   } catch(e) {
+    console.error(e);
     rep=null;
   }
   return rep;
@@ -962,6 +964,10 @@ async function tryMinify(js) {
     try {
       let minifierjs = await Promise.all(MINIFIER_URLS.map(url => getUrl(url, true)));
       minifierjs.forEach(eval);
+      if (typeof window.Terser?.minify !== 'function') {
+        res(js);
+        return;
+      }
       let minjs = (await Terser.minify(js))?.code ?? js;
       res(minjs);
     } catch (e) {
@@ -984,6 +990,15 @@ async function tryLoadFFlate() {
     }
   });
 }
+function download(data, filename="cw_trainer.html") {
+  let url = window.URL.createObjectURL(new Blob([data], {type: 'text/plain'}));
+  let a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();    
+  a.remove();
+}
 async function selfDownload() {
   loading();
   let dlpromises = [getUrl(window.location.href, true)];
@@ -992,8 +1007,14 @@ async function selfDownload() {
   }
   let [page, ot] = await Promise.all(dlpromises).catch(console.error);
   if (!page) {
-    message('no connection !', 'error');
     loading(false);
+    if (!window.cwt_packed) {
+      message('no connection !', 'error');
+    } else {
+      page = document.querySelectorAll( '*' )[0].outerHTML;
+      download(page);
+      alert('you seem to be offline ; a copy of the current page has been used');
+    }
     return;
   }
   if (!ot && window.cwt_packed && window.freetext) {
@@ -1034,7 +1055,7 @@ async function selfDownload() {
     let compress = false, compressjs = '', base64js = '';
     if (ot) {
       [compressjs, base64js] = await tryLoadFFlate();
-      compress = typeof window?.fflate?.compressSync === 'function' && typeof window?.Base64?.fromUint8Array === 'function';
+      compress = typeof window.fflate?.compressSync === 'function' && typeof window.Base64?.fromUint8Array === 'function';
       script += 'var cwt_freetextpacked=true;var freetext = `'+ot.replaceAll('`', '\\`')+'`;\n';
     }
     if (!compress && css.length) {
@@ -1071,13 +1092,7 @@ async function selfDownload() {
   } else if (ot && !window.cwt_freetextpacked) {
     page = page.replace('\u003c/script\u003e', 'var freetext = `'+ot.replaceAll('`', '\\`')+'`;\n\u003c/script\u003e');
   }
-  let url = window.URL.createObjectURL(new Blob([page], {type: 'text/plain'}));
-  let a = document.createElement('a');
-  a.href = url;
-  a.download = "cw_trainer.html";
-  document.body.appendChild(a);
-  a.click();    
-  a.remove();
+  download(page);
   loading(false);
 }
 function generateKeyboard() {
@@ -1117,7 +1132,7 @@ function decodeParam(val, i) {
       cw_options.eff = Math.max(CWPlayer.MIN_WPM, Math.min(CWPlayer.MAX_WPM, Math.trunc(val)));
       break;
     case 3:
-      cw_options.grouplen = Math.max(-1, Math.min(8, Math.trunc(val)));
+      cw_options.grouplen = Math.max(-1, Math.min(MAX_GROUP_LEN, Math.trunc(val)));
       if (cw_options.grouplen == 0) cw_options.grouplen = 1;
       break;
     case 4:
@@ -1376,6 +1391,11 @@ window.addEventListener("load", async () => {
   });
   window.modelinks = getElements("a[name='modes']");
   setMinMax();
+  let grplen_options = '';
+  for (let i=1; i<=MAX_GROUP_LEN; i++) {
+    grplen_options += `<option value="${i}">${i}</option>`;
+  }
+  grplen.innerHTML += grplen_options;
   window.maxlessons = Math.max.apply(null, getElements('#sellesson>option').map(o => parseInt(o.value, 10)));
   loadParams();
   sellesson.value = cw_options.lesson;
