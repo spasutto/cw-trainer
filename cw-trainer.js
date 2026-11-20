@@ -406,6 +406,7 @@ async function generateText() {
       cwgentext = generateRandomText(letters, cw_options.grouplen, cw_options.groupsnb);
     }
     cwplayer.Text = cwgentext;
+    cwplayer.Index=-1;
     return cwgentext;
   } else {
     cwplayer.Text = cw_options.simple_mode ? iptfree.value : cw_options.learn_mode ? iptlearn.Value : cwtext.value;
@@ -781,7 +782,7 @@ async function verifySimple(e) {
       cwplayer.stop();
       await CWPlayer.delay(0.25);
     }
-    generateText();
+    await generateText();
     simplemode_starttime = new Date(); // au cas où on répond avant la fin du prochain play()
     let p = [CWPlayer.delay(0.35), cwplayer.play().then(() => simplemode_starttime = new Date())];
     Promise.race(p).then(() => {
@@ -1860,6 +1861,7 @@ function onkeyup(e) {
           if (prevword) prevword++;
         }
         cwplayer.Index = prevword;
+        cwplayer.CurrentTime = Math.max(-1, cwplayer.CurrentTime-0.2);
         break;
       case 'indexinc':
         let nextword = cwplayer.Index;
@@ -1875,6 +1877,7 @@ function onkeyup(e) {
           nextword = Math.min(++nextword, cwplayer.TextArray.length-1);
         }
         cwplayer.Index = nextword;
+        cwplayer.CurrentTime = Math.max(-1, cwplayer.CurrentTime-0.2);
         break;
     }
     key.pressed = false;

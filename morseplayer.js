@@ -309,24 +309,21 @@ class CWPlayer {
     value = CWPlayer.cleanText(value ?? '');
     let oldtext = this.text;
     if (value == oldtext) return;
+    this.text = value;
+    this.updateTextArray();
+    this.totaltime = this.getDuration();
     // si on modifie le texte qui a déjà été joué on remet la lecture à 0
-    if (this.curti>=0 && (value.length<=this.curti || value.substring(0, this.curti) != this.text.substring(0, this.curti))) {
-      this.text = value;
-      this.updateTextArray();
-      this.totaltime = this.getDuration();
-      this.fireEvent('parameterchanged', 'Text');
+    if (this.curti<=0 || (value.length<=this.curti || value.substring(0, this.curti) != oldtext.substring(0, this.curti))) {
       this.Index = -1;
+      this.fireEvent('parameterchanged', 'Text');
     } else {
-      this.text = value;
-      this.updateTextArray();
-      this.totaltime = this.getDuration();
       this.fireEvent('parameterchanged', 'Text');
       this.fireEvent('indexchanged', this.curti);
       if (this.playing) {
         //this.itime.findIndex(s => s >= this.context.currentTime + 0.100);
         //let startindex = this.curti+2;
         let startindex = Math.min(this.curti+2, CWPlayer.sharedStart(oldtext, value).length);
-        //cwplayer.Text='aaaa';window.setTimeout(()=>{cwplayer.Text='aann';}, 1400);
+        //test : cwplayer.Text='aaaa';cwplayer.play();window.setTimeout(()=>{cwplayer.Text='aann';}, 1400);
         //console.log(`rescheduling @${startindex}, silence starting from ${this.itime[startindex-1]} (${(this.context.currentTime-this.starttime-this.totalpausetime)+this.itime[startindex-1]}) (${oldtext}/${value})`, this.itime);
         //this.gain.gain.cancelScheduledValues((this.context.currentTime-this.starttime-this.totalpausetime)+this.itime[startindex-1]);
         this.schedule(null, startindex);
@@ -339,13 +336,14 @@ class CWPlayer {
   set Index(value) {
     value = CWPlayer.parseint(value);
     value = Math.max(-1, Math.min(this.text.length, value));
-    if (value == this.curti) return;
+    let oldval = this.curti;
     this.curti = value;
     this.totalpausetime = 0;
     let now = this.context?.currentTime ?? 0;
     let time = value<0 ? 0 : this.itime[value];
     this.starttime = now-time;
     this.lastpausetime = now;
+    if (value == oldval) return;
     this.fireEvent('indexchanged', this.curti);
     if (this.playing) {
       this.schedule(time);
@@ -1562,7 +1560,11 @@ class MorsePlayer extends HTMLElement {
     return tf+s;
   }
   updateDisplayTime() {
-    this.playperc.style.width = (100*this.cwplayer.CurrentTime/this.cwplayer.TotalTime)+'%';
+    let perc = 0;
+    if (this.cwplayer.TotalTime>0) {
+      perc = 100*this.cwplayer.CurrentTime/this.cwplayer.TotalTime;
+    }
+    this.playperc.style.width = perc+'%';
     this.playtime.innerHTML = `${this.formatTime(this.cwplayer.CurrentTime)} / ${this.formatTime(this.cwplayer.TotalTime)}`;
     if (this.cwplayer.Playing || this.cwplayer.Paused) requestAnimationFrame(this.updateDisplayTime.bind(this));
   }
