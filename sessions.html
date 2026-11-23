@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1, interactive-widget=resizes-content"/>
+    <title>CW Trainer - Sessions</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.6.1/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+  </head>
+<body>
+  <h3>Sessions</h3>
+  <canvas id="sessions"></canvas>
+  <script>
+const ctx = document.getElementById('sessions').getContext('2d');
+const sessions = JSON.parse(localStorage.getItem("sessions"));
+var data = null;
+if (sessions) {
+  data = Object.keys(sessions).map(k => ({x: k, y: sessions[k].time/60}));
+}
+
+new Chart(ctx, {
+  type: 'line',
+  data: {
+    datasets: [{
+      label: 'session time',
+      data: data
+    }]
+  },
+  options: {
+    scales: {
+      x: {
+        type: 'time',
+        time: {
+          unit: 'day',
+          tooltipFormat: 'dd/MM/yyyy', 
+          displayFormats: {
+            day: 'dd/MM/yyyy'
+          }
+        },
+        ticks: {
+          source: 'data'
+        }
+      },
+      y: {
+        beginAtZero: true
+      }
+    },
+    plugins: {
+      tooltip: {
+        callbacks: {
+          label: function(context) {
+            const label = context.dataset.label || '';
+            const valeur = Math.round(context.parsed.y*10)/10;
+            return `${label} : ${valeur} min`;
+          }
+        }
+      }
+    }
+  }
+});
+  </script>
+</body>
+</html>
